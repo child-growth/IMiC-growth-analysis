@@ -12,16 +12,16 @@ drop_int_arms <- function(d){
   d=d[-which(d$studyid=="PROBIT" & d$tr!="Control"),]
   d=d[-which(d$studyid=="iLiNS-Zinc" & d$tr!="Control"),]
   d=d[-which(d$studyid=="SAS-CompFeed" & d$tr!="Control"),]
-  #d=d[-which(d$studyid=="COHORTS" & d$tr=="Other"),] #no longer included because < 1990
   return(d)
 }
 
-
+ghapdata_dir
 #--------------------------------------------
 # Read in master data file
 #--------------------------------------------
 
-d <- readRDS(paste0(ghapdata_dir, "ki-manuscript-dataset.rds"))
+d <- readRDS(paste0(ghapdata_dir, "FINAL_only_included_studies.rds"))
+#d <- readRDS(paste0(ghapdata_dir, "ki-manuscript-dataset.rds"))
 dim(d)
 
 

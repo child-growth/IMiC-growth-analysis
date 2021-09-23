@@ -1,12 +1,14 @@
 
 #-----------------------------------------------------------------------------------------
 # Process FINAL dataset into a dataset of covariates to be used in the exposure/risk factor
-# analysis in the causes and consequences manuscript. 
+# analysis. 
 #
 # Output: Single dataset with one row per child and all baseline covariates
 #         Time-varying covariates and anthropometry measures processed in a seperate script.
 #
 # Author: Andrew Mertens (amertens@berkeley.edu)
+
+#NOTE: THIS SCRIPT AND THESE COVARIATES WILL CHANGE FOR IMiC
 #-----------------------------------------------------------------------------------------
 
 
@@ -81,10 +83,6 @@ d <- d %>% group_by(studyid, country, subjid) %>%
 
 table(is.na(d$birthwt), d$agedays > 7)
 
-#df <- d %>% filter(studyid=="MAL-ED")
-# df <- d %>% filter(studyid == "Burkina Faso Zn", country == "BURKINA FASO", subjid == 117101)
-# ifelse(length(first(df$haz[complete.cases(df$haz)]))==0,NA,first(df$haz[complete.cases(df$haz)]))
-
 
 #keep where anthro is measured on first 7 days, but birth anthro is not recorded
 d$birthLAZ[d$agedays>7] <- NA 
@@ -97,84 +95,6 @@ d <- d %>% subset(., select=-c(agedays, haz, waz, whz))
 
 table(paste0(d$studyid,"-",d$country), d$enwast)
 table(paste0(d$studyid,"-",d$country), d$enstunt)
-
-
-
-#--------------------------------------------------------
-#Merge in birthmonth from provide
-#--------------------------------------------------------
-
-gc()
-d$subjid <- as.numeric(d$subjid)
-gc()
-
-
-provide <- readRDS(paste0(ghapdata_dir, "covariate creation intermediate datasets/derived covariate datasets/PROVIDE_birthmonth.rds"))
-provide$studyid <- "PROVIDE"
-provide$birthmon_provide <- as.numeric(as.character(provide$birthmon_provide))
-
-unique(d$studyid)
-table(is.na(d$brthmon[d$studyid=="PROVIDE"]))
-d <- left_join(d, provide, by = c("studyid", "subjid"))
-table(d$birthmon_provide)
-d$brthmon[d$studyid=="PROVIDE"] <- d$birthmon_provide[d$studyid=="PROVIDE"]
-table(is.na(d$brthmon[d$studyid=="PROVIDE"]))
-table((d$brthmon[d$studyid=="PROVIDE"]))
-d <- d %>% subset(., select = -c(birthmon_provide))
-
-
-#--------------------------------------------------------
-# Merge in household assets-based wealth index
-# (Calculated from first principal component of a PCA analysis)
-# of asset indicators
-#--------------------------------------------------------
-
-#convert subjid to character for the merge with covariate dataset
-d$subjid <- as.character(d$subjid)
-
-#load in pca results
-pca <- readRDS(paste0(deriveddata_dir,"allGHAPstudies-HHwealth.rds"))
-
-#Strip grant identifiers from study id's
-pca$studyid<- gsub("^k.*?-" , "", pca$studyid)
-
-table(pca$studyid, pca$hhwealth_quart)
-
-#Merge into main dataframe
-pca <- as.data.frame(pca)
-pca$subjid <-as.character(pca$subjid)
-
-dim(pca)
-dim(d)
-d <- left_join(d, pca, by=c("studyid", "country", "subjid"))
-dim(d)
-#Note, only the COHORTS study has SES categories from a PCA, but no/incomplete indicators to calculate PCA from
-#Clean and merge that data here:
-#merge in ses variable for COHORTS for all countries except INDIA. The other countries have wealth based on 
-#an asset-based PCA index, but India is based on father's occupation.
-d$hhwealth_quart <- as.character(d$hhwealth_quart)
-chtses<- d$ses[is.na(d$hhwealth_quart) & d$studyid=="COHORTS" & d$country!="INDIA"]
-chtses[chtses==""] <- NA
-chtses[chtses=="Low"] <- "Wealth Q1"
-chtses[chtses=="Lower-mi"] <- "Wealth Q2"
-chtses[chtses=="Middle"] <- "Wealth Q3"
-chtses[chtses=="Upper-mi"] <- "Wealth Q4"
-chtses[chtses=="Upper"] <- "Wealth Q4"
-
-d$hhwealth_quart[is.na(d$hhwealth_quart) & d$studyid=="COHORTS" & d$country!="INDIA"] <-chtses
-d$hhwealth_quart <- factor(d$hhwealth_quart)
-
-#Check and make sure all merged correctly
-df <- d %>% filter(!is.na(hhwealth_quart)) %>% group_by(studyid, subjid) %>% slice(1)
-pca_unique <- pca %>% filter(!is.na(hhwealth_quart)) %>% group_by(studyid, subjid) %>% slice(1)
-table(pca_unique$studyid, pca_unique$hhwealth_quart)
-table(df$studyid, df$hhwealth_quart)
-
-#remove space for longbow
-d$hhwealth_quart <- as.character(d$hhwealth_quart)
-d$hhwealth_quart <- gsub(" ", "", d$hhwealth_quart)
-d$hhwealth_quart <- factor(d$hhwealth_quart, levels=c("WealthQ4","WealthQ3","WealthQ2","WealthQ1"))
-table(d$hhwealth_quart)
 
 #--------------------------------------------------------------------------
 # Code Food security
