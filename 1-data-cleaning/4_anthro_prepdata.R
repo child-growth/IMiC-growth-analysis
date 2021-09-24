@@ -54,7 +54,7 @@ table(d$studyid,d$country)
 
 
 
-#C+C manuscript children dropped for outlier exclusions
+#Children dropped for outlier exclusions
 df <- d %>% filter(!is.na(haz)|!is.na(whz)|!is.na(waz))
 nchild_cc <- nrow(df %>% filter(measurefreq!="yearly" & agedays < 24*30.4167) %>% distinct(studyid, subjid))
 no_outliers_df <- df %>% filter(haz >= -6 & haz <=6, 
@@ -94,13 +94,6 @@ stunt_mort <- d %>% filter(haz >= -6 & haz <=6, !is.na(haz)) %>%
 
 #Observations dropped
 nobs - nrow(stunt_mort)
-
-
-#C+C manuscript dropped
-dropped <- nobsq_cc - nrow(stunt_mort %>% filter(measurefreq!="yearly" & agedays < 24*30.4167, !is.na(haz)) %>% ungroup())
-dropped
-dropped/nobsq_cc * 100 #percentage dropped
-
 
 #Stunting manuscript dropped
 dropped <- nobsq - nrow(stunt_mort %>% ungroup() %>% filter(measurefreq!="yearly" & agedays < 24*30.4167) %>% do(drop_int_arms(.)))
@@ -257,12 +250,6 @@ stunt <- droplevels(stunt)
 wast <- droplevels(wast)
 waz <- droplevels(waz)
 co <- droplevels(co)
-
-#Drop i-Lins Zinc as the control arm does not have quarterly measures
-stunt <- stunt %>% filter(studyid!="iLiNS-Zinc")
-wast <- wast %>% filter(studyid!="iLiNS-Zinc")
-waz <- waz %>% filter(studyid!="iLiNS-Zinc")
-co <- co %>% filter(studyid!="iLiNS-Zinc")
 
 saveRDS(stunt, stunting_data_path)
 saveRDS(wast, wasting_data_path)
