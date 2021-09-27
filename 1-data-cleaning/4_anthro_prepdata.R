@@ -229,11 +229,6 @@ cc_tab_u6
 # Subset to and save descriptive epi data
 #--------------------------------------------
 
-#--------------------------------------------
-# drop trial arms with intervention impact on HAZ
-# -either based on published literature or analysis
-# of effects on CI of stunting by 24months of age
-#--------------------------------------------
 
 d %>% filter(tr!="", !is.na(haz)) %>% group_by(studyid, country, tr) %>% 
   summarize(mn_haz=mean(haz), sd=sd(haz)) %>% 
@@ -241,15 +236,10 @@ d %>% filter(tr!="", !is.na(haz)) %>% group_by(studyid, country, tr) %>%
   as.data.frame()
 
 
-stunt <- drop_int_arms(stunt_rf) 
-wast <- drop_int_arms(wast_rf) 
-waz <- drop_int_arms(waz_rf) 
-co <- drop_int_arms(co_rf) 
-
-stunt <- droplevels(stunt)
-wast <- droplevels(wast)
-waz <- droplevels(waz)
-co <- droplevels(co)
+stunt <- stunt_rf 
+wast <- wast_rf 
+waz <- waz_rf
+co <- co_rf
 
 saveRDS(stunt, stunting_data_path)
 saveRDS(wast, wasting_data_path)

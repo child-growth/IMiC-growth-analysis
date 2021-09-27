@@ -14,15 +14,6 @@ waz <- readRDS(rf_underweight_path)
 d <- d %>% filter(measurefreq == "monthly")
 waz <- waz %>% filter(measurefreq == "monthly")
 
-
-#clean country names
-d$country[d$country=="TANZANIA, UNITED REPUBLIC OF"] <- "TANZANIA"
-d$country <- stringr::str_to_title(d$country)
-waz$country[waz$country=="TANZANIA, UNITED REPUBLIC OF"] <- "TANZANIA"
-waz$country <- stringr::str_to_title(waz$country)
-
-
-
 #Overall absolute counts
 df <- d %>% filter(agedays < 24 *30.4167) %>%
   mutate(co = 1*(whz < (-2) & haz < (-2)),
@@ -176,6 +167,7 @@ monthly.waz <- bind_rows(
 #Prevalence of wasting based on MUAC
 d <- calc.prev.agecat(d)
 m.prev.data <- summary.prev.muaz(d)
+###Error below
 m.prev.region <- d %>% group_by(region) %>% do(summary.prev.muaz(.)$m.prev.res)
 m.prev.country <- d %>% filter(!is.na(muaz)) %>% group_by(country) %>% do(summary.prev.muaz(.)$m.prev.res) %>% mutate(region=country)
 
