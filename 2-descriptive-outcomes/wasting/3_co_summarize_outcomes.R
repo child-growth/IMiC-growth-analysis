@@ -164,37 +164,37 @@ monthly.waz <- bind_rows(
 
 
 
-#Prevalence of wasting based on MUAC
-d <- calc.prev.agecat(d)
-m.prev.data <- summary.prev.muaz(d)
-###Error below
-m.prev.region <- d %>% group_by(region) %>% do(summary.prev.muaz(.)$m.prev.res)
-m.prev.country <- d %>% filter(!is.na(muaz)) %>% group_by(country) %>% do(summary.prev.muaz(.)$m.prev.res) %>% mutate(region=country)
-
-m.prev.cohort <-
-  m.prev.data$m.prev.cohort %>% subset(., select = c(cohort, region, country, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
-  rename(est = prev,  lb = ci.lb,  ub = ci.ub)
-
-muaz.prev <- bind_rows(
-  data.frame(cohort = "pooled", region = "Overall", m.prev.data$m.prev.res),
-  data.frame(cohort = "pooled", m.prev.region),
-  data.frame(cohort = "pooled", m.prev.country),
-  m.prev.cohort
-)
-
-#make wasting comparison in same subset
-prev.region <- d %>% group_by(region) %>% do(summary.prev.muaz(.)$prev.res)
-prev.country <- d %>% filter(!is.na(muaz)) %>% group_by(country) %>% do(summary.prev.muaz(.)$prev.res) %>% mutate(region=country)
-prev.cohort <-
-  m.prev.data$prev.cohort %>% subset(., select = c(cohort, region, country, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
-  rename(est = prev,  lb = ci.lb,  ub = ci.ub)
-
-m.whz.prev <- bind_rows(
-  data.frame(cohort = "pooled", region = "Overall", m.prev.data$prev.res),
-  data.frame(cohort = "pooled", prev.region),
-  data.frame(cohort = "pooled", prev.country),
-  prev.cohort
-)
+# #Prevalence of wasting based on MUAC
+# d <- calc.prev.agecat(d)
+# m.prev.data <- summary.prev.muaz(d)
+# ###Error below: likely because missingness in MUAC
+# m.prev.region <- d %>% group_by(region) %>% do(summary.prev.muaz(.)$m.prev.res)
+# m.prev.country <- d %>% filter(!is.na(muaz)) %>% group_by(country) %>% do(summary.prev.muaz(.)$m.prev.res) %>% mutate(region=country)
+# 
+# m.prev.cohort <-
+#   m.prev.data$m.prev.cohort %>% subset(., select = c(cohort, region, country, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
+#   rename(est = prev,  lb = ci.lb,  ub = ci.ub)
+# 
+# muaz.prev <- bind_rows(
+#   data.frame(cohort = "pooled", region = "Overall", m.prev.data$m.prev.res),
+#   data.frame(cohort = "pooled", m.prev.region),
+#   data.frame(cohort = "pooled", m.prev.country),
+#   m.prev.cohort
+# )
+# 
+# #make wasting comparison in same subset
+# prev.region <- d %>% group_by(region) %>% do(summary.prev.muaz(.)$prev.res)
+# prev.country <- d %>% filter(!is.na(muaz)) %>% group_by(country) %>% do(summary.prev.muaz(.)$prev.res) %>% mutate(region=country)
+# prev.cohort <-
+#   m.prev.data$prev.cohort %>% subset(., select = c(cohort, region, country, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
+#   rename(est = prev,  lb = ci.lb,  ub = ci.ub)
+# 
+# m.whz.prev <- bind_rows(
+#   data.frame(cohort = "pooled", region = "Overall", m.prev.data$prev.res),
+#   data.frame(cohort = "pooled", prev.region),
+#   data.frame(cohort = "pooled", prev.country),
+#   prev.cohort
+# )
 
 
 
@@ -204,9 +204,9 @@ co_desc_data <- bind_rows(
   data.frame(disease = "co-occurrence", age_range="3 months",   birth="yes", severe="yes", measure= "Prevalence", sev.prev),
   data.frame(disease = "Underweight", age_range="3 months",   birth="yes", severe="no", measure= "Mean WAZ",  waz),
   data.frame(disease = "Underweight", age_range="1 month",   birth="yes", severe="no", measure= "Mean WAZ",  monthly.waz),
-  data.frame(disease = "Underweight", age_range="3 months",   birth="yes", severe="no", measure= "Prevalence",  underweight.prev),
-  data.frame(disease = "Wasting", age_range="3 months",   birth="yes", severe="no", measure= "MUAC Prevalence",  muaz.prev),
-  data.frame(disease = "Wasting", age_range="3 months",   birth="yes", severe="no", measure= "MUAC WHZ Prevalence",  m.whz.prev)
+  data.frame(disease = "Underweight", age_range="3 months",   birth="yes", severe="no", measure= "Prevalence",  underweight.prev)#,
+  #data.frame(disease = "Wasting", age_range="3 months",   birth="yes", severe="no", measure= "MUAC Prevalence",  muaz.prev),
+  #data.frame(disease = "Wasting", age_range="3 months",   birth="yes", severe="no", measure= "MUAC WHZ Prevalence",  m.whz.prev)
 )
 
 
