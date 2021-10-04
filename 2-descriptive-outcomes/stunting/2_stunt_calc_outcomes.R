@@ -1,5 +1,5 @@
 ##########################################
-# ki longitudinal manuscripts
+# IMiC longitudinal manuscripts
 # stunting analysis
 
 # Calculate mean LAZ, prevalence, incidence, 
@@ -31,12 +31,7 @@ source(paste0(here::here(), "/0-config.R"))
 # reloading because some overlap with stunting
 source(paste0(here::here(), "/0-project-functions/0_descriptive_epi_shared_functions.R"))
 source(paste0(here::here(), "/0-project-functions/0_descriptive_epi_stunt_functions.R"))
-
 d <- readRDS(paste0(ghapdata_dir, "stunting_data.rds"))
-
-# check included cohorts
-assert_that(setequal(unique(d$studyid), monthly_and_quarterly_cohorts),
-            msg = "Check data. Included cohorts do not match.")
 
 head(d)
 d <- d %>% subset(., select = -c(tr))
@@ -45,16 +40,7 @@ d <- d %>% subset(., select = -c(tr))
 # subset to monthly cohorts
 #----------------------------------------
 monthly_d <- d %>% filter(measurefreq == "monthly")
-
 #----------------------------------------
-# subset to studies that have monthly measurement
-# up to 24 months
-#----------------------------------------
-study24 = c("MAL-ED", "CMC-V-BCS-2002", "IRC", 
-            "Keneba", "GMS-Nepal", "CMIN", 
-            "CONTENT", "PROVIDE")
-
-monthly_d <- monthly_d %>% filter(studyid %in% study24)
 
 #N cohorts and children in the monthly dataset
 monthly_d %>% ungroup() %>% filter(agedays < 24*30.4167) %>% summarize(Nstudies=length(unique(paste0(studyid, country))), Nchildren=length(unique(paste0(studyid, subjid))))

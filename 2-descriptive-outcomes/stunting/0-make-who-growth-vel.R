@@ -1,5 +1,5 @@
 ##########################################
-# ki longitudinal manuscripts
+# IMiC longitudinal manuscripts
 # stunting analysis
 #
 # make dataset with WHO linear growth velocity standard
