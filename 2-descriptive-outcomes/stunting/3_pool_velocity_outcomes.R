@@ -14,17 +14,9 @@ source(paste0(here::here(), "/0-config.R"))
 source(paste0(here::here(),"/0-project-functions/0_descriptive_epi_shared_functions.R"))
 source(paste0(here::here(),"/0-project-functions/0_descriptive_epi_stunt_functions.R"))
 
-d <- readRDS(paste0(ghapdata_dir, "velocity_longfmt.rds"))
+d <- readRDS(paste0(ghapdata_dir, "velocity_longfmt_rf.rds"))
 
 #-------------------------------------------
-# check included cohorts
-#-------------------------------------------
-
-vel_cohorts = monthly_and_quarterly_cohorts
-assert_that(setequal(unique(d$studyid), vel_cohorts),
-            msg = "Check data. Included cohorts do not match.")
-
-setdiff(monthly_and_quarterly_cohorts, unique(d$studyid))
 
 #Summarize N's in study
 d %>% group_by(studyid, country, subjid) %>% slice(1) %>% ungroup() %>% summarize(N=n())
