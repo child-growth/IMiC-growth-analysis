@@ -83,8 +83,10 @@ agelst6_birthstrat = list(
   "18-24 months"
 )
 
+#Divide calc_outcomes function into smaller functions
+
 calc_outcomes = function(data, calc_method, output_file_suffix){
-  dprev <<- calc.prev.agecat(data)
+  dprev <- calc.prev.agecat(data)
   dmon <<- calc.monthly.agecat(data)
   d3 <<- calc.ci.agecat(data, range = 3, birth="yes")
   d6 <<- calc.ci.agecat(data, range = 6, birth="yes")
@@ -107,7 +109,8 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
       prev.cohort
     )
     return(prev)
-  }
+  }}
+  
   #----------------------------------------
   # Prevalence and WHZ  - not including yearly studies
   #----------------------------------------
