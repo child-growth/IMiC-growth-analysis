@@ -4,7 +4,7 @@
 
 # Calculate mean LAZ, prevalence, incidence, 
 # and recovery, repeated for fixed effects models 
-# and sensitivity analysis in monthly cohorts
+# and sensitivity analysis 
 # with measurements up to 24 months
 
 # Inputs:
@@ -37,13 +37,6 @@ head(d)
 d <- d %>% subset(., select = -c(tr))
 
 #----------------------------------------
-# subset to monthly cohorts
-#----------------------------------------
-monthly_d <- d %>% filter(measurefreq == "monthly")
-#----------------------------------------
-
-#N cohorts and children in the monthly dataset
-monthly_d %>% ungroup() %>% filter(agedays < 24*30.4167) %>% summarize(Nstudies=length(unique(paste0(studyid, country))), Nchildren=length(unique(paste0(studyid, subjid))))
 
 agelst3 = list(
   "0-3 months",
@@ -85,50 +78,39 @@ agelst6_birthstrat = list(
 
 #Divide calc_outcomes function into smaller functions
 
-calc_outcomes = function(data, calc_method, output_file_suffix){
-  dprev <- calc.prev.agecat(data)
-  dmon <<- calc.monthly.agecat(data)
-  d3 <<- calc.ci.agecat(data, range = 3, birth="yes")
-  d6 <<- calc.ci.agecat(data, range = 6, birth="yes")
-  d3_birthstrat <<- calc.ci.agecat(data, range = 3, birth="no")
-  d6_birthstrat <<- calc.ci.agecat(data, range = 6, birth="no")
+#calc_outcomes = function(data, calc_method, output_file_suffix){
+
+dprev <- calc.prev.agecat(d)
+
+d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
+  d6 <<- calc.ci.agecat(d, range = 6, birth="yes")
+  d3_birthstrat <<- calc.ci.agecat(d, range = 3, birth="no")
+  d6_birthstrat <<- calc.ci.agecat(d, range = 6, birth="no")
   
   ######################################################################
   # Prevalence
   ######################################################################
-  calc_prevalence = function(severe){
-    prev.data <- summary.prev.haz(dprev, severe.stunted = severe, method = calc_method)
-    prev.region <- dprev  %>% group_by(region) %>% do(summary.prev.haz(., severe.stunted = severe, method = calc_method)$prev.res)
+  #calc_prevalence = function(severe){
+    prev.data <- summary.prev.haz(dprev) #, severe.stunted = severe, method = calc_method)
+    #prev.region <- dprev  %>% group_by(region) %>% do(summary.prev.haz(., severe.stunted = severe, method = calc_method)$prev.res)
     prev.cohort <-
       prev.data$prev.cohort %>% subset(., select = c(cohort, region, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
       rename(est = prev,  lb = ci.lb,  ub = ci.ub)
     
     prev <- bind_rows(
       data.frame(cohort = "pooled", region = "Overall", prev.data$prev.res),
-      data.frame(cohort = "pooled", prev.region),
+      data.frame(cohort = "pooled"),
       prev.cohort
     )
-    return(prev)
-  }}
-  
-  #----------------------------------------
-  # Prevalence and WHZ  - not including yearly studies
-  #----------------------------------------
-  prev = calc_prevalence(severe = FALSE)
-  
-  #----------------------------------------
-  # Severe stunting prevalence
-  #----------------------------------------
-  sev.prev = calc_prevalence(severe = TRUE)
-  
+
   ######################################################################
   # Mean HAZ
   ######################################################################
   #----------------------------------------
   # mean haz
   #----------------------------------------
-  haz.data <- summary.haz(dprev, method = calc_method)
-  haz.region <- dprev %>% group_by(region) %>% do(summary.haz(., method = calc_method)$haz.res)
+  haz.data <- summary.haz(dprev)
+  haz.region <- dprev %>% group_by(region) %>% do(summary.haz(.)$haz.res)
   haz.cohort <-
     haz.data$haz.cohort %>% subset(., select = c(cohort, region, agecat, nmeas,  meanhaz,  ci.lb,  ci.ub)) %>%
     rename(est = meanhaz,  lb = ci.lb,  ub = ci.ub)
@@ -142,7 +124,7 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   #----------------------------------------
   # mean haz for growth velocity age categories
   #----------------------------------------
-  d_vel = data %>% 
+  d_vel = d %>% 
     mutate(agecat=ifelse(agedays<3*30.4167,"0-3",
                          ifelse(agedays>=3*30.4167 & agedays<6*30.4167,"3-6",
                                 ifelse(agedays>=6*30.4167 & agedays<9*30.4167,"6-9",
@@ -154,8 +136,8 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
     mutate(agecat=factor(agecat,levels=c("0-3","3-6","6-9","9-12",
                                          "12-15","15-18","18-21","21-24"))) 
   
-  haz.data.vel <- summary.haz.age.sex(d_vel, method = calc_method)
-  haz.region.vel <-  d_vel  %>% group_by(region) %>% do(summary.haz.age.sex(., method = calc_method)$haz.res)
+  haz.data.vel <- summary.haz.age.sex(d_vel)
+  haz.region.vel <-  d_vel  %>% group_by(region) %>% do(summary.haz.age.sex(.)$haz.res)
   haz.cohort.vel <-
     haz.data.vel$haz.cohort %>% 
     subset(., select = c(cohort, region, agecat, sex, nmeas,  meanhaz, 
@@ -169,15 +151,15 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   )
   
   saveRDS(haz.vel, file = paste0(res_dir, "stunting/meanlaz_velocity", 
-                                 calc_method, output_file_suffix, ".RDS"))
+                                  output_file_suffix = ".RDS"))
   
   #----------------------------------------
   # monthly mean haz
   #----------------------------------------
-  dmon <- calc.monthly.agecat(data)
-  monthly.haz.data <- summary.haz(dmon, method = calc_method)
-  monthly.haz.region <-  dmon  %>% group_by(region) %>% do(summary.haz(., method = calc_method)$haz.res)
-  monthly.haz.country <-  dmon  %>% group_by(country) %>% do(summary.haz(., method = calc_method)$haz.res)
+  dmon <- calc.monthly.agecat(d)
+  monthly.haz.data <- summary.haz(dmon)
+  monthly.haz.region <-  dmon  %>% group_by(region) %>% do(summary.haz(.)$haz.res)
+  monthly.haz.country <-  dmon  %>% group_by(country) %>% do(summary.haz(.)$haz.res)
   monthly.haz.cohort <-
     monthly.haz.data$haz.cohort %>% subset(., select = c(cohort, region, agecat, nmeas,  meanhaz,  ci.lb,  ci.ub)) %>%
     rename(est = meanhaz,  lb = ci.lb,  ub = ci.ub)
@@ -221,15 +203,16 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   # combine data
   quantiles <- bind_rows(quantile_d, quantile_d_overall,quantile_d_cohort)
   
-  saveRDS(quantiles,file = paste0(res_dir,"stunting/quantile_data_stunting", calc_method,
-                                  output_file_suffix, ".RDS"))
+  saveRDS(quantiles,file = paste0(res_dir,"stunting/quantile_data_stunting", 
+                                  output_file_suffix = ".RDS"))
   
   ######################################################################
   # Incidence proportion
   ######################################################################
-  calc_ip = function(datatable, age_list, severe){
-    ip.data <- summary.stunt.incprop(datatable, agelist = age_list, severe.stunted = severe, method = calc_method)
-    ip.region <- datatable %>% group_by(region) %>% do(summary.stunt.incprop(., agelist = age_list, severe.stunted = severe, method = calc_method)$ip.res)
+  #calc_ip = function(datatable, age_list, severe){
+  summary(dmon)
+    ip.data <- summary.stunt.incprop(dmon)
+    ip.region <- datatable %>% group_by(region) %>% do(summary.stunt.incprop(., agelist = age_list)$ip.res)
     ip.cohort <-
       ip.data$ip.cohort %>% 
       subset(., select = c(cohort, region, agecat, nchild,  yi,  ci.lb,  ci.ub)) %>%
@@ -242,7 +225,7 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
       ip.cohort
     )
     return(ip)
-  }
+ # }
   #----------------------------------------
   # Incidence proportion 3 month intervals
   #----------------------------------------
