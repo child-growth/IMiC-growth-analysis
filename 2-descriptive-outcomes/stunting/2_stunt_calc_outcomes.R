@@ -210,9 +210,9 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
   # Incidence proportion
   ######################################################################
   #calc_ip = function(datatable, age_list, severe){
-  summary(dmon)
-    ip.data <- summary.stunt.incprop(dmon)
-    ip.region <- datatable %>% group_by(region) %>% do(summary.stunt.incprop(., agelist = age_list)$ip.res)
+  dage <- create_age_categories(d)
+   ip.data <- summary.stunt.incprop(dage)
+    ip.region <- dmon %>% group_by(region) %>% do(summary.stunt.incprop(., agelist = age_list)$ip.res)
     ip.cohort <-
       ip.data$ip.cohort %>% 
       subset(., select = c(cohort, region, agecat, nchild,  yi,  ci.lb,  ci.ub)) %>%
