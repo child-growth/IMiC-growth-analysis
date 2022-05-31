@@ -1,7 +1,7 @@
 
 #-----------------------------------------------------------------------------------------
 # Load FINAL dataset and drop studies 
-# Output: long form dataset with all variables used in the ki manuscript analysis, minus those 
+# Output: long form dataset with all variables used in the IMiC manuscript analysis, minus those 
 # covariates created from raw SAS datasets
 #
 # Author: Andrew Mertens (amertens@berkeley.edu)
@@ -11,9 +11,9 @@
 
 # Instructions for downloading FINAL dataset
 
-# Go to https://git.ghap.io/stash/projects/HBGD/repos/adhoc/browse
+# Go to [insert git location]
 # click clone button
-# Copy link (mine is https://andrew.mertens@git.ghap.io/stash/scm/hbgd/adhoc.git)
+# Copy link 
 # Open Sourcetree (Click window icon in bottom left, then search magnifying glass icon
 # in the top right, and search Sourcetree to find)
 # Click clone button in source tree 
@@ -53,7 +53,7 @@ table(d$visit[d$studyid=="ELICIT"])
 table(d$visit[d$studyid=="VITAL-Lactation"])
 
 
-#Read rds file and drop unneeded columns that Vishak extracted that are either used elsewhere in covariate creation or 
+#Read rds file and drop unneeded columns that are either used elsewhere in covariate creation or 
 # were too rare to include as exposures (to avoid memory allocation issues)
 # d <- readRDS(paste0(BV_dir,"mock_imic_data.RDS"))
 # colnames(d) <- tolower(colnames(d))

@@ -1,12 +1,14 @@
 
 #-----------------------------------------------------------------------------------------
 # Process FINAL dataset into a dataset of covariates to be used in the exposure/risk factor
-# analysis in the causes and consequences manuscript. 
+# analysis. 
 #
 # Output: Single dataset with one row per child and all baseline covariates
 #         Time-varying covariates and anthropometry measures processed in a seperate script.
 #
 # Author: Andrew Mertens (amertens@berkeley.edu)
+
+#NOTE: THIS SCRIPT AND THESE COVARIATES WILL CHANGE FOR IMiC
 #-----------------------------------------------------------------------------------------
 
 
@@ -37,10 +39,6 @@ d <- d %>% group_by(studyid, country, subjid) %>%
   slice(1) 
 
 table(is.na(d$birthwt), d$agedays > 7)
-
-#df <- d %>% filter(studyid=="MAL-ED")
-# df <- d %>% filter(studyid == "Burkina Faso Zn", country == "BURKINA FASO", subjid == 117101)
-# ifelse(length(first(df$haz[complete.cases(df$haz)]))==0,NA,first(df$haz[complete.cases(df$haz)]))
 
 
 #keep where anthro is measured on first 7 days, but birth anthro is not recorded
@@ -110,6 +108,7 @@ table(paste0(d$studyid,"-",d$country), d$enstunt)
 # d$hhwealth_quart <- gsub(" ", "", d$hhwealth_quart)
 # d$hhwealth_quart <- factor(d$hhwealth_quart, levels=c("WealthQ4","WealthQ3","WealthQ2","WealthQ1"))
 # table(d$hhwealth_quart)
+
 
 
 #--------------------------------------------------------------------------

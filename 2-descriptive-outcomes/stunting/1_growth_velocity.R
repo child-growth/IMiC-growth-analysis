@@ -1,5 +1,5 @@
 ##########################################
-# ki longitudinal manuscripts
+# IMIC longitudinal analysis
 # stunting analysis
 
 # growth velocity analysis
@@ -8,7 +8,7 @@ rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 library(growthstandards)
 
-d <- readRDS(paste0(ghapdata_dir,"ki-manuscript-dataset.rds"))
+d <- readRDS(paste0(ghapdata_dir,"FINAL_only_included_studies.rds"))
 
 # check included cohorts NOTE: won't match because some studies not dropped yet/arms dropped at bottom of the script
 # assert_that(setequal(unique(d$studyid), monthly_and_quarterly_cohorts),
@@ -36,24 +36,20 @@ d <- d[!(is.na(d$haz) & is.na(d$waz)), ]
 
 #--------------------------------------------------------------------------
 # birth characteristics
-# separate W_birthweight and W_birthlength
+# separate birthweight and birthlength
 # convert to waz / haz and add to main data set as a new row with "agedays=0"
 #--------------------------------------------------------------------------
-table(d$studyid, is.na(d$W_birthlen))
-table(d$studyid, is.na(d$W_birthwt))
-dblenwt <- d[,list(W_birthwt=first(W_birthwt), W_birthlen=first(W_birthlen), sex=first(sex)), by = list(studyid, country, subjid)]
-dblenwt <- dblenwt[!(is.na(W_birthwt) & is.na(W_birthlen)), ]
-dblenwt[is.na(W_birthlen), ]
-dblenwt[is.na(W_birthwt), ]
-dblenwt[, agedays := 0]
-dblenwt[, waz := round(who_wtkg2zscore(agedays, W_birthwt/1000, sex = sex),2)]
-dblenwt[, haz := round(who_htcm2zscore(agedays, W_birthlen, sex = sex),2)]
-setkeyv(dblenwt, cols = c("country","studyid", "subjid", "agedays"))
 
-## check things are matching with main haz/waz when agedays=1 was observed
-d[subjid==5444, ]
-dblenwt[subjid==5444, ]
-dblenwt[, W_birthwt := NULL][, W_birthlen := NULL]
+table(d$studyid, is.na(d$birthlen))
+table(d$studyid, is.na(d$birthwt))
+dblenwt <- d[,list(birthwt=first(birthwt), birthlen=first(birthlen), sex=first(sex)), by = list(studyid, country, subjid)]
+dblenwt <- dblenwt[!(is.na(birthwt) & is.na(birthlen)), ]
+dblenwt[is.na(birthlen), ]
+dblenwt[is.na(birthwt), ]
+dblenwt[, agedays := 0]
+dblenwt[, waz := round(who_wtkg2zscore(agedays, birthwt/1000, sex = sex),2)]
+dblenwt[, haz := round(who_htcm2zscore(agedays, birthlen, sex = sex),2)]
+setkeyv(dblenwt, cols = c("country","studyid", "subjid", "agedays"))
 
 ## merge birth haz / waz into main dataset
 d <- merge(d, dblenwt, all=TRUE, by = c("country","studyid", "subjid","sex","agedays"))
@@ -145,33 +141,4 @@ dd_out[, "diffcat" := factor(diffcat, levels = diffcatlevs)]
 head(dd_out[["diffcat"]])
 
 saveRDS(dd_out, file=paste0(ghapdata_dir,"velocity_longfmt_rf.rds"))
-
-#--------------------------------------------
-# drop trial arms with intervention impact on HAZ
-# -either based on published literature or analysis
-# of effects on CI of stunting by 24months of age
-#--------------------------------------------
-
-dd_sub <- as.data.frame(dd_out)
-
-df <- as.data.frame(d)
-df <- df %>% filter(agedays!=0) %>% subset(., select = c("studyid","subjid","tr")) %>% group_by(studyid, subjid) %>% slice(1)
-
-dim(dd_sub)
-dd_sub <- left_join(dd_sub, df, by=c("studyid","subjid"))
-dim(dd_sub)
-dd_sub$tr[is.na(dd_sub$tr)]<-""
-
-
-
-dim(dd_sub)
-dd_sub=dd_sub[!(dd_sub$studyid=="JiVitA-4" & dd_sub$tr!="Control"),]
-dd_sub=dd_sub[!(dd_sub$studyid=="PROBIT" & dd_sub$tr!="Control"),]
-dd_sub=dd_sub[!(dd_sub$studyid=="iLiNS-Zinc"),]
-dd_sub=dd_sub[!(dd_sub$studyid=="SAS-CompFeed" & dd_sub$tr!="Control"),]
-dd_sub=dd_sub[!(dd_sub$studyid=="JiVitA-3" & dd_sub$tr!="Control"),]
-dd_sub=dd_sub[!(dd_sub$studyid=="COHORTS" & dd_sub$tr=="Other"),]
-dim(dd_sub)
-
-saveRDS(dd_sub, file=paste0(ghapdata_dir,"stunting/velocity_longfmt.rds"))
 

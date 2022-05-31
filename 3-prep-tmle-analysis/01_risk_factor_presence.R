@@ -6,7 +6,7 @@ rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 
 #load covariates
-cov <- readRDS(paste0(ghapdata_dir,"/FINAL_clean_covariates.rds"))
+cov <- readRDS(paste0(ghapdata_dir,"FINAL_clean_covariates.rds"))
 
 assert_that(all(monthly_and_quarterly_cohorts %in% cov$studyid))
 
