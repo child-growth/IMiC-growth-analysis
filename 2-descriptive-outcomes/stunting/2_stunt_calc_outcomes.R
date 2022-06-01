@@ -93,14 +93,12 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
   ######################################################################
   #calc_prevalence = function(severe){
     prev.data <- summary.prev.haz(dprev) #, severe.stunted = severe, method = calc_method)
-    #prev.region <- dprev  %>% group_by(region) %>% do(summary.prev.haz(., severe.stunted = severe, method = calc_method)$prev.res)
     prev.cohort <-
       prev.data$prev.cohort %>% subset(., select = c(cohort, region, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
       rename(est = prev,  lb = ci.lb,  ub = ci.ub)
     
     prev <- bind_rows(
       data.frame(cohort = "pooled", region = "Overall", prev.data$prev.res),
-      data.frame(cohort = "pooled"),
       prev.cohort
     )
 
