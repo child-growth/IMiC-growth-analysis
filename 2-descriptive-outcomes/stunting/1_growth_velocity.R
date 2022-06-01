@@ -14,8 +14,6 @@ d <- readRDS(paste0(ghapdata_dir,"FINAL_only_included_studies.rds"))
 # assert_that(setequal(unique(d$studyid), monthly_and_quarterly_cohorts),
 #             msg = "Check data. Included cohorts do not match.")
 
-#Drop yearly
-d <- d %>% filter(measurefreq!="yearly")
 
 d <- as.data.table(d)
 setkeyv(d, cols = c("country","studyid","subjid"))

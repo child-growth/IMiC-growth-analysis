@@ -8,9 +8,7 @@ source(paste0(here::here(),"/0-project-functions/0_descriptive_epi_wast_function
 
 load(paste0(ghapdata_dir, "Wasting_inc_data.RData"))
 
-#Subset to monthly
-d <- d %>% filter(measurefreq == "monthly")
-d_noBW <- d_noBW %>% filter(measurefreq == "monthly")
+
 
 length(unique(paste0(d$studyid,d$country)))
 d %>% ungroup() %>% distinct(region, studyid, country) %>% group_by(region) %>% summarise(N=n())
@@ -139,23 +137,6 @@ saveRDS(list(quantile_d=quantile_d,
              quantile_d_overall=quantile_d_overall), 
         file = paste0(BV_dir,"/results/quantile_data_wasting.RDS"))
 
-
-
-
-#Cumulative inc
-# d <- calc.ci.agecat(d, range = 6)
-# agelst = list("0-6 months", "6-12 months", "12-18 months", "18-24 months")
-# ci.data <- summary.wast.ci(d)
-# ci.region <- d %>% group_by(region) %>% do(summary.wast.ci(.)$ci.res)
-# ci.cohort <-
-#   ci.data$ci.cohort %>% subset(., select = c(cohort, region, agecat,  yi,  ci.lb,  ci.ub)) %>%
-#   rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-# 
-# ci <- bind_rows(
-#   data.frame(cohort = "pooled", region = "Overall", ci.data$ci.res),
-#   data.frame(cohort = "pooled", ci.region),
-#   ci.cohort
-# )
 
 #Cumulative inc 3 month intervals
 d3 <- calc.ci.agecat(d, range = 3)

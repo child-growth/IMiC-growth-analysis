@@ -7,12 +7,9 @@ rm(list = ls())
 source(paste0(here::here(), "/0-config.R"))
 source(paste0(here::here(),"/0-project-functions/0_descriptive_epi_co_functions.R"))
 
-d <- readRDS(rf_co_occurrence_path)
-waz <- readRDS(rf_underweight_path)
+d <- readRDS(co_occurrence_data_path)
+waz <- readRDS(underweight_data_path)
 
-#Subset to monthly
-d <- d %>% filter(measurefreq == "monthly")
-waz <- waz %>% filter(measurefreq == "monthly")
 
 #Overall absolute counts
 df <- d %>% filter(agedays < 24 *30.4167) %>%

@@ -33,8 +33,7 @@ source(paste0(here::here(), "/0-project-functions/0_descriptive_epi_shared_funct
 source(paste0(here::here(), "/0-project-functions/0_descriptive_epi_stunt_functions.R"))
 d <- readRDS(paste0(ghapdata_dir, "stunting_data.rds"))
 
-head(d)
-d <- d %>% subset(., select = -c(tr))
+
 
 #----------------------------------------
 
@@ -76,9 +75,11 @@ agelst6_birthstrat = list(
   "18-24 months"
 )
 
-#Divide calc_outcomes function into smaller functions
+data=d
+calc_method="REML"
+output_file_suffix=""
 
-#calc_outcomes = function(data, calc_method, output_file_suffix){
+calc_outcomes = function(data, calc_method, output_file_suffix){
 
 dprev <- calc.prev.agecat(d)
 
@@ -331,9 +332,6 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
 
 stunt_outcomes = calc_outcomes(data = d, calc_method = "REML", output_file_suffix = "")
 saveRDS(stunt_outcomes, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects.RDS"))
-
-stunt_outcomes_monthly = calc_outcomes(data = monthly_d, calc_method = "REML", output_file_suffix = "_monthly24")
-saveRDS(stunt_outcomes_monthly, file =  paste0(res_dir, "stunting/shiny_desc_data_stunting_objects_monthly24.RDS"))
 
 stunt_outcomes_fe = calc_outcomes(data = d, calc_method = "FE", output_file_suffix = "_fe")
 saveRDS(stunt_outcomes_fe, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects_fe.RDS"))
