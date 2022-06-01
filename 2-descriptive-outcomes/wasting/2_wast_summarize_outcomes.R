@@ -11,7 +11,7 @@ load(paste0(ghapdata_dir, "Wasting_inc_data.RData"))
 
 
 length(unique(paste0(d$studyid,d$country)))
-d %>% ungroup() %>% distinct(region, studyid, country) %>% group_by(region) %>% summarise(N=n())
+d %>% ungroup() %>% distinct(studyid, country) %>% summarise(N=n())
 
 #Overall absolute counts
 df <- d %>% filter(agedays < 24 *30.4167) %>%
@@ -47,47 +47,44 @@ prop.table(table(df2$rec))
 #Prevalence
 d <- calc.prev.agecat(d)
 prev.data <- summary.prev.whz(d)
-prev.region <- d %>% group_by(region) %>% do(summary.prev.whz(.)$prev.res)
-prev.country <- d %>% group_by(region, country) %>% do(summary.prev.whz(.)$prev.res) 
+prev.country <- d %>% group_by(country) %>% do(summary.prev.whz(.)$prev.res) 
 prev.cohort <-
-  prev.data$prev.cohort %>% subset(., select = c(cohort, region, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
+  prev.data$prev.cohort %>% subset(., select = c(cohort, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
   rename(est = prev,  lb = ci.lb,  ub = ci.ub)
 
 prev <- bind_rows(
-  data.frame(cohort = "pooled", region = "Overall", prev.data$prev.res),
+  data.frame(cohort = "pooled", prev.data$prev.res),
   data.frame(cohort = "pooled", prev.country),
-  data.frame(cohort = "pooled", prev.region),
+  data.frame(cohort = "pooled"),
   prev.cohort
 )
 
 #Severe wasting prevalence
 sev.prev.data <- summary.prev.whz(d, severe.wasted = T)
-sev.prev.region <- d %>% group_by(region) %>% do(summary.prev.whz(., severe.wasted = T)$prev.res)
-sev.prev.country <- d %>% group_by(region, country) %>% do(summary.prev.whz(., severe.wasted = T)$prev.res) 
+sev.prev.country <- d %>% group_by(country) %>% do(summary.prev.whz(., severe.wasted = T)$prev.res) 
 
 sev.prev.cohort <-
-  sev.prev.data$prev.cohort %>% subset(., select = c(cohort, region, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
+  sev.prev.data$prev.cohort %>% subset(., select = c(cohort, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
   rename(est = prev,  lb = ci.lb,  ub = ci.ub)
 
 sev.prev <- bind_rows(
-  data.frame(cohort = "pooled", region = "Overall", sev.prev.data$prev.res),
+  data.frame(cohort = "pooled", sev.prev.data$prev.res),
   data.frame(cohort = "pooled", sev.prev.country),
-  data.frame(cohort = "pooled", sev.prev.region),
+  data.frame(cohort = "pooled"),
   sev.prev.cohort
 )
 
 #mean whz
 whz.data <- summary.whz(d)
-whz.region <- d %>% group_by(region) %>% do(summary.whz(.)$whz.res)
-whz.country <- d %>% group_by(region, country) %>% do(summary.whz(.)$whz.res) 
+whz.country <- d %>% group_by(country) %>% do(summary.whz(.)$whz.res) 
 whz.cohort <-
-  whz.data$whz.cohort %>% subset(., select = c(cohort, region, agecat, nmeas,  meanwhz,  ci.lb,  ci.ub)) %>%
+  whz.data$whz.cohort %>% subset(., select = c(cohort, agecat, nmeas,  meanwhz,  ci.lb,  ci.ub)) %>%
   rename(est = meanwhz,  lb = ci.lb,  ub = ci.ub)
 
 whz <- bind_rows(
-  data.frame(cohort = "pooled", region = "Overall", whz.data$whz.res),
+  data.frame(cohort = "pooled", whz.data$whz.res),
   data.frame(cohort = "pooled", whz.country),
-  data.frame(cohort = "pooled", whz.region),
+  data.frame(cohort = "pooled"),
   whz.cohort
 )
 
@@ -96,7 +93,7 @@ whz <- bind_rows(
 d <- calc.monthly.agecat(d)
 #get range of N obs for figure caption
 d %>% filter(!is.na(agecat)) %>% group_by(agecat) %>% summarize(N=n()) %>% ungroup() %>% summarise(min(N), max(N))
-d %>% filter(!is.na(agecat)) %>% group_by(agecat, region) %>% summarize(N=n()) %>% group_by(region) %>% summarise(min(N), max(N))
+d %>% filter(!is.na(agecat)) %>% group_by(agecat) %>% summarize(N=n()) %>% summarise(min(N), max(N))
 
 monthly.data <- summary.whz(d)
 monthly.region <- d %>% group_by(region) %>% do(summary.whz(.)$whz.res)

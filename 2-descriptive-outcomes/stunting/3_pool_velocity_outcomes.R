@@ -52,28 +52,18 @@ RE_pool <- function(df, ycategory, gender, method = "REML"){
   pooled.vel=as.data.frame(do.call(rbind, pooled.vel))
 
   # age specific pooled results
-  asia.vel=lapply(agecat,function(x) fit.rma(data=df, 
+  age.vel=lapply(agecat,function(x) fit.rma(data=df, 
         yi="mean", vi="var", ni="n", nlab="children",age=x, measure = "MN", method = method))
   
   
-  #Bind together pooled and cohort specific estimates
+  #Bind together cohort specific estimates
   
-  pooled.df <- rbind(
-    data.frame(country_cohort="Pooled - All", pooled=1, region="Overall", pooled.vel),
-    data.frame(country_cohort="Pooled - Asia", pooled=1, region="Asia",asia.vel),
-    data.frame(country_cohort="Pooled - Africa", pooled=1, region="Africa",africa.vel),
-    data.frame(country_cohort="Pooled - Amer.", pooled=1, region="Latin America",LA.vel)
-  ) %>% subset(., select = -c(se)) %>%
-    rename(Mean=est, N=nmeas, Lower.95.CI=lb, Upper.95.CI=ub)
-  
-  pooled.df$strata=as.character(unlist(agecat))
-  
-  cohort.df <- df %>% subset(., select = c(country_cohort, agecat, n, mean, ci.lb, ci.ub, region)) %>%
+  cohort.df <- df %>% subset(., select = c(country_cohort, agecat, n, mean, ci.lb, ci.ub)) %>%
     rename(N=n, Mean=mean, Lower.95.CI=ci.lb, Upper.95.CI=ci.ub,
            strata=agecat) %>%
     mutate(pooled=0, nstudies=1)
   
-  plotdf <- bind_rows(pooled.df, cohort.df)
+  plotdf <- bind_rows(cohort.df)
   
   
   #Format variables for plotting
@@ -96,9 +86,9 @@ RE_pool <- function(df, ycategory, gender, method = "REML"){
   plotdf$strata <- factor(plotdf$strata, levels=unique(plotdf$strata))
   
   plotdf$stratacol <- "strata"
-  plotdf$stratacol[plotdf$strata=="Overall"] <- "overall"
-  plotdf$stratacol[plotdf$pooled==1] <- "pooled"
-  plotdf$stratacol[plotdf$strata=="Overall" & plotdf$pooled==1] <- "pooled_unstrat"
+ # plotdf$stratacol[plotdf$strata=="Overall"] <- "overall"
+ # plotdf$stratacol[plotdf$pooled==1] <- "pooled"
+ # plotdf$stratacol[plotdf$strata=="Overall" & plotdf$pooled==1] <- "pooled_unstrat"
   
   plotdf$sex <- gender
   plotdf$ycat <- ycategory
