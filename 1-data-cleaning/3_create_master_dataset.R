@@ -23,10 +23,6 @@ Zscores <- Zscores %>%
                        waz, haz, whz, muaz, lencm, wtkg, htcm,  tr, arm,  month, brthweek, brthyr,  dead, agedth, 
                        latitude, longitud, causedth))
 
-#mark regions 
-Zscores <- mark_region(Zscores)
-table(Zscores$region)
-
 
 #load covariate dataset (one row per child)
 cov <- readRDS(clean_covariates_path)

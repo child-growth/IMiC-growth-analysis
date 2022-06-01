@@ -94,11 +94,11 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
   #calc_prevalence = function(severe){
     prev.data <- summary.prev.haz(dprev) #, severe.stunted = severe, method = calc_method)
     prev.cohort <-
-      prev.data$prev.cohort %>% subset(., select = c(cohort, region, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
+      prev.data$prev.cohort %>% subset(., select = c(cohort, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
       rename(est = prev,  lb = ci.lb,  ub = ci.ub)
     
     prev <- bind_rows(
-      data.frame(cohort = "pooled", region = "Overall", prev.data$prev.res),
+      data.frame(cohort = "pooled", prev.data$prev.res),
       prev.cohort
     )
 
@@ -109,14 +109,13 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
   # mean haz
   #----------------------------------------
   haz.data <- summary.haz(dprev)
-  haz.region <- dprev %>% group_by(region) %>% do(summary.haz(.)$haz.res)
   haz.cohort <-
-    haz.data$haz.cohort %>% subset(., select = c(cohort, region, agecat, nmeas,  meanhaz,  ci.lb,  ci.ub)) %>%
+    haz.data$haz.cohort %>% subset(., select = c(cohort, agecat, nmeas,  meanhaz,  ci.lb,  ci.ub)) %>%
     rename(est = meanhaz,  lb = ci.lb,  ub = ci.ub)
   
   haz <- bind_rows(
-    data.frame(cohort = "pooled", region = "Overall", haz.data$haz.res),
-    data.frame(cohort = "pooled", haz.region),
+    data.frame(cohort = "pooled", haz.data$haz.res),
+    data.frame(cohort = "pooled"),
     haz.cohort
   )
   
@@ -136,16 +135,15 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
                                          "12-15","15-18","18-21","21-24"))) 
   
   haz.data.vel <- summary.haz.age.sex(d_vel)
-  haz.region.vel <-  d_vel  %>% group_by(region) %>% do(summary.haz.age.sex(.)$haz.res)
   haz.cohort.vel <-
     haz.data.vel$haz.cohort %>% 
-    subset(., select = c(cohort, region, agecat, sex, nmeas,  meanhaz, 
+    subset(., select = c(cohort, agecat, sex, nmeas,  meanhaz, 
                          ci.lb,  ci.ub)) %>%
     rename(est = meanhaz,  lb = ci.lb,  ub = ci.ub)
   
   haz.vel <- bind_rows(
-    data.frame(cohort = "pooled", region = "Overall", haz.data.vel$haz.res),
-    data.frame(cohort = "pooled", haz.region.vel),
+    data.frame(cohort = "pooled", haz.data.vel$haz.res),
+    data.frame(cohort = "pooled"),
     haz.cohort.vel
   )
   
@@ -157,15 +155,14 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
   #----------------------------------------
   dmon <- calc.monthly.agecat(d)
   monthly.haz.data <- summary.haz(dmon)
-  monthly.haz.region <-  dmon  %>% group_by(region) %>% do(summary.haz(.)$haz.res)
   monthly.haz.country <-  dmon  %>% group_by(country) %>% do(summary.haz(.)$haz.res)
   monthly.haz.cohort <-
-    monthly.haz.data$haz.cohort %>% subset(., select = c(cohort, region, agecat, nmeas,  meanhaz,  ci.lb,  ci.ub)) %>%
+    monthly.haz.data$haz.cohort %>% subset(., select = c(cohort, agecat, nmeas,  meanhaz,  ci.lb,  ci.ub)) %>%
     rename(est = meanhaz,  lb = ci.lb,  ub = ci.ub)
   
   monthly.haz <- bind_rows(
-    data.frame(cohort = "pooled", region = "Overall", monthly.haz.data$haz.res),
-    data.frame(cohort = "pooled", monthly.haz.region),
+    data.frame(cohort = "pooled", monthly.haz.data$haz.res),
+    data.frame(cohort = "pooled"),
     data.frame(cohort = "pooled-country", monthly.haz.country),
     monthly.haz.cohort
   )
@@ -175,29 +172,28 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
   #----------------------------------------
   dmon <-  dmon %>% mutate(cohort = paste0(studyid, "-", country))
   
-  quantile_d_cohort <- dmon %>% group_by(agecat, region, country, cohort) %>%
+  quantile_d_cohort <- dmon %>% group_by(agecat, country, cohort) %>%
     mutate(fifth_perc = quantile(haz, probs = c(0.05))[[1]],
            fiftieth_perc = quantile(haz, probs = c(0.5))[[1]],
            ninetyfifth_perc = quantile(haz, probs = c(0.95))[[1]]) %>%
-    select(studyid, cohort, agecat, region, fifth_perc, fiftieth_perc, ninetyfifth_perc)
+    select(studyid, cohort, agecat, fifth_perc, fiftieth_perc, ninetyfifth_perc)
   
-  quantile_d <- dmon %>% group_by(agecat,  country, region) %>%
+  quantile_d <- dmon %>% group_by(agecat,  country) %>%
     mutate(fifth_perc = quantile(haz, probs = c(0.05))[[1]],
            fiftieth_perc = quantile(haz, probs = c(0.5))[[1]],
            ninetyfifth_perc = quantile(haz, probs = c(0.95))[[1]]) %>%
     mutate(studyid = "pooled", 
            cohort = "pooled") %>%
-    select(studyid, cohort, agecat, region, fifth_perc, fiftieth_perc, ninetyfifth_perc) 
+    select(studyid, cohort, agecat, fifth_perc, fiftieth_perc, ninetyfifth_perc) 
   
   quantile_d_overall <- dmon %>% 
     group_by(agecat) %>%
     summarise(fifth_perc = quantile(haz, probs = c(0.05))[[1]],
               fiftieth_perc = quantile(haz, probs = c(0.5))[[1]],
               ninetyfifth_perc = quantile(haz, probs = c(0.95))[[1]]) %>%
-    mutate(region = "Overall") %>%
     mutate(studyid = "pooled", 
            cohort = "pooled") %>%
-    select(studyid, cohort, agecat, region, fifth_perc, fiftieth_perc, ninetyfifth_perc) 
+    select(studyid, cohort, agecat, fifth_perc, fiftieth_perc, ninetyfifth_perc) 
   
   # combine data
   quantiles <- bind_rows(quantile_d, quantile_d_overall,quantile_d_cohort)
@@ -211,16 +207,15 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
   #calc_ip = function(datatable, age_list, severe){
   dage <- create_age_categories(d)
    ip.data <- summary.stunt.incprop(dage)
-    ip.region <- dmon %>% group_by(region) %>% do(summary.stunt.incprop(., agelist = age_list)$ip.res)
     ip.cohort <-
       ip.data$ip.cohort %>% 
-      subset(., select = c(cohort, region, agecat, nchild,  yi,  ci.lb,  ci.ub)) %>%
+      subset(., select = c(cohort, agecat, nchild,  yi,  ci.lb,  ci.ub)) %>%
       rename(est = yi,  lb = ci.lb,  ub = ci.ub, nmeas=nchild)
     
     
     ip <- bind_rows(
-      data.frame(cohort = "pooled", region = "Overall", ip.data$ip.res),
-      data.frame(cohort = "pooled", ip.region),
+      data.frame(cohort = "pooled", ip.data$ip.res),
+      data.frame(cohort = "pooled"),
       ip.cohort
     )
     return(ip)
@@ -259,14 +254,13 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
   
   calc_ci = function(datatable, age_list, birth_strat, severe){
     ci.data <- summary.ci(datatable, birthstrat = birth_strat, agelist = age_list, severe.stunted = severe, method = calc_method)
-    ci.region <- datatable %>% group_by(region) %>% do(summary.ci(., agelist = age_list,  birthstrat = birth_strat, severe.stunted = severe, method = calc_method)$ci.res)
     ci.cohort <-
-      ci.data$ci.cohort %>% subset(., select = c(cohort, region, agecat, nchild,  yi,  ci.lb,  ci.ub)) %>%
+      ci.data$ci.cohort %>% subset(., select = c(cohort, agecat, nchild,  yi,  ci.lb,  ci.ub)) %>%
       rename(est = yi,  lb = ci.lb,  ub = ci.ub, nmeas=nchild)
     
     cuminc <- bind_rows(
-      data.frame(cohort = "pooled", region = "Overall", ci.data$ci.res),
-      data.frame(cohort = "pooled", ci.region),
+      data.frame(cohort = "pooled", ci.data$ci.res),
+      data.frame(cohort = "pooled"),
       ci.cohort
     )
     return(cuminc)
@@ -322,8 +316,6 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
   shiny_desc_data <- shiny_desc_data %>% subset(., select = -c(se, nmeas.f,  ptest.f))
   
   shiny_desc_data$agecat <- as.factor(shiny_desc_data$agecat)
-  
-  shiny_desc_data$region <- factor(shiny_desc_data$region, levels=c("Overall", "Africa", "Latin America", "South Asia"))
   
   return(shiny_desc_data)
 }

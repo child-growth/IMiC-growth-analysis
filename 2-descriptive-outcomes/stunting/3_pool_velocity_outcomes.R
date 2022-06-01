@@ -30,26 +30,8 @@ table(d$diffcat)
 d <- d %>% rename(agecat = diffcat) %>%
   group_by(studyid, country, agecat, ycat, sex) %>%
   summarise(mean=mean(y_rate, na.rm=T), var=var(y_rate, na.rm=T), sd=sd(y_rate, na.rm=T), n=n()) %>%
-  mutate(ci.lb=mean - 1.96 * sd/sqrt(n), ci.ub=mean + 1.96 * sd/sqrt(n)) %>% 
-  mutate(region = case_when(
-    country=="BANGLADESH" | country=="INDIA"|
-      country=="NEPAL" | country=="PAKISTAN"|
-      country=="PHILIPPINES"                   ~ "Asia", 
-    country=="BURKINA FASO"|
-      country=="GUINEA-BISSAU"|
-      country=="MALAWI"|
-      country=="KENYA"|
-      country=="GHANA"|
-      country=="SOUTH AFRICA"|
-      country=="TANZANIA, UNITED REPUBLIC OF"|
-      country=="ZIMBABWE"|
-      country=="GAMBIA"                       ~ "Africa",
-    country=="BELARUS"                      ~ "Europe",
-    country=="BRAZIL" | country=="GUATEMALA" |
-      country=="PERU"                         ~ "Latin America",
-    TRUE ~ "Other"
-  ),
-  country_cohort=paste0(studyid," ", country))
+  mutate(ci.lb=mean - 1.96 * sd/sqrt(n), ci.ub=mean + 1.96 * sd/sqrt(n)) %>%
+  country_cohort=paste0(studyid," ", country)
 
 
 #----------------------------------------------------
@@ -69,17 +51,9 @@ RE_pool <- function(df, ycategory, gender, method = "REML"){
   
   pooled.vel=as.data.frame(do.call(rbind, pooled.vel))
 
-  # age and region specific pooled results
-  asia.vel=lapply(agecat,function(x) fit.rma(data=df[df$region=="Asia",], 
+  # age specific pooled results
+  asia.vel=lapply(agecat,function(x) fit.rma(data=df, 
         yi="mean", vi="var", ni="n", nlab="children",age=x, measure = "MN", method = method))
-  LA.vel=lapply(agecat,function(x) fit.rma(data=df[df$region=="Latin America",],
-        yi="mean", vi="var", ni="n",age=x, nlab="children", measure = "MN", method = method))
-  africa.vel=lapply(agecat,function(x) fit.rma(data=df[df$region=="Africa",],
-        yi="mean", vi="var", ni="n",age=x, nlab="children", measure = "MN", method = method))
-  
-  asia.vel=as.data.frame(do.call(rbind, asia.vel))
-  LA.vel=as.data.frame(do.call(rbind, LA.vel))
-  africa.vel=as.data.frame(do.call(rbind, africa.vel))
   
   
   #Bind together pooled and cohort specific estimates

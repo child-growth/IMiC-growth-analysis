@@ -39,16 +39,8 @@ d <- bind_rows(stunt, wast, co_desc_data,
                wast_noKenabaBirth, co_noKenabaBirth,
                stunt_noKenaba, stunt_noKenaba_fe, stunt_noKenaba_monthly24)
 
-#check region markings
-d %>% group_by(cohort) %>% slice(1) %>% select(region) %>% as.data.frame()
-
-d$region <- as.character(d$region)
-d$region[d$cohort %in% c("MAL-ED-TANZANIA",     "TanzaniaChild2-TANZANIA")] <- "Africa"
-d$region[d$cohort %in% c( "PROBIT-BELARUS")] <- "Europe"
-
 
 d$agecat <- factor(d$agecat, levels=unique(d$agecat))
-d$region <- factor(d$region, levels=  c("Overall","Africa","Latin America", "South Asia", unique(d$region)[!(unique(d$region) %in%  c("Overall","Africa","Latin America", "South Asia"))]))
 
 
 #Convert incidence rate to per 1000 days
