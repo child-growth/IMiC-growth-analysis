@@ -25,7 +25,7 @@ d_noBW <- d_noBW %>% subset(., select= -c(tr))
 # risk factor analysis
 #--------------------------------------
 # monthly_whz <- calc.monthly.agecat(d)
-# monthly_whz <- monthly_whz %>% subset(., select=c(subjid,studyid,country,agecat,region, measurefreq, whz))
+# monthly_whz <- monthly_whz %>% subset(., select=c(subjid,studyid,country,agecat, measurefreq, whz))
 # monthly_whz <- monthly_whz %>%
 #   filter(!is.na(agecat)) %>%
 #   group_by(studyid,country,subjid,agecat,measurefreq) %>%

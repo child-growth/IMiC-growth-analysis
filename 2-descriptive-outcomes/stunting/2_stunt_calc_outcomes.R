@@ -87,7 +87,7 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
   d6 <<- calc.ci.agecat(d, range = 6, birth="yes")
   d3_birthstrat <<- calc.ci.agecat(d, range = 3, birth="no")
   d6_birthstrat <<- calc.ci.agecat(d, range = 6, birth="no")
-  
+}
   ######################################################################
   # Prevalence
   ######################################################################
@@ -115,7 +115,6 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
   
   haz <- bind_rows(
     data.frame(cohort = "pooled", haz.data$haz.res),
-    data.frame(cohort = "pooled"),
     haz.cohort
   )
   
@@ -143,64 +142,13 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
   
   haz.vel <- bind_rows(
     data.frame(cohort = "pooled", haz.data.vel$haz.res),
-    data.frame(cohort = "pooled"),
     haz.cohort.vel
   )
   
   saveRDS(haz.vel, file = paste0(res_dir, "stunting/meanlaz_velocity", 
                                   output_file_suffix = ".RDS"))
   
-  #----------------------------------------
-  # monthly mean haz
-  #----------------------------------------
-  dmon <- calc.monthly.agecat(d)
-  monthly.haz.data <- summary.haz(dmon)
-  monthly.haz.country <-  dmon  %>% group_by(country) %>% do(summary.haz(.)$haz.res)
-  monthly.haz.cohort <-
-    monthly.haz.data$haz.cohort %>% subset(., select = c(cohort, agecat, nmeas,  meanhaz,  ci.lb,  ci.ub)) %>%
-    rename(est = meanhaz,  lb = ci.lb,  ub = ci.ub)
-  
-  monthly.haz <- bind_rows(
-    data.frame(cohort = "pooled", monthly.haz.data$haz.res),
-    data.frame(cohort = "pooled"),
-    data.frame(cohort = "pooled-country", monthly.haz.country),
-    monthly.haz.cohort
-  )
-  
-  #----------------------------------------
-  # Get monthly HAZ quantiles
-  #----------------------------------------
-  dmon <-  dmon %>% mutate(cohort = paste0(studyid, "-", country))
-  
-  quantile_d_cohort <- dmon %>% group_by(agecat, country, cohort) %>%
-    mutate(fifth_perc = quantile(haz, probs = c(0.05))[[1]],
-           fiftieth_perc = quantile(haz, probs = c(0.5))[[1]],
-           ninetyfifth_perc = quantile(haz, probs = c(0.95))[[1]]) %>%
-    select(studyid, cohort, agecat, fifth_perc, fiftieth_perc, ninetyfifth_perc)
-  
-  quantile_d <- dmon %>% group_by(agecat,  country) %>%
-    mutate(fifth_perc = quantile(haz, probs = c(0.05))[[1]],
-           fiftieth_perc = quantile(haz, probs = c(0.5))[[1]],
-           ninetyfifth_perc = quantile(haz, probs = c(0.95))[[1]]) %>%
-    mutate(studyid = "pooled", 
-           cohort = "pooled") %>%
-    select(studyid, cohort, agecat, fifth_perc, fiftieth_perc, ninetyfifth_perc) 
-  
-  quantile_d_overall <- dmon %>% 
-    group_by(agecat) %>%
-    summarise(fifth_perc = quantile(haz, probs = c(0.05))[[1]],
-              fiftieth_perc = quantile(haz, probs = c(0.5))[[1]],
-              ninetyfifth_perc = quantile(haz, probs = c(0.95))[[1]]) %>%
-    mutate(studyid = "pooled", 
-           cohort = "pooled") %>%
-    select(studyid, cohort, agecat, fifth_perc, fiftieth_perc, ninetyfifth_perc) 
-  
-  # combine data
-  quantiles <- bind_rows(quantile_d, quantile_d_overall,quantile_d_cohort)
-  
-  saveRDS(quantiles,file = paste0(res_dir,"stunting/quantile_data_stunting", 
-                                  output_file_suffix = ".RDS"))
-  
+ 
   ######################################################################
   # Incidence proportion
   ######################################################################
@@ -215,39 +163,10 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
     
     ip <- bind_rows(
       data.frame(cohort = "pooled", ip.data$ip.res),
-      data.frame(cohort = "pooled"),
       ip.cohort
     )
     return(ip)
- # }
-  #----------------------------------------
-  # Incidence proportion 3 month intervals
-  #----------------------------------------
-  ip_3 = calc_ip(d3, agelst3, severe = FALSE)
-  
-  #----------------------------------------
-  # Incidence proportion 3 month intervals
-  # stratify by birth
-  #----------------------------------------
-  ip_3.birthstrat = calc_ip(d3_birthstrat, agelst3_birthstrat, severe = FALSE)
-  
-  #----------------------------------------
-  # Incidence proportion 6 month intervals
-  #----------------------------------------
-  ip_6 = calc_ip(d6, agelst6, severe = FALSE)
-  
-  #----------------------------------------
-  # Incidence proportion of severe stunting 
-  # 3 month interval
-  #----------------------------------------
-  sev.ip3 = calc_ip(d3, agelst3, severe = TRUE)
-  
-  #----------------------------------------
-  # Incidence proportion of severe stunting
-  # 6 month interval
-  #----------------------------------------
-  sev.ip6 = calc_ip(d6, agelst6, severe = TRUE)
-  
+
   ######################################################################
   # Cumulative incidence
   ######################################################################
@@ -260,65 +179,10 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
     
     cuminc <- bind_rows(
       data.frame(cohort = "pooled", ci.data$ci.res),
-      data.frame(cohort = "pooled"),
       ci.cohort
     )
     return(cuminc)
   }
-  
-  #----------------------------------------
-  # Cumulative Incidence  - 3 month intervals
-  #----------------------------------------
-  cuminc3 = calc_ci(d3, agelst3, birth_strat = FALSE, severe = FALSE)
-  
-  #----------------------------------------
-  # Cumulative Incidence  - 3 month intervals
-  # stratify by birth 
-  #----------------------------------------
-  cuminc3.birthstrat = calc_ci(d3_birthstrat, agelst3_birthstrat, birth_strat = TRUE, severe = FALSE)
-  
-  #----------------------------------------
-  # Cumulative Incidence  - 6 month intervals
-  #----------------------------------------
-  cuminc6 <- calc_ci(d6, agelst6, birth_strat = FALSE, severe = FALSE)
-  
-  #----------------------------------------
-  # Cumulative Incidence  - 3 month intervals 
-  # severe
-  #----------------------------------------
-  sev.cuminc3 <- calc_ci(d3, agelst3, birth_strat = FALSE, severe = TRUE)
-  
-  #----------------------------------------
-  # Cumulative Incidence  - 6 month intervals
-  # severe
-  #----------------------------------------
-  sev.cuminc6 <- calc_ci(d6, agelst6, birth_strat = FALSE, severe = TRUE)
-  
-  shiny_desc_data <- bind_rows(
-    data.frame(disease = "Stunting", age_range="3 months",   birth="yes", severe="no", measure= "Prevalence", prev),
-    data.frame(disease = "Stunting", age_range="3 months",   birth="yes", severe="yes", measure= "Prevalence", sev.prev),
-    data.frame(disease = "Stunting", age_range="3 months",   birth="yes", severe="no", measure= "Mean LAZ",  haz),
-    data.frame(disease = "Stunting", age_range="1 month",   birth="yes", severe="no", measure= "Mean LAZ",  monthly.haz),
-    data.frame(disease = "Stunting", age_range="3 months",   birth="yes", severe="no", measure= "Cumulative incidence", cuminc3),
-    data.frame(disease = "Stunting", age_range="3 months",   birth="strat", severe="no", measure= "Cumulative incidence", cuminc3.birthstrat),
-    data.frame(disease = "Stunting", age_range="6 months",   birth="yes", severe="no", measure= "Cumulative incidence", cuminc6),
-    data.frame(disease = "Stunting", age_range="3 months",   birth="yes", severe="yes", measure= "Cumulative incidence", sev.cuminc3),
-    data.frame(disease = "Stunting", age_range="6 months",   birth="yes", severe="yes", measure= "Cumulative incidence", sev.cuminc6),
-    data.frame(disease = "Stunting", age_range="3 months",   birth="yes", severe="no", measure= "Incidence_proportion", ip_3),
-    data.frame(disease = "Stunting", age_range="3 months",   birth="strat", severe="no", measure= "Incidence_proportion", ip_3.birthstrat),
-    data.frame(disease = "Stunting", age_range="6 months",   birth="yes", severe="no", measure= "Incidence_proportion", ip_6),
-    data.frame(disease = "Stunting", age_range="3 months",   birth="yes", severe="yes", measure= "Incidence_proportion",  sev.ip3),
-    data.frame(disease = "Stunting", age_range="6 months",   birth="yes", severe="yes", measure= "Incidence_proportion",  sev.ip6)
-  )
-  
-  assert_that(names(table(shiny_desc_data$method.used)) == calc_method)
-  
-  shiny_desc_data <- shiny_desc_data %>% subset(., select = -c(se, nmeas.f,  ptest.f))
-  
-  shiny_desc_data$agecat <- as.factor(shiny_desc_data$agecat)
-  
-  return(shiny_desc_data)
-}
 
 stunt_outcomes = calc_outcomes(data = d, calc_method = "REML", output_file_suffix = "")
 saveRDS(stunt_outcomes, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects.RDS"))
