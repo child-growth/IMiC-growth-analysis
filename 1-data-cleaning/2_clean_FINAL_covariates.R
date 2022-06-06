@@ -19,7 +19,7 @@ source(paste0(here::here(), "/0-config.R"))
 library(growthstandards)
 
 
-d <- readRDS(included_studies_path)
+d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
 
 
 

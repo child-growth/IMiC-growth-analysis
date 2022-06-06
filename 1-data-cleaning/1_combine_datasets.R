@@ -36,6 +36,9 @@ head(elicit)
 dfull <- bind_rows(vital, elicit)
 colnames(dfull) <- tolower(colnames(dfull))
 
+#Save full dataset
+saveRDS(dfull, "/data/KI/imic/data/combined_raw_data.rds")
+
 
 #Subset to rows with growth measures
 dim(dfull)
