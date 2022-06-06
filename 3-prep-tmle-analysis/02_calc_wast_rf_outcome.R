@@ -18,7 +18,6 @@ load(paste0(ghapdata_dir,"Wasting_inc_rf_data.RData"))
 
 #Drop TR so it doesn't affect merge with covariates
 d <- d %>% subset(., select= -c(tr))
-d_noBW <- d_noBW %>% subset(., select= -c(tr))
 
 #--------------------------------------
 # Calculate monthly mean WHZ for the
