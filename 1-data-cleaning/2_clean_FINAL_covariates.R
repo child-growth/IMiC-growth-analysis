@@ -8,11 +8,8 @@
 #
 # Author: Andrew Mertens (amertens@berkeley.edu)
 
-#NOTE: THIS SCRIPT AND THESE COVARIATES WILL CHANGE FOR IMiC
+#NOTE: THIS SCRIPT AND THESE COVARIATES ARE CHANGING FOR IMiC
 #-----------------------------------------------------------------------------------------
-
-
-
 
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
@@ -21,8 +18,55 @@ library(growthstandards)
 
 d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
 
+## Look at visit and ageday and figure out how to clean the visit variable
+visitAgedays <- d %>%
+  select(visit, agedays)
+
+# Cleanup the visit variable: messy entries: scattered follow ups
 
 
+# Get rid of the word visit from each row of the visit column
+d $ visit <- gsub(" Visit", "", d $ visit)
+
+# Shorten words in the visit column
+d $ visit <- gsub("Months", "m", d $ visit)
+d $ visit <- gsub("months", "m", d $ visit)
+d $ visit <- gsub("month", "m", d $ visit)
+d $ visit <- gsub("Month", "m", d $ visit)
+d $ visit <- gsub(" ", "", d $ visit)
+d $ visit <- gsub("Enrolment", "enrol", d $ visit)
+
+# Reshape the data from long to wide
+
+## Get a list of names separated with a comma
+cat(paste(shQuote(names(d), type="cmd"), collapse=", "))
+
+## Make id a values vectors
+id = c("country", "studyid", "siteid", "subjid", "subjido", "studytyp", "arm")
+
+values = c("agedays", "ageimpfl", "mhtcm", "mwtkg", "mbmi", "mhgb", "wtkg", 
+           "lencm", "bmi", "hcircm", "muaccm", "waz", "haz", "whz", "baz", 
+           "muaz", "visit_r_fl", "dur_r", "bfedfl_r", "bfdu_r", "exbfed_r", 
+           "exbfdu_r", "bmcol_fl", "bmid", "fever_r", "cough_r", "diarr_r", 
+           "anti_r", "gagedays", "mmuaccm", "hgb", "bfmode", "bfedfl", 
+           "exbfedfl", "formlkfl", "sldfedfl", "anmlk_r", "formlk_r", 
+           "sldfed_r", "fever", "cough", "diarr", "vomit", "vomit_r", 
+           "physican", "hosp", "antibiot", "anti_oral", "anti_inj", "anti_or_r",
+           "anti_in_r", "mcrp", "mferritin", "mstrf", "magp")
+
+# Subset data for enrollment and 18 months only
+zto18 <- d %>%
+  filter(visit == "enrol" | visit == "18m")
+
+# Reshape data to wide
+wide <- d %>% 
+  pivot_wider(id_cols = id,
+              names_from = visit,
+              values_from = values)
+
+# Clean up the reshaped dataset: delete unnecessary variables
+
+# Make a table one for summary
 
 
 #--------------------------------------------------------

@@ -9,17 +9,6 @@ source(paste0(here::here(), "/0-config.R"))
 # Load covariates
 cov <- readRDS(paste0(ghapdata_dir,"FINAL_clean_covariates.rds"))
 table(cov $ studyid, cov $ enstunt)
-
-# Understand variables, their distributions, & missingness
-names(cov)
-summary(cov)
-
-# Get all character columns
-catVars <- cov[, sapply(cov, class) == 'character']
-
-# Look at the missingness in the data
-gg_miss_var(cov[, 1:50], show_pct = T)
-gg_miss_var(cov[, 50:108], show_pct = T)
         
 #Check reference levels
 for(i in 3:ncol(cov)){
