@@ -16,10 +16,8 @@ source(paste0(here::here(), "/0-config.R"))
 library(growthstandards)
 #install.packages(naniar)
 library(naniar) # For missingness
-install.packages(tableone)
-library(tableone)
-
-devtools::install_github(repo = "kaz-yos/tableone", ref = "develop")
+library(table1)
+library(rvest)
 
 
 d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
@@ -64,7 +62,7 @@ table(d $ visit2)
 
 # Clean up the dataset: delete unnecessary variables
 delete <- c("visitimpcm", "visitnum", "visit", "ageimpcm", "agedays", 
-            "ageimpfl", "sexn")
+            "ageimpfl", "sexn", "delivrdt", "bmid")
 d <- d[, !names(d) %in% delete]
 
 # Subset the data into 2 sites. This is because when pivoting to wide, 
@@ -88,16 +86,16 @@ sum(table(unique(elicit $ subjid))) #200
 ############ Reshape the ELICIT data from long to wide ############ 
 
 ## Make id a values vectors
-id = c("country", "studyid", "siteid", "subjid", "subjido", "studytyp", "arm")
+id = c("country", "studyid", "siteid", "subjid", "subjido", "studytyp")
 
-valuesBaselineE = c("sex", "brthyr", "brthweek", "mage", "parity", "nlchild", 
+valuesBaselineE = c("arm", "sex", "brthyr", "brthweek", "mage", "parity", "nlchild", 
                    "nperson", "nrooms", "meducyrs", "h2osrcp", "cookplac", 
                    "inctot", "inctotu", "epochn", "epoch", "mhtcm", "mwtkg", 
-                   "mbmi",  "pregout", "delivrdt", "dlvloc", "dvseason", "wtkg",
+                   "mbmi",  "pregout", "dlvloc", "dvseason", "wtkg",
                    "lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz",
                    "feeding", "dur_bf", "dur_ebf")
 
-valuesOneFiveE = c("bmcol_fl", "bmid")
+valuesOneFiveE = c("bmcol_fl")
 
 valuesIntervalsOf3E = c("lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz")
 
@@ -185,6 +183,14 @@ gg_miss_var(dStatic[, 1:50], show_pct = T)
 # were not measured in the ELICIT study and are all at 100% NA. As such, we
 # disregard them, which means that the combinedWideElicit dataset is our final
 # dataset for ELICIT.
+
+############ Make summary tables ############
+
+# Create a variable list which we want in Table 1
+combinedWideElicit <- combinedWideElicit %>%
+  select(-id)
+
+table1(~ . | arm_base, data = combinedWideElicit)
 
 ############ Reshape the VITAL data from long to wide ############ (NOT DONE)
 
@@ -296,35 +302,6 @@ wideOverallV <- overall %>%
 
 
 ############ Combine the wide ELICIT AND VITAL DATASETS ############ 
-
-############ Make summary tables ############
-
-# For ELICIT
-# Create a variable list which we want in Table 1
-combinedWideElicit <- combinedWideElicit %>%
-  select(-id)
-
-# Create a variable list which we want in Table 1
-listVars <- dput(names(combinedWideElicit))
-# This gives a vector of all variables in a dataset.
-
-# Define categorical variables
-catVars <- combinedWideElicit[, sapply(combinedWideElicit, class) == 'character']
-
-# Check if continuous are normal or not. If not, mark this in table1save.
-#summary(table1)
-
-table1 <- CreateTableOne(vars = listVars, data = combinedWideElicit, 
-                         factorVars = catVars)
-#strata = c())
-# Save table one
-table1save <- print(table1,
-                    #nonnormal = c(), # non-normally distributed.
-                    # exact = c(), # Fisher's exact
-                    # cramVars = c(), # If 2-level factor, shown as ratio in one row.
-                    quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
-
-write.csv(table1save, file = "table1.csv")
 
 #--------------------------------------------------------
 #Calculate stunting and wasting at enrollment and keep one observation per child
