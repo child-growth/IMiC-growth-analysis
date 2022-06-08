@@ -14,9 +14,18 @@
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 library(growthstandards)
+#install.packages(naniar)
+library(naniar) # For missingness
+install.packages(tableone)
+library(tableone)
+
+devtools::install_github(repo = "kaz-yos/tableone", ref = "develop")
 
 
 d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
+
+# Fill out empty cells with NA
+d <- d %>% mutate_all(na_if,"")
 
 # Get rid of the word visit from each row of the visit column
 d $ visit <- gsub(" Visit", "", d $ visit)
@@ -27,14 +36,14 @@ d $ visit <- gsub("months", "m", d $ visit)
 d $ visit <- gsub("month", "m", d $ visit)
 d $ visit <- gsub("Month", "m", d $ visit)
 d $ visit <- gsub(" ", "", d $ visit)
-d $ visit <- gsub("Enrolment", "enrol", d $ visit)
+d $ visit <- gsub("Enrolment", "base", d $ visit)
 
 ## Look at visit and ageday and figure out how to clean the visit variable
 visitAgedays <- d %>%
   select(visit, agedays)
 
 # Cleanup the visit variable: messy entries: scattered follow ups
-d $ visit2 <- case_when(d $ agedays < 30 ~ "enrol",
+d $ visit2 <- case_when(d $ agedays < 30 ~ "base",
                        d $ agedays >= 30 & d $ agedays < 61 ~ "1m", # some are really close to lab1 - need to figure out.
                        d $ agedays >= 61 & d $ agedays < 91 ~ "Lab1",
                        d $ agedays >= 91 & d $ agedays < 152 ~ "3m",
@@ -53,88 +62,269 @@ visitAgedays <- d %>%
 # Check
 table(d $ visit2)
 
+# Clean up the dataset: delete unnecessary variables
+delete <- c("visitimpcm", "visitnum", "visit", "ageimpcm", "agedays", 
+            "ageimpfl", "sexn")
+d <- d[, !names(d) %in% delete]
+
+# Subset the data into 2 sites. This is because when pivoting to wide, 
+# only 200 got included. This is because some specific measures are exclusively
+# included in the VITAL dataset and not in ELICIT. So, we change strategy and
+# first subset the data and then deal with time-varying variables.
+
+vital <- d %>%
+  filter(studyid == "VITAL-Lactation")
+
+sum(table(unique(vital $ subjid))) #150
+
+elicit <- d %>%
+  filter(studyid == "ELICIT")
+
+sum(table(unique(elicit $ subjid))) #200
+
 ## Get a list of names separated with a comma
-cat(paste(shQuote(names(d), type="cmd"), collapse=", "))
+#cat(paste(shQuote(names(d), type="cmd"), collapse=", "))
 
-# Clean up the reshaped dataset: delete unnecessary variables
-delete <- c()
-data <- data[, !names(data) %in% delete]
-
-# Reshape the data from long to wide
+############ Reshape the ELICIT data from long to wide ############ 
 
 ## Make id a values vectors
 id = c("country", "studyid", "siteid", "subjid", "subjido", "studytyp", "arm")
 
-valuesBaseline = c("mhtcm", "mwtkg", "mbmi", "wtkg", 
-           "lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz")
+valuesBaselineE = c("sex", "brthyr", "brthweek", "mage", "parity", "nlchild", 
+                   "nperson", "nrooms", "meducyrs", "h2osrcp", "cookplac", 
+                   "inctot", "inctotu", "epochn", "epoch", "mhtcm", "mwtkg", 
+                   "mbmi",  "pregout", "delivrdt", "dlvloc", "dvseason", "wtkg",
+                   "lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz",
+                   "feeding", "dur_bf", "dur_ebf")
 
-valuesOneFive = c("bmcol_fl", "bmid")
+valuesOneFiveE = c("bmcol_fl", "bmid")
 
-valuesIntervalsOf3 = c("lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz")
+valuesIntervalsOf3E = c("lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz")
 
-valuesIntervalsOf6 = c("visit_r_fl", "dur_r", "bfedfl_r", "exbfed_r", 
+valuesIntervalsOf6E = c("visit_r_fl", "dur_r", "bfedfl_r", "exbfed_r", 
                        "exbfdu_r", "fever_r", "cough_r", "diarr_r")
 
-valuesEndline <- c("mhgb", "muaz")
+valuesEndlineE <- c("mhgb", "muaccm", "muaz")
 
-valuesOverall <- c("bfdu_r", "anti_r")
+valuesOverallE <- c("bfdu_r", "anti_r")
 
 # Subset data for different times
-baseline <- d %>%
-  filter(visit == "enrol")
+baselineE <- elicit %>%
+  filter(visit2 == "base")
 
-oneFive <- d %>%
-  filter(visit == "1m" | visit == "5m")
+oneFiveE <- elicit %>%
+  filter(visit2 == "1m" | visit2 == "5m")
 
-intrvlsOf3 <- d %>%
-  filter(visit == "3m"| visit == "6m" | visit == "9m" | visit == "12m" |
-           visit == "15m" | visit == "18m")
+intrvlsOf3E <- elicit %>%
+  filter(visit2 == "3m"| visit2 == "6m" | visit2 == "9m" | visit2 == "12m" |
+           visit2 == "15m" | visit2 == "18m")
 
-intrvlsOf6 <- d %>%
-  filter(visit == "0to6m" | visit == "6to18m")
+intrvlsOf6E <- elicit %>%
+  filter(visit2 == "0to6m" | visit2 == "6to18m")
 
-overall <- d %>%
-  filter(visit == "0to18m")
+overallE <- elicit %>%
+  filter(visit2 == "0to18m")
 
-endline <- d %>%
-  filter(visit == "18m")
+endlineE <- elicit %>%
+  filter(visit2 == "18m")
 
 # Reshape data to wide
-wideBaseline <- baseline %>% 
+wideBaselineE <- baselineE %>% 
   pivot_wider(id_cols = id,
               names_from = visit2,
-              values_from = all_of(valuesBaseline))
+              values_from = all_of(valuesBaselineE))
 
-wideOneFive <- oneFive %>% 
+wideOneFiveE <- oneFiveE %>% 
   pivot_wider(id_cols = id,
               names_from = visit2,
-              values_from = valuesOneFive)
+              values_from = valuesOneFiveE) %>%
+  select(-id)
 
-wideIntrvlsOf3 <- intrvlsOf3 %>% 
+wideIntrvlsOf3E <- intrvlsOf3E %>% 
   pivot_wider(id_cols = id,
               names_from = visit2,
-              values_from = valuesIntervalsOf3)
+              values_from = valuesIntervalsOf3E) %>%
+  select(-id)
 
-wideIntrvlsOf6 <- intrvlsOf6 %>% 
+wideIntrvlsOf6E <- intrvlsOf6E %>% 
   pivot_wider(id_cols = id,
               names_from = visit2,
-              values_from = valuesIntervalsOf6)
+              values_from = valuesIntervalsOf6E) %>%
+  select(-id)
 
-wideEndline <- endline %>% 
+wideEndlineE <- endlineE %>% 
   pivot_wider(id_cols = id,
               names_from = visit2,
-              values_from = valuesEndline)
+              values_from = valuesEndlineE) %>%
+  select(-id)
 
-wideOverall <- overall %>% 
+wideOverallE <- overallE %>% 
   pivot_wider(id_cols = id,
               names_from = visit2,
-              values_from = all_of(valuesOverall))
+              values_from = all_of(valuesOverallE)) %>%
+  select(-id)
+
+# Combine all these 6 datasets
+combinedWideElicit <- cbind(wideBaselineE, wideOneFiveE, wideIntrvlsOf3E, 
+                            wideIntrvlsOf6E, wideEndlineE, wideOverallE)
+
+# Remove columns with 100% in this dataset
+combinedWideElicit <- combinedWideElicit[, -which(colMeans(is.na(combinedWideElicit)) == 1)]
+
+####### Back to the full ELICIT dataset #######
+
+# Delete all the time-variant variables already taken care of.
+dStatic <- elicit %>%
+  select(-c(valuesBaselineE, valuesOneFiveE, valuesIntervalsOf3E, 
+            valuesIntervalsOf6E, valuesEndlineE, valuesOverallE))
+
+# Look at missingness in dStatic
+gg_miss_var(dStatic[, 1:50], show_pct = T)
+
+# Now we can see that the remaining 50 variables aside from id variables
+# were not measured in the ELICIT study and are all at 100% NA. As such, we
+# disregard them, which means that the combinedWideElicit dataset is our final
+# dataset for ELICIT.
+
+############ Reshape the VITAL data from long to wide ############ (NOT DONE)
+
+# Look at missing values in this dataset
+gg_miss_var(vital[, 1:50], show_pct = T)
+gg_miss_var(vital[, 51:98], show_pct = T)
+
+# Save variables not measured in this study
+notMeasured <- vital[, which(colMeans(is.na(vital)) == 1)]
+#names(notMeasured)
+
+# Remove variables at 100% NA since they were not measured in this study
+vital <- vital[, -which(colMeans(is.na(vital)) == 1)]
+
+# Recheck missingness
+gg_miss_var(vital[, 1:45], show_pct = T)
+gg_miss_var(vital[, 46:90], show_pct = T)
+
+## Make values vectors for pivoting
+cat(paste(shQuote(names(vital), type="cmd"), collapse=", "))
+
+values <- c("gagebrth", "gagecm", "gagedays", "postbmi", "mmuaccm",
+            "hgb", "exbfdef", "bfinittm", "cmfdint", "bfmode", "bfedfl",
+            "exbfedfl", "formlkfl", "sldfedfl", "anmlk_r", "formlk_r",
+            "sldfed_r", "fever", "cough", "diarr", "vomit", "vomit_r", "physican",
+            "hosp", "antibiot", "anti_oral", "anti_inj", "anti_or_r", "anti_in_r",
+            "mcrp", "mferritin", "mstrf", "magp")
+
+
+valuesBaselineV = c("sex", "brthyr", "brthweek", "birthlen", 
+                    "mage", "parity", "nlchild", 
+                    "nperson", "nrooms", "meducyrs", "h2osrcp", "cookplac", 
+                     "epochn", "epoch", "mhtcm", "mwtkg", 
+                    "mbmi",  "pregout", "delivrdt", "dlvloc", "wtkg",
+                    "lencm", "bmi", "waz", "haz", "whz", "baz",
+                    "feeding", "dur_bf", "dur_ebf", 
+                    # Only in VITAL
+                    "arm", "armcd", "brthweek", "brthyr", "country",
+                    "citytown", "floor", "birthlen", "birthord", "birthwt",
+                    "delivery", "gravida", "nlivbrth")
+
+valuesOneFiveV = c("bmcol_fl", "bmid")
+
+valuesIntervalsOf3V = c("lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz")
+
+valuesIntervalsOf6V = c("visit_r_fl", "dur_r", "fever_r", "cough_r", "diarr_r")
+
+valuesEndlineV <- c("mhgb", "muaccm", "muaz")
+
+valuesOverallV <- c("anti_r")
+
+# Subset data for different times
+baselineV <- vital %>%
+  filter(visit2 == "base")
+
+oneFiveV <- vital %>%
+  filter(visit2 == "1m" | visit2 == "5m")
+
+intrvlsOf3V <- vital %>%
+  filter(visit2 == "3m"| visit2 == "6m" | visit2 == "9m" | visit2 == "12m" |
+           visit2 == "15m" | visit2 == "18m")
+
+intrvlsOf6V <- vital %>%
+  filter(visit2 == "0to6m" | visit2 == "6to18m")
+
+overallV <- vital %>%
+  filter(visit2 == "0to18m")
+
+endlineV <- vital %>%
+  filter(visit2 == "18m")
+
+# Reshape data to wide
+wideBaselineV <- baselineV %>% 
+  pivot_wider(id_cols = id,
+              names_from = visit2,
+              values_from = valuesBaselineV)
+
+wideOneFiveV <- oneFiveV %>% 
+  pivot_wider(id_cols = id,
+              names_from = visit2,
+              values_from = all_of(vitalOnly)) %>%
+  select(-id)
+
+wideIntrvlsOf3V <- intrvlsOf3V %>% 
+  pivot_wider(id_cols = id,
+              names_from = visit2,
+              values_from = all_of(vitalOnly)) %>%
+  select(-id)
+
+wideIntrvlsOf6V <- intrvlsOf6V %>% 
+  pivot_wider(id_cols = id,
+              names_from = visit2,
+              values_from = all_of(vitalOnly)) %>%
+  select(-id)
+
+wideEndlineV <- endline %>% 
+  pivot_wider(id_cols = id,
+              names_from = visit2,
+              values_from = all_of(vitalOnly)) %>%
+  select(-id)
+
+wideOverallV <- overall %>% 
+  pivot_wider(id_cols = id,
+              names_from = visit2,
+              values_from = all_of(vitalOnly)) %>%
+  select(-id)
 
 # Combine all these 6 datasets
 
 
-# Make a table one for summary
+############ Combine the wide ELICIT AND VITAL DATASETS ############ 
 
+############ Make summary tables ############
+
+# For ELICIT
+# Create a variable list which we want in Table 1
+combinedWideElicit <- combinedWideElicit %>%
+  select(-id)
+
+# Create a variable list which we want in Table 1
+listVars <- dput(names(combinedWideElicit))
+# This gives a vector of all variables in a dataset.
+
+# Define categorical variables
+catVars <- combinedWideElicit[, sapply(combinedWideElicit, class) == 'character']
+
+# Check if continuous are normal or not. If not, mark this in table1save.
+#summary(table1)
+
+table1 <- CreateTableOne(vars = listVars, data = combinedWideElicit, 
+                         factorVars = catVars)
+#strata = c())
+# Save table one
+table1save <- print(table1,
+                    #nonnormal = c(), # non-normally distributed.
+                    # exact = c(), # Fisher's exact
+                    # cramVars = c(), # If 2-level factor, shown as ratio in one row.
+                    quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
+
+write.csv(table1save, file = "table1.csv")
 
 #--------------------------------------------------------
 #Calculate stunting and wasting at enrollment and keep one observation per child
