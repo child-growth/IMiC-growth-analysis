@@ -18,13 +18,6 @@ library(growthstandards)
 
 d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
 
-## Look at visit and ageday and figure out how to clean the visit variable
-visitAgedays <- d %>%
-  select(visit, agedays)
-
-# Cleanup the visit variable: messy entries: scattered follow ups
-
-
 # Get rid of the word visit from each row of the visit column
 d $ visit <- gsub(" Visit", "", d $ visit)
 
@@ -36,35 +29,109 @@ d $ visit <- gsub("Month", "m", d $ visit)
 d $ visit <- gsub(" ", "", d $ visit)
 d $ visit <- gsub("Enrolment", "enrol", d $ visit)
 
-# Reshape the data from long to wide
+## Look at visit and ageday and figure out how to clean the visit variable
+visitAgedays <- d %>%
+  select(visit, agedays)
+
+# Cleanup the visit variable: messy entries: scattered follow ups
+d $ visit2 <- case_when(d $ agedays < 30 ~ "enrol",
+                       d $ agedays >= 30 & d $ agedays < 61 ~ "1m", # some are really close to lab1 - need to figure out.
+                       d $ agedays >= 61 & d $ agedays < 91 ~ "Lab1",
+                       d $ agedays >= 91 & d $ agedays < 152 ~ "3m",
+                       d $ agedays >= 152 & d $ agedays < 183 ~ "5m",
+                       d $ agedays >= 183 & d $ agedays < 244 ~ "6m",
+                       d $ agedays >= 244 & d $ agedays < 274 ~ "Lab2",
+                       d $ agedays >= 274 & d $ agedays < 365 ~ "9m",
+                       d $ agedays >= 365 & d $ agedays < 457 ~ "12m",
+                       d $ agedays >= 457 & d $ agedays < 548 ~ "15m",
+                       d $ agedays >= 548 ~ "18m",
+                       TRUE ~ d $ visit)
+# Test
+visitAgedays <- d %>%
+  select(visit, visit2, agedays) # It worked!
+
+# Check
+table(d $ visit2)
 
 ## Get a list of names separated with a comma
 cat(paste(shQuote(names(d), type="cmd"), collapse=", "))
 
+# Clean up the reshaped dataset: delete unnecessary variables
+delete <- c()
+data <- data[, !names(data) %in% delete]
+
+# Reshape the data from long to wide
+
 ## Make id a values vectors
 id = c("country", "studyid", "siteid", "subjid", "subjido", "studytyp", "arm")
 
-values = c("agedays", "ageimpfl", "mhtcm", "mwtkg", "mbmi", "mhgb", "wtkg", 
-           "lencm", "bmi", "hcircm", "muaccm", "waz", "haz", "whz", "baz", 
-           "muaz", "visit_r_fl", "dur_r", "bfedfl_r", "bfdu_r", "exbfed_r", 
-           "exbfdu_r", "bmcol_fl", "bmid", "fever_r", "cough_r", "diarr_r", 
-           "anti_r", "gagedays", "mmuaccm", "hgb", "bfmode", "bfedfl", 
-           "exbfedfl", "formlkfl", "sldfedfl", "anmlk_r", "formlk_r", 
-           "sldfed_r", "fever", "cough", "diarr", "vomit", "vomit_r", 
-           "physican", "hosp", "antibiot", "anti_oral", "anti_inj", "anti_or_r",
-           "anti_in_r", "mcrp", "mferritin", "mstrf", "magp")
+valuesBaseline = c("mhtcm", "mwtkg", "mbmi", "wtkg", 
+           "lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz")
 
-# Subset data for enrollment and 18 months only
-zto18 <- d %>%
-  filter(visit == "enrol" | visit == "18m")
+valuesOneFive = c("bmcol_fl", "bmid")
+
+valuesIntervalsOf3 = c("lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz")
+
+valuesIntervalsOf6 = c("visit_r_fl", "dur_r", "bfedfl_r", "exbfed_r", 
+                       "exbfdu_r", "fever_r", "cough_r", "diarr_r")
+
+valuesEndline <- c("mhgb", "muaz")
+
+valuesOverall <- c("bfdu_r", "anti_r")
+
+# Subset data for different times
+baseline <- d %>%
+  filter(visit == "enrol")
+
+oneFive <- d %>%
+  filter(visit == "1m" | visit == "5m")
+
+intrvlsOf3 <- d %>%
+  filter(visit == "3m"| visit == "6m" | visit == "9m" | visit == "12m" |
+           visit == "15m" | visit == "18m")
+
+intrvlsOf6 <- d %>%
+  filter(visit == "0to6m" | visit == "6to18m")
+
+overall <- d %>%
+  filter(visit == "0to18m")
+
+endline <- d %>%
+  filter(visit == "18m")
 
 # Reshape data to wide
-wide <- d %>% 
+wideBaseline <- baseline %>% 
   pivot_wider(id_cols = id,
-              names_from = visit,
-              values_from = values)
+              names_from = visit2,
+              values_from = all_of(valuesBaseline))
 
-# Clean up the reshaped dataset: delete unnecessary variables
+wideOneFive <- oneFive %>% 
+  pivot_wider(id_cols = id,
+              names_from = visit2,
+              values_from = valuesOneFive)
+
+wideIntrvlsOf3 <- intrvlsOf3 %>% 
+  pivot_wider(id_cols = id,
+              names_from = visit2,
+              values_from = valuesIntervalsOf3)
+
+wideIntrvlsOf6 <- intrvlsOf6 %>% 
+  pivot_wider(id_cols = id,
+              names_from = visit2,
+              values_from = valuesIntervalsOf6)
+
+wideEndline <- endline %>% 
+  pivot_wider(id_cols = id,
+              names_from = visit2,
+              values_from = valuesEndline)
+
+wideOverall <- overall %>% 
+  pivot_wider(id_cols = id,
+              names_from = visit2,
+              values_from = all_of(valuesOverall))
+
+# Combine all these 6 datasets
+
 
 # Make a table one for summary
 
