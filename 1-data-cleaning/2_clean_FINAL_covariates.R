@@ -63,6 +63,7 @@ table(d $ visit2)
 # Clean up the dataset: delete unnecessary variables
 delete <- c("visitimpcm", "visitnum", "visit", "ageimpcm", "agedays", 
             "ageimpfl", "sexn", "delivrdt", "bmid")
+
 d <- d[, !names(d) %in% delete]
 
 # Subset the data into 2 sites. This is because when pivoting to wide, 
@@ -190,8 +191,9 @@ gg_miss_var(dStatic[, 1:50], show_pct = T)
 combinedWideElicit <- combinedWideElicit %>%
   select(-id)
 
-table1(~ . | arm_base, data = combinedWideElicit)
+table1 <- table1(~ . | arm_base, data = combinedWideElicit)
 
+write.csv(table1, file = "table1.csv")
 ############ Reshape the VITAL data from long to wide ############ (NOT DONE)
 
 # Look at missing values in this dataset
