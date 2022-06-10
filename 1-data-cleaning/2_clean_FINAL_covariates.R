@@ -185,6 +185,9 @@ gg_miss_var(dStatic[, 1:ncol(dStatic)], show_pct = T)
 # disregard them, which means that the combinedWideElicit dataset is our final
 # dataset for ELICIT.
 
+# Save the dataset
+write.csv(combinedWideElicit, file = "wideElicit.csv")
+
 ############ Make summary tables ############
 
 # Create a variable list which we want in Table 1
