@@ -61,7 +61,7 @@ table(d $ visit2)
 
 # Clean up the dataset: delete unnecessary variables
 delete <- c("visitimpcm", "visitnum", "visit", "ageimpcm", 
-            "ageimpfl", "sexn", "delivrdt", "bmid")
+            "ageimpfl", "sexn", "delivrdt", "bmid", "armcd")
 
 d <- d[, !names(d) %in% delete]
 
@@ -193,12 +193,14 @@ combinedWideElicit <- combinedWideElicit %>%
 
 table1 <- table1(~ . | arm_base, data = combinedWideElicit)
 
-write.csv(table1, file = "table1Elicit.csv")
+# Save the table as a csv file
+#write.csv(table1, file = "table1Elicit.csv")
+
 ############ Reshape the VITAL data from long to wide ############ (NOT DONE)
 
 # Look at missing values in this dataset
 gg_miss_var(vital[, 1:50], show_pct = T)
-gg_miss_var(vital[, 51:98], show_pct = T)
+gg_miss_var(vital[, 51:97], show_pct = T)
 
 # Save variables not measured in this study
 notMeasured <- vital[, which(colMeans(is.na(vital)) == 1)]
@@ -209,10 +211,10 @@ vital <- vital[, -which(colMeans(is.na(vital)) == 1)]
 
 # Recheck missingness
 gg_miss_var(vital[, 1:45], show_pct = T)
-gg_miss_var(vital[, 46:90], show_pct = T)
+gg_miss_var(vital[, 46:88], show_pct = T)
 
 ## Make values vectors for pivoting
-cat(paste(shQuote(names(vital), type="cmd"), collapse=", "))
+#cat(paste(shQuote(names(vital), type="cmd"), collapse=", "))
 
 values <- c("gagebrth", "gagecm", "gagedays", "postbmi", "mmuaccm",
             "hgb", "exbfdef", "bfinittm", "cmfdint", "bfmode", "bfedfl",
@@ -222,8 +224,7 @@ values <- c("gagebrth", "gagecm", "gagedays", "postbmi", "mmuaccm",
             "mcrp", "mferritin", "mstrf", "magp")
 
 
-valuesBaselineV = c("sex", "brthyr", "brthweek", "birthlen", 
-                    "mage", "parity", "nlchild", 
+valuesBaselineV = c("sex", "brthyr", "mage", "parity", "nlchild", 
                     "nperson", "nrooms", "meducyrs", "h2osrcp", "cookplac", 
                      "epochn", "epoch", "mhtcm", "mwtkg", 
                     "mbmi",  "pregout", "delivrdt", "dlvloc", "wtkg",
@@ -236,7 +237,7 @@ valuesBaselineV = c("sex", "brthyr", "brthweek", "birthlen",
 
 valuesOneFiveV = c("bmcol_fl", "bmid")
 
-valuesIntervalsOf3V = c("lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz")
+valuesIntervalsOf3V = c("lencm", "bmi", "waz", "haz", "whz", "baz")
 
 valuesIntervalsOf6V = c("visit_r_fl", "dur_r", "fever_r", "cough_r", "diarr_r")
 
@@ -268,7 +269,7 @@ endlineV <- vital %>%
 wideBaselineV <- baselineV %>% 
   pivot_wider(id_cols = id,
               names_from = visit2,
-              values_from = valuesBaselineV)
+              values_from = all_of(valuesBaselineV))
 
 wideOneFiveV <- oneFiveV %>% 
   pivot_wider(id_cols = id,
