@@ -17,7 +17,6 @@ library(growthstandards)
 #install.packages(naniar)
 library(naniar) # For missingness
 library(table1)
-library(rvest)
 
 
 d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
@@ -42,7 +41,7 @@ visitAgedays <- d %>%
 
 # Cleanup the visit variable: messy entries: scattered follow ups
 d $ visit2 <- case_when(d $ agedays < 30 ~ "base",
-                       d $ agedays >= 30 & d $ agedays < 61 ~ "1m", # some are really close to lab1 - need to figure out.
+                       d $ agedays >= 30 & d $ agedays < 61 ~ "1m",
                        d $ agedays >= 61 & d $ agedays < 91 ~ "Lab1",
                        d $ agedays >= 91 & d $ agedays < 152 ~ "3m",
                        d $ agedays >= 152 & d $ agedays < 183 ~ "5m",
@@ -61,7 +60,7 @@ visitAgedays <- d %>%
 table(d $ visit2)
 
 # Clean up the dataset: delete unnecessary variables
-delete <- c("visitimpcm", "visitnum", "visit", "ageimpcm", "agedays", 
+delete <- c("visitimpcm", "visitnum", "visit", "ageimpcm", 
             "ageimpfl", "sexn", "delivrdt", "bmid")
 
 d <- d[, !names(d) %in% delete]
@@ -93,19 +92,20 @@ valuesBaselineE = c("arm", "sex", "brthyr", "brthweek", "mage", "parity", "nlchi
                    "nperson", "nrooms", "meducyrs", "h2osrcp", "cookplac", 
                    "inctot", "inctotu", "epochn", "epoch", "mhtcm", "mwtkg", 
                    "mbmi",  "pregout", "dlvloc", "dvseason", "wtkg",
-                   "lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz",
-                   "feeding", "dur_bf", "dur_ebf")
+                   "lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz", 
+                   "agedays", "feeding", "dur_bf", "dur_ebf")
 
-valuesOneFiveE = c("bmcol_fl")
+valuesOneFiveE = c("bmcol_fl", "agedays")
 
-valuesIntervalsOf3E = c("lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz")
+valuesIntervalsOf3E = c("lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz", 
+                        "agedays")
 
 valuesIntervalsOf6E = c("visit_r_fl", "dur_r", "bfedfl_r", "exbfed_r", 
-                       "exbfdu_r", "fever_r", "cough_r", "diarr_r")
+                       "exbfdu_r", "fever_r", "cough_r", "diarr_r", "agedays")
 
-valuesEndlineE <- c("mhgb", "muaccm", "muaz")
+valuesEndlineE <- c("mhgb", "muaccm", "muaz", "agedays")
 
-valuesOverallE <- c("bfdu_r", "anti_r")
+valuesOverallE <- c("bfdu_r", "anti_r", "agedays")
 
 # Subset data for different times
 baselineE <- elicit %>%
@@ -167,7 +167,7 @@ wideOverallE <- overallE %>%
 combinedWideElicit <- cbind(wideBaselineE, wideOneFiveE, wideIntrvlsOf3E, 
                             wideIntrvlsOf6E, wideEndlineE, wideOverallE)
 
-# Remove columns with 100% in this dataset
+# Remove columns with 100% NA in this dataset
 combinedWideElicit <- combinedWideElicit[, -which(colMeans(is.na(combinedWideElicit)) == 1)]
 
 ####### Back to the full ELICIT dataset #######
@@ -178,7 +178,7 @@ dStatic <- elicit %>%
             valuesIntervalsOf6E, valuesEndlineE, valuesOverallE))
 
 # Look at missingness in dStatic
-gg_miss_var(dStatic[, 1:50], show_pct = T)
+gg_miss_var(dStatic[, 1:ncol(dStatic)], show_pct = T)
 
 # Now we can see that the remaining 50 variables aside from id variables
 # were not measured in the ELICIT study and are all at 100% NA. As such, we
@@ -193,7 +193,7 @@ combinedWideElicit <- combinedWideElicit %>%
 
 table1 <- table1(~ . | arm_base, data = combinedWideElicit)
 
-write.csv(table1, file = "table1.csv")
+write.csv(table1, file = "table1Elicit.csv")
 ############ Reshape the VITAL data from long to wide ############ (NOT DONE)
 
 # Look at missing values in this dataset
