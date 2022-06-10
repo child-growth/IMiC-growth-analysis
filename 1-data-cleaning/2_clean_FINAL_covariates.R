@@ -6,7 +6,8 @@
 # Output: Single dataset with one row per child and all baseline covariates
 #         Time-varying covariates and anthropometry measures processed in a seperate script.
 #
-# Author: Andrew Mertens (amertens@berkeley.edu)
+# Authors: Andrew Mertens (amertens@berkeley.edu)
+#          Sajia Darwish (sajdarwish@berkeley.edu)
 
 #NOTE: THIS SCRIPT AND THESE COVARIATES ARE CHANGING FOR IMiC
 #-----------------------------------------------------------------------------------------
@@ -20,6 +21,10 @@ library(table1)
 
 
 d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
+
+#------------------------------------------------------------------------------#
+#           High level clean up of the joint dataset + subset [DONE]           #                                                #
+#------------------------------------------------------------------------------#
 
 # Fill out empty cells with NA
 d <- d %>% mutate_all(na_if,"")
@@ -39,36 +44,13 @@ d $ visit <- gsub("Enrolment", "base", d $ visit)
 visitAgedays <- d %>%
   select(visit, agedays)
 
-# Cleanup the visit variable: messy entries: scattered follow ups
-d $ visit2 <- case_when(d $ agedays < 30 ~ "base",
-                       d $ agedays >= 30 & d $ agedays < 61 ~ "1m",
-                       d $ agedays >= 61 & d $ agedays < 91 ~ "Lab1",
-                       d $ agedays >= 91 & d $ agedays < 152 ~ "3m",
-                       d $ agedays >= 152 & d $ agedays < 183 ~ "5m",
-                       d $ agedays >= 183 & d $ agedays < 244 ~ "6m",
-                       d $ agedays >= 244 & d $ agedays < 274 ~ "Lab2",
-                       d $ agedays >= 274 & d $ agedays < 365 ~ "9m",
-                       d $ agedays >= 365 & d $ agedays < 457 ~ "12m",
-                       d $ agedays >= 457 & d $ agedays < 548 ~ "15m",
-                       d $ agedays >= 548 ~ "18m",
-                       TRUE ~ d $ visit)
-# Test
-visitAgedays <- d %>%
-  select(visit, visit2, agedays) # It worked!
-
-# Check
-table(d $ visit2)
-
-# Clean up the dataset: delete unnecessary variables
-delete <- c("visitimpcm", "visitnum", "visit", "ageimpcm", 
-            "ageimpfl", "sexn", "delivrdt", "bmid", "armcd")
-
-d <- d[, !names(d) %in% delete]
-
 # Subset the data into 2 sites. This is because when pivoting to wide, 
 # only 200 got included. This is because some specific measures are exclusively
 # included in the VITAL dataset and not in ELICIT. So, we change strategy and
 # first subset the data and then deal with time-varying variables.
+
+# Also, later I found that variables are measured at different times for ELICIT 
+# and VITAL. So, we cleanup the visit variable within each site separately.
 
 vital <- d %>%
   filter(studyid == "VITAL-Lactation")
@@ -80,10 +62,35 @@ elicit <- d %>%
 
 sum(table(unique(elicit $ subjid))) #200
 
-## Get a list of names separated with a comma
-#cat(paste(shQuote(names(d), type="cmd"), collapse=", "))
+#------------------------------------------------------------------------------#
+#               Reshape the ELICIT data from long to wide [DONE]               #                                                #
+#------------------------------------------------------------------------------#
 
-############ Reshape the ELICIT data from long to wide ############ 
+# Cleanup the visit variable: messy entries: scattered follow ups
+elicit $ visit2 <- case_when(elicit $ agedays < 30 ~ "base",
+                             elicit $ agedays >= 30 & elicit $ agedays < 61 ~ "1m",
+                             elicit $ agedays >= 61 & elicit $ agedays < 91 ~ "Lab1",
+                             elicit $ agedays >= 91 & elicit $ agedays < 152 ~ "3m",
+                             elicit $ agedays >= 152 & elicit $ agedays < 183 ~ "5m",
+                             elicit $ agedays >= 183 & elicit $ agedays < 244 ~ "6m",
+                             elicit $ agedays >= 244 & elicit $ agedays < 274 ~ "Lab2",
+                             elicit $ agedays >= 274 & elicit $ agedays < 365 ~ "9m",
+                             elicit $ agedays >= 365 & elicit $ agedays < 457 ~ "12m",
+                             elicit $ agedays >= 457 & elicit $ agedays < 548 ~ "15m",
+                             elicit $ agedays >= 548 ~ "18m",
+                             TRUE ~ elicit $ visit)
+# Test
+visitAgedays <- elicit %>%
+  select(visit, visit2, agedays) # It worked!
+
+# Check
+table(elicit $ visit2)
+
+# Clean up the dataset: delete unnecessary variables
+delete <- c("visitimpcm", "visitnum", "visit", "ageimpcm", 
+            "ageimpfl", "sexn", "delivrdt", "bmid", "armcd", "exbfdef")
+
+elicit <- elicit[, !names(d) %in% delete]
 
 ## Make id a values vectors
 id = c("country", "studyid", "siteid", "subjid", "subjido", "studytyp")
@@ -170,7 +177,7 @@ combinedWideElicit <- cbind(wideBaselineE, wideOneFiveE, wideIntrvlsOf3E,
 # Remove columns with 100% NA in this dataset
 combinedWideElicit <- combinedWideElicit[, -which(colMeans(is.na(combinedWideElicit)) == 1)]
 
-####### Back to the full ELICIT dataset #######
+# Back to the full ELICIT dataset
 
 # Delete all the time-variant variables already taken care of.
 dStatic <- elicit %>%
@@ -186,9 +193,11 @@ gg_miss_var(dStatic[, 1:ncol(dStatic)], show_pct = T)
 # dataset for ELICIT.
 
 # Save the dataset
-write.csv(combinedWideElicit, file = "wideElicit.csv")
+#write.csv(combinedWideElicit, file = "wideElicit.csv")
 
-############ Make summary tables ############
+#------------------------------------------------------------------------------#
+#                       Make Summary Table - ELICIT [DONE]                     #                                                #
+#------------------------------------------------------------------------------#
 
 # Create a variable list which we want in Table 1
 combinedWideElicit <- combinedWideElicit %>%
@@ -199,11 +208,70 @@ table1 <- table1(~ . | arm_base, data = combinedWideElicit)
 # Save the table as a csv file
 #write.csv(table1, file = "table1Elicit.csv")
 
-############ Reshape the VITAL data from long to wide ############ (NOT DONE)
+#------------------------------------------------------------------------------#
+#               Reshape the VITAL data from long to wide [NOT DONE]            #                                                #
+#------------------------------------------------------------------------------#
+
+## Get a list of names separated with a comma
+#cat(paste(shQuote(names(d), type="cmd"), collapse=", "))
+
+# Cleanup the visit variable: messy entries: scattered follow ups
+table(vital $ visit)
+
+# Get rid of the word follow-up in the visit variable
+vital $ visit <- gsub("Followup", "", vital $ visit)
+
+# Look at the specific days used to mark time frames
+visitAgedays <- vital %>%
+  select(visit, agedays)
+
+vital $ visit2 <- case_when(vital $ visit == "Baseline" |
+                              vital $ visit == "Baseline(Birthrecall)" ~ "base",
+                            vital $ visit == "m1" ~ "m1",
+                            vital $ visit == "m2" ~ "m2",
+                            vital $ visit == "m3" ~ "m3",
+                            vital $ visit == "m4" ~ "m4",
+                            vital $ visit == "m5" ~ "m5",
+                            vital $ visit == "m6" ~ "m6")
+
+# Check min and max of the frames used
+# Override max print
+options(max.print = 1000000)
+table(vital $ visit2, vital $ agedays)
+
+# Based on the table above, we populate the rest of visit2
+vital $ visit2 <- case_when(vital $ visit == "Baseline" |
+                              vital $ visit == "Baseline(Birthrecall)" |
+                              vital $ agedays < 28 ~ "base",
+                            vital $ visit == "m1" |
+                              vital $ agedays < 57 ~ "m1",
+                            vital $ visit == "m2" |
+                              vital $ agedays < 86 ~ "m2",
+                            vital $ visit == "m3" |
+                              vital $ agedays < 115 ~ "m3",
+                            vital $ visit == "m4" |
+                              vital $ agedays < 144 ~ "m4",
+                            vital $ visit == "m5" |
+                              vital $ agedays < 178 ~ "m5",
+                            vital $ visit == "m6" |
+                              vital $ agedays > 178 ~ "m6")
+
+# Test
+visitAgedays <- vital %>%
+  select(visit, visit2, agedays) # It worked!
+
+# Check
+table(vital $ visit2, vital $ agedays)
+
+# Clean up the dataset: delete unnecessary variables
+delete <- c("visitimpcm", "visitnum", "visit", "ageimpcm", 
+            "ageimpfl", "sexn", "delivrdt", "bmid", "armcd", "exbfdef")
+
+vital <- vital[, !names(vital) %in% delete]
 
 # Look at missing values in this dataset
-gg_miss_var(vital[, 1:50], show_pct = T)
-gg_miss_var(vital[, 51:97], show_pct = T)
+gg_miss_var(vital[, 1:45], show_pct = T)
+gg_miss_var(vital[, 46:95], show_pct = T)
 
 # Save variables not measured in this study
 notMeasured <- vital[, which(colMeans(is.na(vital)) == 1)]
@@ -214,100 +282,126 @@ vital <- vital[, -which(colMeans(is.na(vital)) == 1)]
 
 # Recheck missingness
 gg_miss_var(vital[, 1:45], show_pct = T)
-gg_miss_var(vital[, 46:88], show_pct = T)
-
-## Make values vectors for pivoting
-#cat(paste(shQuote(names(vital), type="cmd"), collapse=", "))
-
-values <- c("gagebrth", "gagecm", "gagedays", "postbmi", "mmuaccm",
-            "hgb", "exbfdef", "bfinittm", "cmfdint", "bfmode", "bfedfl",
-            "exbfedfl", "formlkfl", "sldfedfl", "anmlk_r", "formlk_r",
-            "sldfed_r", "fever", "cough", "diarr", "vomit", "vomit_r", "physican",
-            "hosp", "antibiot", "anti_oral", "anti_inj", "anti_or_r", "anti_in_r",
-            "mcrp", "mferritin", "mstrf", "magp")
-
-
-valuesBaselineV = c("sex", "brthyr", "mage", "parity", "nlchild", 
-                    "nperson", "nrooms", "meducyrs", "h2osrcp", "cookplac", 
-                     "epochn", "epoch", "mhtcm", "mwtkg", 
-                    "mbmi",  "pregout", "delivrdt", "dlvloc", "wtkg",
-                    "lencm", "bmi", "waz", "haz", "whz", "baz",
-                    "feeding", "dur_bf", "dur_ebf", 
-                    # Only in VITAL
-                    "arm", "armcd", "brthweek", "brthyr", "country",
-                    "citytown", "floor", "birthlen", "birthord", "birthwt",
-                    "delivery", "gravida", "nlivbrth")
-
-valuesOneFiveV = c("bmcol_fl", "bmid")
-
-valuesIntervalsOf3V = c("lencm", "bmi", "waz", "haz", "whz", "baz")
-
-valuesIntervalsOf6V = c("visit_r_fl", "dur_r", "fever_r", "cough_r", "diarr_r")
-
-valuesEndlineV <- c("mhgb", "muaccm", "muaz")
-
-valuesOverallV <- c("anti_r")
+gg_miss_var(vital[, 46:87], show_pct = T)
 
 # Subset data for different times
 baselineV <- vital %>%
   filter(visit2 == "base")
 
-oneFiveV <- vital %>%
-  filter(visit2 == "1m" | visit2 == "5m")
+m1 <- vital %>%
+  filter(visit2 == "m1")
 
-intrvlsOf3V <- vital %>%
-  filter(visit2 == "3m"| visit2 == "6m" | visit2 == "9m" | visit2 == "12m" |
-           visit2 == "15m" | visit2 == "18m")
+m2 <- vital %>%
+  filter(visit2 == "m2")
 
-intrvlsOf6V <- vital %>%
-  filter(visit2 == "0to6m" | visit2 == "6to18m")
+m3 <- vital %>%
+  filter(visit2 == "m3")
 
-overallV <- vital %>%
-  filter(visit2 == "0to18m")
+m4 <- vital %>%
+  filter(visit2 == "m4")
 
-endlineV <- vital %>%
-  filter(visit2 == "18m")
+m5 <- vital %>%
+  filter(visit2 == "m5")
+
+m6 <- vital %>%
+  filter(visit2 == "m6")
+
+## Make values vectors for pivoting
+#cat(paste(shQuote(names(vital), type="cmd"), collapse=", "))
+
+valuesBase = c("sex", "brthyr", "brthweek", "mage", "parity", "nlchild", 
+               "nperson", "nrooms", "meducyrs", "h2osrcp", "cookplac",
+               "agedays", "epochn", "epoch", "mhtcm", "mwtkg",
+               "mbmi", "pregout", "dlvloc", "wtkg", "lencm", "bmi", 
+               "muaccm", "waz", "haz", "whz", "baz", "feeding",
+               "dur_bf", "dur_ebf", "visit_r_fl", "dur_r", 
+               "fever_r", "cough_r", "diarr_r", "anti_r", "citytown", 
+               "gagebrth", "gagecm", "birthwt", "birthlen", "birthord",
+               "gravida", "nlivbrth", "floor", "gagedays", "postbmi",
+               "mmuaccm", "delivery", "bfinittm", "cmfdint", 
+               "bfmode", "bfedfl", "exbfedfl", "sldfedfl", "anmlk_r", 
+               "formlk_r", "sldfed_r", "fever", "cough",
+               "diarr", "vomit", "vomit_r", "physican", "hosp", "antibiot",
+               "anti_oral", "anti_inj", "anti_or_r", "anti_in_r")
+
+valuesM1 = c("agedays", "mhgb", "wtkg", "lencm", "bmi", "muaccm",
+             "anti_r", "mmuaccm", "hgb", "bfmode", "bfedfl",
+             "exbfedfl", "sldfedfl", "fever", "cough",
+             "diarr", "vomit", "vomit_r", "physican", "hosp", "antibiot",
+             "anti_oral", "anti_inj", "anti_or_r",
+             "anti_in_r", "mcrp", "mferritin", "mstrf", "magp")
+
+valuesM2 = c("agedays", "wtkg", "lencm", "bmi", "muaccm", "waz", 
+             "haz", "whz", "baz", "muaz", "visit_r_fl", "dur_r",
+             "fever_r", "cough_r", "diarr_r", "anti_r", "mmuaccm",
+             "bfmode", "bfedfl", "exbfedfl", "sldfedfl", "fever", "cough",
+             "diarr", "vomit", "vomit_r", "physican", "hosp", "antibiot",
+             "anti_oral", "anti_inj", "anti_or_r", "anti_in_r")
+
+valuesM3<- c("agedays")
+
+valuesM4 <- c("agedays")
+
+valuesM5 <- c("agedays")
+
+valuesM6 <- c("agedays")
+
 
 # Reshape data to wide
 wideBaselineV <- baselineV %>% 
   pivot_wider(id_cols = id,
               names_from = visit2,
-              values_from = all_of(valuesBaselineV))
+              values_from = all_of(valuesBase))
 
-wideOneFiveV <- oneFiveV %>% 
+widem1 <- oneFiveV %>% 
   pivot_wider(id_cols = id,
               names_from = visit2,
-              values_from = all_of(vitalOnly)) %>%
+              values_from = all_of(valuesM1)) %>%
   select(-id)
 
-wideIntrvlsOf3V <- intrvlsOf3V %>% 
+widem2 <- intrvlsOf3V %>% 
   pivot_wider(id_cols = id,
               names_from = visit2,
-              values_from = all_of(vitalOnly)) %>%
+              values_from = all_of(valuesM2)) %>%
   select(-id)
 
-wideIntrvlsOf6V <- intrvlsOf6V %>% 
+widem3 <- intrvlsOf6V %>% 
   pivot_wider(id_cols = id,
               names_from = visit2,
-              values_from = all_of(vitalOnly)) %>%
+              values_from = all_of(valuesM3)) %>%
   select(-id)
 
-wideEndlineV <- endline %>% 
+widem4 <- endline %>% 
   pivot_wider(id_cols = id,
               names_from = visit2,
-              values_from = all_of(vitalOnly)) %>%
+              values_from = all_of(valuesM4)) %>%
   select(-id)
 
-wideOverallV <- overall %>% 
+widem5 <- overall %>% 
   pivot_wider(id_cols = id,
               names_from = visit2,
-              values_from = all_of(vitalOnly)) %>%
+              values_from = all_of(valuesM5)) %>%
+  select(-id)
+
+widem6 <- overall %>% 
+  pivot_wider(id_cols = id,
+              names_from = visit2,
+              values_from = all_of(valuesM6)) %>%
   select(-id)
 
 # Combine all these 6 datasets
 
+# Save dataset
 
-############ Combine the wide ELICIT AND VITAL DATASETS ############ 
+#------------------------------------------------------------------------------#
+#                       Make Summary Table - VITAL [NOT DONE]                  #                                                #
+#------------------------------------------------------------------------------#
+
+
+
+
+
+
 
 #--------------------------------------------------------
 #Calculate stunting and wasting at enrollment and keep one observation per child
