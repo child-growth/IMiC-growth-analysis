@@ -1,16 +1,17 @@
 
-#-----------------------------------------------------------------------------------------
-# Process FINAL dataset into a dataset of covariates to be used in the exposure/risk factor
-# analysis. 
+#-------------------------------------------------------------------------------
+# Process FINAL dataset into a dataset of covariates to be used in the exposure/
+# risk factor analysis. 
 #
 # Output: Single dataset with one row per child and all baseline covariates
-#         Time-varying covariates and anthropometry measures processed in a seperate script.
+#         Time-varying covariates and anthropometry measures processed in a 
+#         seperate script.
 #
 # Authors: Andrew Mertens (amertens@berkeley.edu)
 #          Sajia Darwish (sajdarwish@berkeley.edu)
 
 #NOTE: THIS SCRIPT AND THESE COVARIATES ARE CHANGING FOR IMiC
-#-----------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
@@ -19,12 +20,12 @@ library(growthstandards)
 library(naniar) # For missingness
 library(table1)
 
-
-d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
-
 #------------------------------------------------------------------------------#
 #           High level clean up of the joint dataset + subset [DONE]           #                                                #
 #------------------------------------------------------------------------------#
+
+d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
+
 
 # Fill out empty cells with NA
 d <- d %>% mutate_all(na_if,"")
@@ -68,15 +69,24 @@ sum(table(unique(elicit $ subjid))) #200
 
 # Cleanup the visit variable: messy entries: scattered follow ups
 elicit $ visit2 <- case_when(elicit $ agedays < 30 ~ "base",
-                             elicit $ agedays >= 30 & elicit $ agedays < 61 ~ "1m",
-                             elicit $ agedays >= 61 & elicit $ agedays < 91 ~ "Lab1",
-                             elicit $ agedays >= 91 & elicit $ agedays < 152 ~ "3m",
-                             elicit $ agedays >= 152 & elicit $ agedays < 183 ~ "5m",
-                             elicit $ agedays >= 183 & elicit $ agedays < 244 ~ "6m",
-                             elicit $ agedays >= 244 & elicit $ agedays < 274 ~ "Lab2",
-                             elicit $ agedays >= 274 & elicit $ agedays < 365 ~ "9m",
-                             elicit $ agedays >= 365 & elicit $ agedays < 457 ~ "12m",
-                             elicit $ agedays >= 457 & elicit $ agedays < 548 ~ "15m",
+                             elicit $ agedays >= 30 &
+                               elicit $ agedays < 61 ~ "1m",
+                             elicit $ agedays >= 61 &
+                               elicit $ agedays < 91 ~ "Lab1",
+                             elicit $ agedays >= 91 &
+                               elicit $ agedays < 152 ~ "3m",
+                             elicit $ agedays >= 152 &
+                               elicit $ agedays < 183 ~ "5m",
+                             elicit $ agedays >= 183 &
+                               elicit $ agedays < 244 ~ "6m",
+                             elicit $ agedays >= 244 &
+                               elicit $ agedays < 274 ~ "Lab2",
+                             elicit $ agedays >= 274 &
+                               elicit $ agedays < 365 ~ "9m",
+                             elicit $ agedays >= 365 &
+                               elicit $ agedays < 457 ~ "12m",
+                             elicit $ agedays >= 457 &
+                               elicit $ agedays < 548 ~ "15m",
                              elicit $ agedays >= 548 ~ "18m",
                              TRUE ~ elicit $ visit)
 # Test
@@ -95,12 +105,12 @@ elicit <- elicit[, !names(d) %in% delete]
 ## Make id a values vectors
 id = c("country", "studyid", "siteid", "subjid", "subjido", "studytyp")
 
-valuesBaselineE = c("arm", "sex", "brthyr", "brthweek", "mage", "parity", "nlchild", 
-                   "nperson", "nrooms", "meducyrs", "h2osrcp", "cookplac", 
-                   "inctot", "inctotu", "epochn", "epoch", "mhtcm", "mwtkg", 
-                   "mbmi",  "pregout", "dlvloc", "dvseason", "wtkg",
-                   "lencm", "bmi", "hcircm", "waz", "haz", "whz", "baz", 
-                   "agedays", "feeding", "dur_bf", "dur_ebf")
+valuesBaselineE = c("arm", "sex", "brthyr", "brthweek", "mage", "parity", 
+                    "nlchild", "nperson", "nrooms", "meducyrs", "h2osrcp", 
+                    "cookplac", "inctot", "inctotu", "epochn", "epoch", 
+                    "mhtcm", "mwtkg", "mbmi",  "pregout", "dlvloc", "dvseason",
+                    "wtkg", "lencm", "bmi", "hcircm", "waz", "haz", "whz", 
+                    "baz", "agedays", "feeding", "dur_bf", "dur_ebf")
 
 valuesOneFiveE = c("bmcol_fl", "agedays")
 
@@ -140,42 +150,29 @@ wideBaselineE <- baselineE %>%
               names_from = visit2,
               values_from = all_of(valuesBaselineE))
 
-wideOneFiveE <- oneFiveE %>% 
-  pivot_wider(id_cols = id,
-              names_from = visit2,
-              values_from = valuesOneFiveE) %>%
-  select(-id)
+# Make a function to pivot all other data to wide
+other <- function (data1, data2) {
+  data1 %>% 
+    pivot_wider(id_cols = id,
+                names_from = visit2,
+                values_from = data2) %>%
+    select(-id)
+}
 
-wideIntrvlsOf3E <- intrvlsOf3E %>% 
-  pivot_wider(id_cols = id,
-              names_from = visit2,
-              values_from = valuesIntervalsOf3E) %>%
-  select(-id)
-
-wideIntrvlsOf6E <- intrvlsOf6E %>% 
-  pivot_wider(id_cols = id,
-              names_from = visit2,
-              values_from = valuesIntervalsOf6E) %>%
-  select(-id)
-
-wideEndlineE <- endlineE %>% 
-  pivot_wider(id_cols = id,
-              names_from = visit2,
-              values_from = valuesEndlineE) %>%
-  select(-id)
-
-wideOverallE <- overallE %>% 
-  pivot_wider(id_cols = id,
-              names_from = visit2,
-              values_from = all_of(valuesOverallE)) %>%
-  select(-id)
+# Use the function
+wideOneFiveE <- other(oneFiveE, valuesOneFiveE)
+wideIntrvlsOf3E <- other(intrvlsOf3E, valuesIntervalsOf3E)
+wideIntrvlsOf6E <- other(intrvlsOf6E, valuesIntervalsOf6E)
+wideEndlineE <- other(endlineE, valuesEndlineE)
+wideOverallE <- other(overallE, valuesOverallE)
 
 # Combine all these 6 datasets
 combinedWideElicit <- cbind(wideBaselineE, wideOneFiveE, wideIntrvlsOf3E, 
                             wideIntrvlsOf6E, wideEndlineE, wideOverallE)
 
 # Remove columns with 100% NA in this dataset
-combinedWideElicit <- combinedWideElicit[, -which(colMeans(is.na(combinedWideElicit)) == 1)]
+combinedWideElicit <- 
+  combinedWideElicit[, -which(colMeans(is.na(combinedWideElicit)) == 1)]
 
 # Back to the full ELICIT dataset
 
@@ -195,21 +192,23 @@ gg_miss_var(dStatic[, 1:ncol(dStatic)], show_pct = T)
 # Save the dataset
 #write.csv(combinedWideElicit, file = "wideElicit.csv")
 
-#------------------------------------------------------------------------------#
-#                       Make Summary Table - ELICIT [DONE]                     #                                                #
-#------------------------------------------------------------------------------#
-
-# Create a variable list which we want in Table 1
+# Anonymized data
 combinedWideElicit <- combinedWideElicit %>%
   select(-id)
 
+# Save the anonymized dataset
+write.csv(combinedWideElicit, file = "wideElicitAnonymized.csv")
+
+#------------------------------------------------------------------------------#
+#                       Make Summary Table - ELICIT [DONE]                     #                                                #
+#------------------------------------------------------------------------------#
 table1 <- table1(~ . | arm_base, data = combinedWideElicit)
 
 # Save the table as a csv file
 #write.csv(table1, file = "table1Elicit.csv")
 
 #------------------------------------------------------------------------------#
-#               Reshape the VITAL data from long to wide [NOT DONE]            #                                                #
+#               Reshape the VITAL data from long to wide [DONE]                #                                                #
 #------------------------------------------------------------------------------#
 
 ## Get a list of names separated with a comma
@@ -225,6 +224,9 @@ vital $ visit <- gsub("Followup", "", vital $ visit)
 visitAgedays <- vital %>%
   select(visit, agedays)
 
+# Here, we will stick to the monthly measurements only and disregard the daily
+# follow-ups. We can include those later once we have a plan for them.
+
 vital $ visit2 <- case_when(vital $ visit == "Baseline" |
                               vital $ visit == "Baseline(Birthrecall)" ~ "base",
                             vital $ visit == "m1" ~ "m1",
@@ -233,32 +235,9 @@ vital $ visit2 <- case_when(vital $ visit == "Baseline" |
                             vital $ visit == "m4" ~ "m4",
                             vital $ visit == "m5" ~ "m5",
                             vital $ visit == "m6" ~ "m6")
-
-# Check min and max of the frames used
-# Override max print
-options(max.print = 1000000)
-table(vital $ visit2, vital $ agedays)
-
-# Based on the table above, we populate the rest of visit2
-vital $ visit2 <- case_when(vital $ visit == "Baseline" |
-                              vital $ visit == "Baseline(Birthrecall)" |
-                              vital $ agedays < 28 ~ "base",
-                            vital $ visit == "m1" |
-                              vital $ agedays < 57 ~ "m1",
-                            vital $ visit == "m2" |
-                              vital $ agedays < 86 ~ "m2",
-                            vital $ visit == "m3" |
-                              vital $ agedays < 115 ~ "m3",
-                            vital $ visit == "m4" |
-                              vital $ agedays < 144 ~ "m4",
-                            vital $ visit == "m5" |
-                              vital $ agedays < 178 ~ "m5",
-                            vital $ visit == "m6" |
-                              vital $ agedays > 178 ~ "m6")
-
 # Test
 visitAgedays <- vital %>%
-  select(visit, visit2, agedays) # It worked!
+  select(subjid, visit, visit2, agedays) # It worked!
 
 # Check
 table(vital $ visit2, vital $ agedays)
@@ -285,118 +264,146 @@ gg_miss_var(vital[, 1:45], show_pct = T)
 gg_miss_var(vital[, 46:87], show_pct = T)
 
 # Subset data for different times
-baselineV <- vital %>%
-  filter(visit2 == "base")
+subset <- function (data) {
+  vital %>%
+    filter(visit2 == data)
+}
 
-m1 <- vital %>%
-  filter(visit2 == "m1")
+baselineV <- subset("base")
+m1 <- subset("m1")
+m2 <- subset("m2")
+m2 <- subset("m3")
+m2 <- subset("m4")
+m2 <- subset("m5")
+m2 <- subset("m6")
 
-m2 <- vital %>%
-  filter(visit2 == "m2")
+# Here we can see that in the monthly datasets, there are multiple rows per 
+# subject, which means that we need to fix those before we pivot to wide. 
+# Otherwise it will cause complications.
 
-m3 <- vital %>%
-  filter(visit2 == "m3")
+table(m1 $ subjid) # Here we can see that 554 has 3, 2435 has 2, & 3170 has 2.
 
-m4 <- vital %>%
-  filter(visit2 == "m4")
+# Group by subjid and visit2 and fill out all rows with existing info within
+# each sunject and visit
+test <- vital %>%
+  group_by(subjid, visit2) %>%
+  fill(c("mwtkg", "mbmi", "wtkg", "lencm", "bmi", "muaccm", "waz", "haz", "whz",
+         "baz", "visit_r_fl", "dur_r", "bmcol_fl", "fever_r", "cough_r",
+         "diarr_r", "anti_r")) %>%
+  fill(c("mwtkg", "mbmi", "wtkg", "lencm", "bmi", "muaccm", "waz", "haz", "whz",
+         "baz", "visit_r_fl", "dur_r", "bmcol_fl", "fever_r", "cough_r",
+         "diarr_r", "anti_r"), .direction = "down")
 
-m5 <- vital %>%
-  filter(visit2 == "m5")
+test <- test %>%
+  group_by(subjid, visit2) %>%
+  fill(c("mwtkg", "mbmi", "wtkg", "lencm", "bmi", "muaccm", "waz", "haz", "whz",
+         "baz", "visit_r_fl", "dur_r", "bmcol_fl", "fever_r", "cough_r",
+         "diarr_r", "anti_r")) %>%
+  fill(c("mwtkg", "mbmi", "wtkg", "lencm", "bmi", "muaccm", "waz", "haz", "whz",
+         "baz", "visit_r_fl", "dur_r", "bmcol_fl", "fever_r", "cough_r", 
+         "diarr_r", "anti_r"), .direction = "up")
 
-m6 <- vital %>%
-  filter(visit2 == "m6")
+# Pick one row per subject and per visit2
+test <- test %>%
+  group_by(subjid, visit2) %>%
+  slice(n = 1)
+
+# Subset data again to check
+subset <- function (data) {
+  test %>%
+    filter(visit2 == data)
+}
+
+baselineV <- subset("base")
+m1 <- subset("m1")
+m2 <- subset("m2")
+m2 <- subset("m3")
+m2 <- subset("m4")
+m2 <- subset("m5")
+m2 <- subset("m6")
+
+# This is good for baseline and m1: we have exactly 150 observations but it is
+# not good for other months because they are all less than 150, especially m2.
+# This needs to be addressed in the meeting.
 
 ## Make values vectors for pivoting
 #cat(paste(shQuote(names(vital), type="cmd"), collapse=", "))
 
-valuesBase = c("sex", "brthyr", "brthweek", "mage", "parity", "nlchild", 
-               "nperson", "nrooms", "meducyrs", "h2osrcp", "cookplac",
-               "agedays", "epochn", "epoch", "mhtcm", "mwtkg",
-               "mbmi", "pregout", "dlvloc", "wtkg", "lencm", "bmi", 
-               "muaccm", "waz", "haz", "whz", "baz", "feeding",
-               "dur_bf", "dur_ebf", "visit_r_fl", "dur_r", 
-               "fever_r", "cough_r", "diarr_r", "anti_r", "citytown", 
-               "gagebrth", "gagecm", "birthwt", "birthlen", "birthord",
-               "gravida", "nlivbrth", "floor", "gagedays", "postbmi",
-               "mmuaccm", "delivery", "bfinittm", "cmfdint", 
-               "bfmode", "bfedfl", "exbfedfl", "sldfedfl", "anmlk_r", 
-               "formlk_r", "sldfed_r", "fever", "cough",
-               "diarr", "vomit", "vomit_r", "physican", "hosp", "antibiot",
-               "anti_oral", "anti_inj", "anti_or_r", "anti_in_r")
+valuesBase <- c("arm", "sex", "brthyr", "brthweek", "mage", "parity", "nlchild", 
+            "nperson", "nrooms", "meducyrs", "h2osrcp", "cookplac", "agedays", 
+            "epochn", "epoch", "mhtcm", "mwtkg", "mbmi", "mhgb", "pregout", 
+            "dlvloc", "wtkg", "lencm", "bmi", "muaccm", "waz", "haz", "whz",
+            "baz", "muaz", "feeding", "dur_bf", "dur_ebf", "visit_r_fl", 
+            "dur_r", "bmcol_fl", "fever_r", "cough_r", "diarr_r", "anti_r", 
+            "citytown", "gagebrth", "gagecm", "birthwt", "birthlen", "birthord",
+            "gravida", "nlivbrth", "floor", "gagedays", "postbmi", "mmuaccm", 
+            "delivery", "hgb", "bfinittm", "cmfdint", "bfmode", "bfedfl",
+            "exbfedfl", "formlkfl", "sldfedfl", "anmlk_r", "formlk_r", 
+            "sldfed_r", "fever", "cough", "diarr", "vomit", "vomit_r",
+            "physican", "hosp", "antibiot", "anti_oral", "anti_inj",
+            "anti_or_r", "anti_in_r", "mcrp", "mferritin", "mstrf", "magp")
 
-valuesM1 = c("agedays", "mhgb", "wtkg", "lencm", "bmi", "muaccm",
-             "anti_r", "mmuaccm", "hgb", "bfmode", "bfedfl",
-             "exbfedfl", "sldfedfl", "fever", "cough",
-             "diarr", "vomit", "vomit_r", "physican", "hosp", "antibiot",
-             "anti_oral", "anti_inj", "anti_or_r",
-             "anti_in_r", "mcrp", "mferritin", "mstrf", "magp")
+valuesMonthly = c("agedays", "mhtcm", "mwtkg", "mbmi", "mhgb", "wtkg", "lencm",
+             "bmi", "muaccm", "waz", "haz", "whz","baz", "muaz", "feeding",
+             "dur_bf", "dur_ebf", "visit_r_fl", "dur_r", "bmcol_fl", "fever_r",
+             "cough_r", "diarr_r", "anti_r", 
+             "gagedays", "postbmi", "mmuaccm", "hgb", "cmfdint", "bfmode",
+             "bfedfl", "exbfedfl", "formlkfl", "sldfedfl", "anmlk_r",
+             "formlk_r", "sldfed_r", "fever", "cough", "diarr", "vomit",
+             "vomit_r", "physican", "hosp", "antibiot", "anti_oral", "anti_inj",
+             "anti_or_r", "anti_in_r", "mcrp", "mferritin", "mstrf", "magp")
 
-valuesM2 = c("agedays", "wtkg", "lencm", "bmi", "muaccm", "waz", 
-             "haz", "whz", "baz", "muaz", "visit_r_fl", "dur_r",
-             "fever_r", "cough_r", "diarr_r", "anti_r", "mmuaccm",
-             "bfmode", "bfedfl", "exbfedfl", "sldfedfl", "fever", "cough",
-             "diarr", "vomit", "vomit_r", "physican", "hosp", "antibiot",
-             "anti_oral", "anti_inj", "anti_or_r", "anti_in_r")
-
-valuesM3<- c("agedays")
-
-valuesM4 <- c("agedays")
-
-valuesM5 <- c("agedays")
-
-valuesM6 <- c("agedays")
-
-
-# Reshape data to wide
+# Reshape baseline data to wide
 wideBaselineV <- baselineV %>% 
   pivot_wider(id_cols = id,
               names_from = visit2,
               values_from = all_of(valuesBase))
 
-widem1 <- oneFiveV %>% 
-  pivot_wider(id_cols = id,
-              names_from = visit2,
-              values_from = all_of(valuesM1)) %>%
-  select(-id)
+# Make a function to pivot data to wide
+monthly <- function (data) {
+  data %>%
+    pivot_wider(id_cols = id,
+                names_from = visit2,
+                values_from = all_of(valuesMonthly)) %>%
+    select(-id)
+}
 
-widem2 <- intrvlsOf3V %>% 
-  pivot_wider(id_cols = id,
-              names_from = visit2,
-              values_from = all_of(valuesM2)) %>%
-  select(-id)
-
-widem3 <- intrvlsOf6V %>% 
-  pivot_wider(id_cols = id,
-              names_from = visit2,
-              values_from = all_of(valuesM3)) %>%
-  select(-id)
-
-widem4 <- endline %>% 
-  pivot_wider(id_cols = id,
-              names_from = visit2,
-              values_from = all_of(valuesM4)) %>%
-  select(-id)
-
-widem5 <- overall %>% 
-  pivot_wider(id_cols = id,
-              names_from = visit2,
-              values_from = all_of(valuesM5)) %>%
-  select(-id)
-
-widem6 <- overall %>% 
-  pivot_wider(id_cols = id,
-              names_from = visit2,
-              values_from = all_of(valuesM6)) %>%
-  select(-id)
+# Pivot all monthly data to wide
+widem1 <- monthly(m1)
+widem2 <- monthly(m2)
+widem3 <- monthly(m3)
+widem4 <- monthly(m4)
+widem5 <- monthly(m5)
+widem6 <- monthly(m6)
 
 # Combine all these 6 datasets
+combinedWideV <- merge(wideBaselineV, widem1, by = "subjid", all = TRUE)
+combinedWideV <- merge(combinedWideV, widem2, by = "subjid", all = TRUE)
+combinedWideV <- merge(combinedWideV, widem3, by = "subjid", all = TRUE)
+combinedWideV <- merge(combinedWideV, widem4, by = "subjid", all = TRUE)
+combinedWideV <- merge(combinedWideV, widem5, by = "subjid", all = TRUE)
+combinedWideV <- merge(combinedWideV, widem6, by = "subjid", all = TRUE)
 
-# Save dataset
+# Remove columns with 100% NA in this dataset
+combinedWideV <- combinedWideV[, -which(colMeans(is.na(combinedWideV)) == 1)]
+
+# Save the dataset
+write.csv(combinedWideV, file = "wideVital.csv")
+
+# Anonymized data
+combinedWideVital <- combinedWideV %>%
+  select(-id)
+
+# Save the anonymized dataset
+write.csv(combinedWideVital, file = "wideVitalAnonymized.csv")
 
 #------------------------------------------------------------------------------#
-#                       Make Summary Table - VITAL [NOT DONE]                  #                                                #
+#                       Make Summary Table - VITAL [DONE]                      #                                                #
 #------------------------------------------------------------------------------#
+table1 <- table1(~ . | arm_base, data = combinedWideVital)
 
+# Save the table as a csv file
+write.csv(table1, file = "table1Vital.csv")
 
 
 
