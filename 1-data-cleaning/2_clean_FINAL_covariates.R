@@ -197,15 +197,15 @@ combinedWideElicit <- combinedWideElicit %>%
   select(-id)
 
 # Save the anonymized dataset
-write.csv(combinedWideElicit, file = "wideElicitAnonymized.csv")
+#write.csv(combinedWideElicit, file = "wideElicitAnonymized.csv")
 
 #------------------------------------------------------------------------------#
 #                       Make Summary Table - ELICIT [DONE]                     #                                                #
 #------------------------------------------------------------------------------#
-table1 <- table1(~ . | arm_base, data = combinedWideElicit)
+table1E <- table1(~ . | arm_base, data = combinedWideElicit)
 
 # Save the table as a csv file
-#write.csv(table1, file = "table1Elicit.csv")
+#write.csv(table1E, file = "table1Elicit.csv")
 
 #------------------------------------------------------------------------------#
 #               Reshape the VITAL data from long to wide [DONE]                #                                                #
@@ -388,23 +388,97 @@ combinedWideV <- merge(combinedWideV, widem6, by = "subjid", all = TRUE)
 combinedWideV <- combinedWideV[, -which(colMeans(is.na(combinedWideV)) == 1)]
 
 # Save the dataset
-write.csv(combinedWideV, file = "wideVital.csv")
+#write.csv(combinedWideV, file = "wideVital.csv")
 
 # Anonymized data
 combinedWideVital <- combinedWideV %>%
   select(-id)
 
 # Save the anonymized dataset
-write.csv(combinedWideVital, file = "wideVitalAnonymized.csv")
+#write.csv(combinedWideVital, file = "wideVitalAnonymized.csv")
 
 #------------------------------------------------------------------------------#
 #                       Make Summary Table - VITAL [DONE]                      #                                                #
 #------------------------------------------------------------------------------#
-table1 <- table1(~ . | arm_base, data = combinedWideVital)
+table1V <- table1(~ . | arm_base, data = combinedWideVital)
 
 # Save the table as a csv file
-write.csv(table1, file = "table1Vital.csv")
+#write.csv(table1V, file = "table1Vital.csv")
 
+#------------------------------------------------------------------------------#
+#                       Plot Outcome Variables: ELICIT [DONE]                  #                                                #
+#------------------------------------------------------------------------------#
+
+# Filter out unwanted time points
+elicit2 <- elicit %>%
+  filter(visit2 == "base" | visit2 == "3m" | visit2 == "6m" | visit2 == "9m" |
+           visit2 == "12m" | visit2 == "15m" | visit2 == "18m")
+
+# Re order levels
+elicit2 $ visit2 <- factor(elicit2 $ visit2, 
+                           level = c("base", "1m", "3m", "5m", "6m", "9m",
+                                     "12m", "15m", "18m"))
+
+# Make a function for showing number of observations in plot
+stat_box_data <- function (y) {
+  return( 
+    data.frame(
+      y = 0.5 + 1.1 * max(y),  #may need to modify this depending on your data
+      label = paste('n=',length(y), '\n')
+                    #'mean =', round(mean(y), 1), '\n')
+      )
+    )
+}
+
+# Make plots
+elicit2 %>%
+  group_by("subjid") %>%
+  ggplot(aes(x = visit2, y = baz)) +
+  geom_boxplot() +
+  stat_summary(
+    fun.data = stat_box_data, 
+    geom = "text", 
+    hjust = 0.5,
+    vjust = 0.9) + 
+  geom_jitter(width = 0.05, alpha = 0.2) +
+  xlab("Duration") +
+  ylab("BMI-for-Age Z-Score") +
+  facet_wrap(~ arm) +
+  theme(strip.text.x = element_text(size = 10)) #+
+  #scale_color_brewer(palette = "Spectral")
+
+#------------------------------------------------------------------------------#
+#                       Plot Outcome Variables: VITAL [DONE]                   #                                                #
+#------------------------------------------------------------------------------#
+
+# Re order levels: visit2
+vital $ visit2 <- factor(vital $ visit2, 
+                           level = c("base", "m1", "m2", "m3", "m4", "m5",
+                                     "m6"))
+# Recode the arm variable
+vital $ arm <- case_when(vital $ arm == "Nutrient supplement+Ex.BreastFeed"
+                         ~ "Nutrient+Ex",
+                         vital $ arm == "Nutrient supplement+Ex.BreastFeed+AZT"
+                         ~ "Nutrient+Ex+AZT",
+                         vital $ arm == "Control" ~ "Control")
+
+# Make plots
+vital %>%
+  filter(!is.na(visit2)) %>%
+  group_by("subjid") %>%
+  ggplot(aes(x = visit2, y = whz)) +
+  geom_boxplot() +
+  stat_summary(
+    fun.data = stat_box_data, 
+    geom = "text", 
+    hjust = 0.5,
+    vjust = 0.9) + 
+  geom_jitter(width = 0.05, alpha = 0.2) +
+  xlab("Duration") +
+  ylab("Weight-for-Height Z-Score") +
+  #facet_wrap(~ arm) +
+  theme(strip.text.x = element_text(size = 10)) #+
+#scale_color_brewer(palette = "Spectral")
 
 
 
