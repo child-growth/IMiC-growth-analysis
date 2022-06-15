@@ -21,8 +21,10 @@ library(growthstandards)
 
 d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
 
+head(d)
 
-
+table(is.na(d$exbfdu_r))
+table((d$h2osrcp))
 
 
 #--------------------------------------------------------
