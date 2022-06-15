@@ -26,7 +26,10 @@ library(table1)
 
 d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
 
+head(d)
 
+table(is.na(d$exbfdu_r))
+table((d$h2osrcp))
 # Fill out empty cells with NA
 d <- d %>% mutate_all(na_if,"")
 
