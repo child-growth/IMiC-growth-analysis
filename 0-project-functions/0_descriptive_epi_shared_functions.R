@@ -780,6 +780,35 @@ calc.prev.agecat <- function(d) {
     )))
 }
 
+calc.prev.agecatE <- function (d) {
+  d <- d %>%
+    arrange(studyid, subjid, agedays) %>%
+    mutate(agecat = case_when(d $ agedays < 30 ~ "base",
+                              d $ agedays >= 30 &
+                                d $ agedays < 61 ~ "1m",
+                              d $ agedays >= 61 &
+                                d $ agedays < 91 ~ "Lab1",
+                              d $ agedays >= 91 &
+                                d $ agedays < 152 ~ "3m",
+                              d $ agedays >= 152 &
+                                d $ agedays < 183 ~ "5m",
+                              d $ agedays >= 183 &
+                                d $ agedays < 244 ~ "6m",
+                              d $ agedays >= 244 &
+                                d $ agedays < 274 ~ "Lab2",
+                              d $ agedays >= 274 &
+                                d $ agedays < 365 ~ "9m",
+                              d $ agedays >= 365 &
+                                d $ agedays < 457 ~ "12m",
+                              d $ agedays >= 457 &
+                                d $ agedays < 548 ~ "15m",
+                              d $ agedays >= 548 ~ "18m",
+              TRUE ~ d $ visit)) %>%
+    mutate(agecat = factor(agecat, levels = c("base", "1m", "3m", "5m", "6m",
+                                              "9m", "12m", "15m", "18m", "0to6m",
+                                              "6to18m", "0to18m", "Lab1", "Lab2")))
+}
+
 
 calc.monthly.agecat <- function(d) {
   d$agecat <- cut(d$agedays,
