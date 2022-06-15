@@ -1,11 +1,11 @@
-##########################################
+################################################################################
 # IMiC longitudinal manuscripts
 # stunting analysis
 
 # Calculate mean LAZ, prevalence, incidence, 
 # and recovery, repeated for fixed effects models 
 # and sensitivity analysis 
-# with measurements up to 24 months
+# with measurements up to 18 months for Elicit and 6 months for Vital.
 
 # Inputs:
 #   0-config.R : configuration file
@@ -23,7 +23,7 @@
 #   shiny_desc_data_stunting_objects.RDS
 #   shiny_desc_data_stunting_objects_monthly.RDS
 #   shiny_desc_data_stunting_objects_fe.RDS
-##########################################
+################################################################################
 
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
@@ -31,67 +31,105 @@ source(paste0(here::here(), "/0-config.R"))
 # reloading because some overlap with stunting
 source(paste0(here::here(), "/0-project-functions/0_descriptive_epi_shared_functions.R"))
 source(paste0(here::here(), "/0-project-functions/0_descriptive_epi_stunt_functions.R"))
+
 d <- readRDS(paste0(ghapdata_dir, "stunting_data.rds"))
 
+#------------------------------------------------------------------------------#
+#           High level clean up of the joint dataset + subset [DONE]           #                                                #
+#------------------------------------------------------------------------------#
+d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
 
 
-#----------------------------------------
+# Fill out empty cells with NA
+d <- d %>% mutate_all(na_if,"")
 
-agelst3 = list(
-  "0-3 months",
-  "3-6 months",
-  "6-9 months",
-  "9-12 months",
-  "12-15 months",
-  "15-18 months",
-  "18-21 months",
-  "21-24 months"
-)
+# Get rid of the word visit from each row of the visit column
+d $ visit <- gsub(" Visit", "", d $ visit)
 
-agelst6 = list(
-  "0-6 months", 
-  "6-12 months", 
-  "12-18 months", 
-  "18-24 months"
-)
+# Shorten words in the visit column
+d $ visit <- gsub("Months", "m", d $ visit)
+d $ visit <- gsub("months", "m", d $ visit)
+d $ visit <- gsub("month", "m", d $ visit)
+d $ visit <- gsub("Month", "m", d $ visit)
+d $ visit <- gsub(" ", "", d $ visit)
+d $ visit <- gsub("Enrolment", "base", d $ visit)
+
+## Look at visit and ageday and figure out how to clean the visit variable
+visitAgedays <- d %>%
+  select(visit, agedays)
+
+# Subset the data into 2 sites. This is because when pivoting to wide, 
+# only 200 got included. This is because some specific measures are exclusively
+# included in the VITAL dataset and not in ELICIT. So, we change strategy and
+# first subset the data and then deal with time-varying variables.
+
+# Also, later I found that variables are measured at different times for ELICIT 
+# and VITAL. So, we cleanup the visit variable within each site separately.
+
+vital <- d %>%
+  filter(studyid == "VITAL-Lactation")
+
+sum(table(unique(vital $ subjid))) #150
+
+elicit <- d %>%
+  filter(studyid == "ELICIT")
+
+sum(table(unique(elicit $ subjid))) #200
+
+#------------------------------------------------------------------------------#
+#                                    ELICIT                                    #
+#------------------------------------------------------------------------------#
+
+d <- elicit
+
+agelst3 = list (
+  "3m",
+  "6m",
+  "9m",
+  "12m",
+  "15m",
+  "18m")
+
+agelst5 = list(
+  "1m", 
+  "5m")
 
 agelst3_birthstrat = list(
-  "Birth",
-  "8 days-3 months",
-  "3-6 months",
-  "6-9 months",
-  "9-12 months",
-  "12-15 months",
-  "15-18 months",
-  "18-21 months",
-  "21-24 months"
-)
+  "base",
+  "3m",
+  "6m",
+  "9m",
+  "12m",
+  "15m",
+  "18m")
 
 agelst6_birthstrat = list(
-  "Birth",
-  "8 days-6 months", 
-  "6-12 months", 
-  "12-18 months", 
-  "18-24 months"
-)
+  "base",
+  "0to6m", 
+  "6to18m", 
+  "0to18m")
 
-data=d
-calc_method="REML"
-output_file_suffix=""
+# Make a range variable
 
-calc_outcomes = function(data, calc_method, output_file_suffix){
 
-dprev <- calc.prev.agecat(d)
+data = d
+calc_method = "REML"
+output_file_suffix = ""
 
-d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
-  d6 <<- calc.ci.agecat(d, range = 6, birth="yes")
-  d3_birthstrat <<- calc.ci.agecat(d, range = 3, birth="no")
-  d6_birthstrat <<- calc.ci.agecat(d, range = 6, birth="no")
+calc_outcomes = function(data, calc_method, output_file_suffix) {
+
+dprev <- calc.prev.agecatE(d)
+
+d3 <<- calc.ci.agecat(d, range = 3, baseenv() == "yes")
+  d6 <<- calc.ci.agecat(d, range = 6, birth == "yes")
+  d3_birthstrat <<- calc.ci.agecat(d, range = 3, birth == "no")
+  d6_birthstrat <<- calc.ci.agecat(d, range = 6, birth == "no")
 }
-  ######################################################################
-  # Prevalence
-  ######################################################################
-  #calc_prevalence = function(severe){
+
+#------------------------------------------------------------------------------#
+#                                    Prevalence                                #
+#------------------------------------------------------------------------------#
+calc_prevalence = function(severe) {
     prev.data <- summary.prev.haz(dprev) #, severe.stunted = severe, method = calc_method)
     prev.cohort <-
       prev.data$prev.cohort %>% subset(., select = c(cohort, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
@@ -102,9 +140,6 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
       prev.cohort
     )
 
-  ######################################################################
-  # Mean HAZ
-  ######################################################################
   #----------------------------------------
   # mean haz
   #----------------------------------------
@@ -166,12 +201,13 @@ d3 <<- calc.ci.agecat(d, range = 3, birth="yes")
       ip.cohort
     )
     return(ip)
+}
 
   ######################################################################
   # Cumulative incidence
   ######################################################################
   
-  calc_ci = function(datatable, age_list, birth_strat, severe){
+  calc_ci = function(datatable, age_list, birth_strat, severe) {
     ci.data <- summary.ci(datatable, birthstrat = birth_strat, agelist = age_list, severe.stunted = severe, method = calc_method)
     ci.cohort <-
       ci.data$ci.cohort %>% subset(., select = c(cohort, agecat, nchild,  yi,  ci.lb,  ci.ub)) %>%
