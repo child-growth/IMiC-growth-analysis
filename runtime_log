@@ -1,0 +1,22 @@
+>>> Running visualization shared scripts
+
+bash: ./5-visualizations/shared/0-run-visualizations-shared.sh: No such file or directory
+
+real	0m0.001s
+user	0m0.000s
+sys	0m0.001s
+>>> Running visualization stunting scripts
+
+bash: ./5-visualizations/shared/0-run-visualizations-stunting.sh: No such file or directory
+
+real	0m0.001s
+user	0m0.000s
+sys	0m0.001s
+
+>>> Running visualization wasting scripts
+
+bash: ./5-visualizations/shared/0-run-visualizations-wasting.sh: No such file or directory
+
+real	0m0.001s
+user	0m0.000s
+sys	0m0.001s

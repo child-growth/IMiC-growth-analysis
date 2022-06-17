@@ -72,8 +72,7 @@ make_inc_plot = function(data){
     mutate(agecat = as.character(agecat)) %>% 
     mutate(agecat = ifelse(agecat == "8 days-3", "0-3", agecat)) %>% 
     mutate(agecat = factor(agecat, levels = c(
-      "Birth", "0-3", "3-6", "6-9", "9-12", "12-15", 
-      "15-18", "18-21", "21-24"
+      "Birth", "0-3", "3-6", "6-9", "9-12", "12-15", "15-18"
     )))
   
   #-----------------------------------------

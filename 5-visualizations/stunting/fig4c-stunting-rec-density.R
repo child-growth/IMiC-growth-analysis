@@ -28,7 +28,7 @@ d$subjid <- as.numeric(d$subjid)
 
 # drop data beyond 16 months since it is 
 # sparse in most studies
-d = d %>% filter(agedays<=16 * 30.4167)
+#d = d %>% filter(agedays<=16 * 30.4167)
 
 # number of studies, countries, children included
 length(names(table(paste0(d$studyid,d$country))))
