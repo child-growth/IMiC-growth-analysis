@@ -15,13 +15,10 @@
 
 # Outputs:
 #   meanlaz_velocity.RDS
-#   meanlaz_velocity_monthly.RDS
 #   meanlaz_velocity_fe.RDS
 #   quantile_data_stunting.RDS
-#   quantile_data_stunting_monthly.RDS
 #   quantile_data_stunting_fe.RDS
 #   shiny_desc_data_stunting_objects.RDS
-#   shiny_desc_data_stunting_objects_monthly.RDS
 #   shiny_desc_data_stunting_objects_fe.RDS
 ##########################################
 
@@ -111,11 +108,11 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
                                 ifelse(agedays>=6*30.4167 & agedays<9*30.4167,"6-9",
                                        ifelse(agedays>=9*30.4167 & agedays<12*30.4167,"9-12",
                                               ifelse(agedays>=12*30.4167 & agedays<15*30.4167,"12-15",
-                                                     ifelse(agedays>=15*30.4167 & agedays<18*30.4167,"15-18",
-                                                            ifelse(agedays>=18*30.4167 & agedays<21*30.4167,"18-21",
-                                                                   ifelse(agedays>=21*30.4167& agedays<24*30.4167,"21-24",""))))))))) %>%
+                                                     ifelse(agedays>=15*30.4167,"15-18"))))))) %>%
+                                                            #ifelse(agedays>=18*30.4167 & agedays<21*30.4167,"18-21",
+                                                                   #ifelse(agedays>=21*30.4167& agedays<24*30.4167,"21-24",""
     mutate(agecat=factor(agecat,levels=c("0-3","3-6","6-9","9-12",
-                                         "12-15","15-18","18-21","21-24"))) 
+                                         "12-15","15-18")))
   
   haz.data.vel <- summary.haz.age.sex(d_vel, method = calc_method)
     rename(est = meanhaz,  lb = ci.lb,  ub = ci.ub)
@@ -220,7 +217,8 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   # Cumulative Incidence  - 3 month intervals
   # stratify by birth 
   #----------------------------------------
-  cuminc3.birthstrat = calc_ci(d3_birthstrat, agelst3_birthstrat, birth_strat = TRUE, severe = FALSE)
+  cuminc3.birthstrat = calc_ci(d3_birthstrat, agelst3_birthstrat,
+                               birth_strat = TRUE, severe = FALSE)
   
   #----------------------------------------
   # Cumulative Incidence  - 6 month intervals
