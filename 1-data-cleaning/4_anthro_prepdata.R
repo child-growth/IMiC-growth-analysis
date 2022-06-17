@@ -14,8 +14,6 @@ dim(d)
 
 unique(d$studyid)
 
-
-
 unique(paste0(d$studyid,"-",d$country))
 length(unique(paste0(d$studyid,d$country,d$subjid)))
 

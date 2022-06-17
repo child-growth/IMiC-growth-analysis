@@ -20,8 +20,9 @@ table(df$country, 1*(df$lencm < 45))
 dput(colnames(Zscores))
 Zscores <- Zscores %>% 
   subset(., select = c(studyid, country, measurefreq, subjid, sex, agedays, 
-                       waz, haz, whz, muaz, lencm, wtkg, htcm,  tr, arm,  month, brthweek, brthyr,  dead, agedth, 
-                       latitude, longitud, causedth))
+                       waz, haz, whz, muaz, lencm, wtkg, htcm,  tr, arm,  month,
+                       brthweek, brthyr,  dead, agedth, latitude, longitud,
+                       causedth))
 
 
 #load covariate dataset (one row per child)

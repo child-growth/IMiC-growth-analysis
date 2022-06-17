@@ -21,7 +21,6 @@
 # Output: A list of tables:
 #   - prev.data: includes the number of measurements, proportion/count of stunted children in each study for each age category
 #   - prev.res: estimated random effects and CI bounds of studies grouped by age category
-#   - prev.cohort: estimated random effects and CI bounds for each specific cohort
 
 summary.prev.haz <- function(d, severe.stunted=F, method="REML"){
 
@@ -49,17 +48,10 @@ summary.prev.haz <- function(d, severe.stunted=F, method="REML"){
   
   prev.data <- droplevels(prev.data)
   
-  
-  # cohort specific results
-  prev.cohort=lapply((levels(prev.data$agecat)),function(x) 
-    fit.escalc(data=prev.data,ni="nmeas", xi="nxprev",age=x,meas="PLO"))
-  prev.cohort=as.data.frame(rbindlist(prev.cohort, fill=TRUE))
-  prev.cohort=cohort.format(prev.cohort,y=prev.cohort$yi,
-                            lab=  levels(prev.data$agecat))
-  
   # estimate random effects, format results
   prev.res=lapply((levels(prev.data$agecat)), function(x)
-    fit.rma(data=prev.data, ni="nmeas", xi="nxprev",age=x ,measure="PLO",nlab="children", method=method))
+    fit.rma(data=prev.data, ni="nmeas", xi="nxprev",age=x,
+            measure="PLO",nlab="children", method=method))
   prev.res=as.data.frame(rbindlist(prev.res, fill=TRUE))
   prev.res$est=as.numeric(prev.res$est)
   prev.res$lb=as.numeric(prev.res$lb)
@@ -70,7 +62,7 @@ summary.prev.haz <- function(d, severe.stunted=F, method="REML"){
   prev.res$agecat=factor(levels(prev.data$agecat))
   prev.res$ptest.f=sprintf("%0.0f",prev.res$est)
   
-  return(list(prev.data=prev.data, prev.res=prev.res, prev.cohort=prev.cohort))
+  return(list(prev.data=prev.data, prev.res=prev.res))
 }
 
 ##############################################
@@ -242,23 +234,15 @@ summary.haz <- function(d, method="REML", nmeas_threshold = 50){
   
   haz.data <- droplevels(haz.data)
   
-  # cohort specific results
-  haz.cohort=lapply(as.list(levels(haz.data$agecat)),function(x) 
-    fit.escalc(data=haz.data, ni="nmeas", yi="meanhaz", vi="varhaz", measure="GEN",age=x))
-  haz.cohort=as.data.frame(rbindlist(haz.cohort, fill=TRUE))
-  haz.cohort=cohort.format(haz.cohort,y=haz.cohort$yi,
-                           lab=  levels(haz.data$agecat), est="mean")
-  
-  
   # estimate random effects, format results
   haz.res=lapply(as.list(levels(haz.data$agecat)),function(x) 
-    fit.rma(data=haz.data, ni="nmeas", yi="meanhaz", vi="varhaz", nlab="children",age=x, measure = "GEN", method=method))
+    fit.rma(data=haz.data, ni="nmeas", yi="meanhaz", vi="varhaz",
+            nlab="children",age=x, measure = "GEN", method=method))
   haz.res=as.data.frame(rbindlist(haz.res, fill=TRUE))
   haz.res$agecat=factor(levels(haz.data$agecat))
   haz.res$ptest.f=sprintf("%0.2f",haz.res$est)
   
-  
-  return(list(haz.data=haz.data, haz.res=haz.res, haz.cohort=haz.cohort))
+  return(list(haz.data=haz.data, haz.res=haz.res))
 }
 
 ##############################################

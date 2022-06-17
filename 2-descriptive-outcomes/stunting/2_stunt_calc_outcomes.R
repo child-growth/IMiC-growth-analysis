@@ -34,91 +34,13 @@ source(paste0(here::here(), "/0-project-functions/0_descriptive_epi_stunt_functi
 
 d <- readRDS(paste0(ghapdata_dir, "stunting_data.rds"))
 
-#------------------------------------------------------------------------------#
-#           High level clean up of the joint dataset + subset [DONE]           #                                                #
-#------------------------------------------------------------------------------#
-d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
-
-
-# Fill out empty cells with NA
-d <- d %>% mutate_all(na_if,"")
-
-# Get rid of the word visit from each row of the visit column
-d $ visit <- gsub(" Visit", "", d $ visit)
-
-# Shorten words in the visit column
-d $ visit <- gsub("Months", "m", d $ visit)
-d $ visit <- gsub("months", "m", d $ visit)
-d $ visit <- gsub("month", "m", d $ visit)
-d $ visit <- gsub("Month", "m", d $ visit)
-d $ visit <- gsub(" ", "", d $ visit)
-d $ visit <- gsub("Enrolment", "base", d $ visit)
-
-## Look at visit and ageday and figure out how to clean the visit variable
-visitAgedays <- d %>%
-  select(visit, agedays)
-
-# Subset the data into 2 sites. This is because when pivoting to wide, 
-# only 200 got included. This is because some specific measures are exclusively
-# included in the VITAL dataset and not in ELICIT. So, we change strategy and
-# first subset the data and then deal with time-varying variables.
-
-# Also, later I found that variables are measured at different times for ELICIT 
-# and VITAL. So, we cleanup the visit variable within each site separately.
-
-vital <- d %>%
-  filter(studyid == "VITAL-Lactation")
-
-sum(table(unique(vital $ subjid))) #150
-
-elicit <- d %>%
-  filter(studyid == "ELICIT")
-
-sum(table(unique(elicit $ subjid))) #200
-
-#------------------------------------------------------------------------------#
-#                                    ELICIT                                    #
-#------------------------------------------------------------------------------#
-
-d <- elicit
-
-agelst3 = list (
-  "3m",
-  "6m",
-  "9m",
-  "12m",
-  "15m",
-  "18m")
-
-agelst5 = list(
-  "1m", 
-  "5m")
-
-agelst3_birthstrat = list(
-  "base",
-  "3m",
-  "6m",
-  "9m",
-  "12m",
-  "15m",
-  "18m")
-
-agelst6_birthstrat = list(
-  "base",
-  "0to6m", 
-  "6to18m", 
-  "0to18m")
-
-# Make a range variable
-
-
 data = d
 calc_method = "REML"
 output_file_suffix = ""
 
 calc_outcomes = function(data, calc_method, output_file_suffix) {
 
-dprev <- calc.prev.agecatE(d)
+dprev <- calc.prev.agecat(d)
 
 d3 <<- calc.ci.agecat(d, range = 3, baseenv() == "yes")
   d6 <<- calc.ci.agecat(d, range = 6, birth == "yes")
@@ -131,31 +53,21 @@ d3 <<- calc.ci.agecat(d, range = 3, baseenv() == "yes")
 #------------------------------------------------------------------------------#
 calc_prevalence = function(severe) {
     prev.data <- summary.prev.haz(dprev) #, severe.stunted = severe, method = calc_method)
-    prev.cohort <-
-      prev.data$prev.cohort %>% subset(., select = c(cohort, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
-      rename(est = prev,  lb = ci.lb,  ub = ci.ub)
     
     prev <- bind_rows(
-      data.frame(cohort = "pooled", prev.data$prev.res),
-      prev.cohort
+      data.frame(prev.data $ prev.res)
     )
-
-  #----------------------------------------
+    
   # mean haz
-  #----------------------------------------
+    
   haz.data <- summary.haz(dprev)
-  haz.cohort <-
-    haz.data$haz.cohort %>% subset(., select = c(cohort, agecat, nmeas,  meanhaz,  ci.lb,  ci.ub)) %>%
-    rename(est = meanhaz,  lb = ci.lb,  ub = ci.ub)
   
   haz <- bind_rows(
-    data.frame(cohort = "pooled", haz.data$haz.res),
-    haz.cohort
+    data.frame(haz.data $ haz.res)
   )
   
-  #----------------------------------------
   # mean haz for growth velocity age categories
-  #----------------------------------------
+  
   d_vel = d %>% 
     mutate(agecat=ifelse(agedays<3*30.4167,"0-3",
                          ifelse(agedays>=3*30.4167 & agedays<6*30.4167,"3-6",
@@ -169,15 +81,9 @@ calc_prevalence = function(severe) {
                                          "12-15","15-18","18-21","21-24"))) 
   
   haz.data.vel <- summary.haz.age.sex(d_vel)
-  haz.cohort.vel <-
-    haz.data.vel$haz.cohort %>% 
-    subset(., select = c(cohort, agecat, sex, nmeas,  meanhaz, 
-                         ci.lb,  ci.ub)) %>%
-    rename(est = meanhaz,  lb = ci.lb,  ub = ci.ub)
   
   haz.vel <- bind_rows(
-    data.frame(cohort = "pooled", haz.data.vel$haz.res),
-    haz.cohort.vel
+    data.frame(haz.data.vel $ haz.res)
   )
   
   saveRDS(haz.vel, file = paste0(res_dir, "stunting/meanlaz_velocity", 
@@ -190,15 +96,9 @@ calc_prevalence = function(severe) {
   #calc_ip = function(datatable, age_list, severe){
   dage <- create_age_categories(d)
    ip.data <- summary.stunt.incprop(dage)
-    ip.cohort <-
-      ip.data$ip.cohort %>% 
-      subset(., select = c(cohort, agecat, nchild,  yi,  ci.lb,  ci.ub)) %>%
-      rename(est = yi,  lb = ci.lb,  ub = ci.ub, nmeas=nchild)
-    
     
     ip <- bind_rows(
-      data.frame(cohort = "pooled", ip.data$ip.res),
-      ip.cohort
+      data.frame(ip.data $ ip.res)
     )
     return(ip)
 }
@@ -208,14 +108,12 @@ calc_prevalence = function(severe) {
   ######################################################################
   
   calc_ci = function(datatable, age_list, birth_strat, severe) {
-    ci.data <- summary.ci(datatable, birthstrat = birth_strat, agelist = age_list, severe.stunted = severe, method = calc_method)
-    ci.cohort <-
-      ci.data$ci.cohort %>% subset(., select = c(cohort, agecat, nchild,  yi,  ci.lb,  ci.ub)) %>%
-      rename(est = yi,  lb = ci.lb,  ub = ci.ub, nmeas=nchild)
+    ci.data <- summary.ci(datatable, birthstrat = birth_strat,
+                          agelist = age_list, severe.stunted = severe,
+                          method = calc_method)
     
     cuminc <- bind_rows(
-      data.frame(cohort = "pooled", ci.data$ci.res),
-      ci.cohort
+      data.frame(ci.data$ci.res)
     )
     return(cuminc)
   }
