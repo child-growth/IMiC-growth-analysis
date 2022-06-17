@@ -14,7 +14,7 @@ length(unique(paste0(d$studyid,d$country)))
 d %>% ungroup() %>% distinct(studyid, country) %>% summarise(N=n())
 
 #Overall absolute counts
-df <- d %>% filter(agedays < 24 *30.4167) %>%
+df <- d %>% filter(agedays < 18*30.4167) %>% 
             mutate(wast = 1*(whz < -2),
                    sevwast = 1*(whz < -3))
 table(df$wast)
@@ -277,9 +277,7 @@ agelst3 = list(
   "6-9 months",
   "9-12 months",
   "12-15 months",
-  "15-18 months",
-  "18-21 months",
-  "21-24 months"
+  "15-18 months"
 )
 ir.data <- summary.ir(d3)
 ir.country <- d3 %>% group_by(country) %>% do(summary.ir(.)$ir.res) 

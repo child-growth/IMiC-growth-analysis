@@ -12,7 +12,7 @@ waz <- readRDS(underweight_data_path)
 
 
 #Overall absolute counts
-df <- d %>% filter(agedays < 24 *30.4167) %>%
+df <- d %>% filter(agedays < 18*30.4167) %>%
   mutate(co = 1*(whz < (-2) & haz < (-2)),
          sevco = 1*(whz < (-3) & haz < (-3))) %>%
   group_by(studyid, country, subjid) %>%
@@ -31,6 +31,7 @@ cuminc.data= df%>%
     ncases=sum(co),
     N=sum(length(co))) %>%
   filter(N>=50)
+
 cuminc.data$agecat <- "0-24 months"
 co.ci.res=fit.rma(data=cuminc.data,ni="N", xi="ncases",age="0-24 months",measure="PLO",nlab=" measurements", method="REML")
 co.ci.res

@@ -690,7 +690,7 @@ calc.prev.agecat <- function(d) {
           ifelse(agedays > 8 * 30.4167 & agedays < 10 * 30.4167, "9 months",
             ifelse(agedays > 11 * 30.4167 & agedays < 13 * 30.4167, "12 months",
               ifelse(agedays > 14 * 30.4167 & agedays < 16 * 30.4167, "15 months",
-                ifelse(agedays > 17 * 30.4167, "18 months")
+                ifelse(agedays > 17 * 30.4167, "18 months", "")
                   #ifelse(agedays > 20 * 30.4167 & agedays < 22 * 30.4167, "21 months",
                     #ifelse(agedays > 23 * 30.4167 & agedays < 25 * 30.4167, "24 months", "")
                 )
@@ -729,7 +729,7 @@ calc.ci.agecat <- function(d, range = 3, birth = "yes") {
           ifelse(agedays > 6 * 30.4167 & agedays <= 9 * 30.4167, "6-9 months",
             ifelse(agedays > 9 * 30.4167 & agedays <= 12 * 30.4167, "9-12 months",
               ifelse(agedays > 12 * 30.4167 & agedays <= 15 * 30.4167, "12-15 months",
-                ifelse(agedays > 15 * 30.4167, "15-18 months")
+                ifelse(agedays > 15 * 30.4167, "15-18 months", "")
                   #ifelse(agedays > 18 * 30.4167 & agedays <= 21 * 30.4167, "18-21 months",
                     #ifelse(agedays > 21 * 30.4167 & agedays <= 24 * 30.4167, "21-24 months", "")
                   )
@@ -746,7 +746,7 @@ calc.ci.agecat <- function(d, range = 3, birth = "yes") {
     d <- d %>%
       mutate(agecat = ifelse(agedays <= 6 * 30.4167, "0-6 months",
         ifelse(agedays > 6 * 30.4167 & agedays <= 12 * 30.4167, "6-12 months",
-          ifelse(agedays > 12 * 30.4167, "12-18 months"
+          ifelse(agedays > 12 * 30.4167, "12-18 months", ""
             #ifelse(agedays > 18 * 30.4167 & agedays <= 24 * 30.4167, "18-24 months", "")
           )
         )
@@ -766,7 +766,7 @@ calc.ci.agecat <- function(d, range = 3, birth = "yes") {
           ifelse(agedays > 6 * 30.4167 & agedays <= 9 * 30.4167, "6-9 months",
             ifelse(agedays > 9 * 30.4167 & agedays <= 12 * 30.4167, "9-12 months",
               ifelse(agedays > 12 * 30.4167 & agedays <= 15 * 30.4167, "12-15 months",
-                ifelse(agedays > 15 * 30.4167, "15-18 months")
+                ifelse(agedays > 15 * 30.4167, "15-18 months", "")
                  # ifelse(agedays > 18 * 30.4167 & agedays <= 21 * 30.4167, "18-21 months",
                     #ifelse(agedays > 21 * 30.4167 & agedays <= 24 * 30.4167, "21-24 months", "")
                 )
@@ -785,7 +785,7 @@ calc.ci.agecat <- function(d, range = 3, birth = "yes") {
       mutate(agecat = ifelse(agedays <= 7, "Birth",
        ifelse(agedays > 7 & agedays <= 6 * 30.4167, "8 days-6 months",
         ifelse(agedays > 6 * 30.4167 & agedays <= 12 * 30.4167, "6-12 months",
-          ifelse(agedays > 12 * 30.4167 & agedays <= 18 * 30.41867, "12-18 months")
+          ifelse(agedays > 12 * 30.4167 & agedays <= 18 * 30.41867, "12-18 months", "")
            # ifelse(agedays > 18 * 30.4167 & agedays <= 24 * 30.4167, "18-24 months", "")
         )
       ))) %>%

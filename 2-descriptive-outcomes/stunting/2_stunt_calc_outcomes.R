@@ -5,7 +5,7 @@
 # Calculate mean LAZ, prevalence, incidence, 
 # and recovery, repeated for fixed effects models 
 # and sensitivity analysis in monthly cohorts
-# with measurements up to 24 months
+# with measurements up to 18 months
 
 # Inputs:
 #   0-config.R : configuration file
@@ -108,7 +108,7 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
                                 ifelse(agedays>=6*30.4167 & agedays<9*30.4167,"6-9",
                                        ifelse(agedays>=9*30.4167 & agedays<12*30.4167,"9-12",
                                               ifelse(agedays>=12*30.4167 & agedays<15*30.4167,"12-15",
-                                                     ifelse(agedays>=15*30.4167,"15-18"))))))) %>%
+                                                     ifelse(agedays>=15*30.4167,"15-18", ""))))))) %>%
                                                             #ifelse(agedays>=18*30.4167 & agedays<21*30.4167,"18-21",
                                                                    #ifelse(agedays>=21*30.4167& agedays<24*30.4167,"21-24",""
     mutate(agecat=factor(agecat,levels=c("0-3","3-6","6-9","9-12",
@@ -121,41 +121,6 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   
   saveRDS(haz.vel, file = paste0(res_dir, "stunting/meanlaz_velocity", 
                                  calc_method, output_file_suffix, ".RDS"))
-  
-  #----------------------------------------
-  # Get monthly HAZ quantiles
-  #----------------------------------------
-  dmon <-  dmon %>% mutate(cohort = paste0(studyid, "-", country))
-  
-  quantile_d_cohort <- dmon %>% group_by(agecat, region, country, cohort) %>%
-    mutate(fifth_perc = quantile(haz, probs = c(0.05))[[1]],
-           fiftieth_perc = quantile(haz, probs = c(0.5))[[1]],
-           ninetyfifth_perc = quantile(haz, probs = c(0.95))[[1]]) %>%
-    select(studyid, cohort, agecat, region, fifth_perc, fiftieth_perc, ninetyfifth_perc)
-  
-  quantile_d <- dmon %>% group_by(agecat,  country, region) %>%
-    mutate(fifth_perc = quantile(haz, probs = c(0.05))[[1]],
-           fiftieth_perc = quantile(haz, probs = c(0.5))[[1]],
-           ninetyfifth_perc = quantile(haz, probs = c(0.95))[[1]]) %>%
-    mutate(studyid = "pooled", 
-           cohort = "pooled") %>%
-    select(studyid, cohort, agecat, region, fifth_perc, fiftieth_perc, ninetyfifth_perc) 
-  
-  quantile_d_overall <- dmon %>% 
-    group_by(agecat) %>%
-    summarise(fifth_perc = quantile(haz, probs = c(0.05))[[1]],
-              fiftieth_perc = quantile(haz, probs = c(0.5))[[1]],
-              ninetyfifth_perc = quantile(haz, probs = c(0.95))[[1]]) %>%
-    mutate(region = "Overall") %>%
-    mutate(studyid = "pooled", 
-           cohort = "pooled") %>%
-    select(studyid, cohort, agecat, region, fifth_perc, fiftieth_perc, ninetyfifth_perc) 
-  
-  # combine data
-  quantiles <- bind_rows(quantile_d, quantile_d_overall,quantile_d_cohort)
-  
-  saveRDS(quantiles,file = paste0(res_dir,"stunting/quantile_data_stunting", calc_method,
-                                  output_file_suffix, ".RDS"))
   
   ######################################################################
   # Incidence proportion

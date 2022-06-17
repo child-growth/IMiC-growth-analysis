@@ -42,7 +42,7 @@ RE_pool <- function(df, ycategory, gender, method = "REML"){
   df <- df %>% filter(ycat==ycategory)
   df <- df %>% filter(sex==gender)
   
-  agecat = list("0-3 months", "3-6 months",  "6-9 months","9-12 months","12-15 months","15-18 months","18-21 months","21-24 months")
+  agecat = list("0-3 months", "3-6 months",  "6-9 months","9-12 months","12-15 months","15-18 months","18-21 months")
   
   pooled.vel=lapply(agecat,function(x) 
     fit.rma(data=df, yi="mean", vi="var", ni="n", nlab="children",age=x,
