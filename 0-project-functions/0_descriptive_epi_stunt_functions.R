@@ -489,7 +489,9 @@ create_stunting_age_indicators = function(data, create_agecats = TRUE){
       stunt_inc_12m = ifelse(stunt_inc == 1 & agecat == "9-12 months", 1, 0),
       stunt_inc_15m = ifelse(stunt_inc == 1 & agecat == "12-15 months", 1, 0)
     ) %>% 
-    select(c("studyid", "subjid", "country", "region", "measurefreq", "tr", "sex", "stunt_inc_birth", "stunt_inc_3m", "stunt_inc_6m", "stunt_inc_9m", "stunt_inc_12m", "stunt_inc_15m"))
+    select(c("studyid", "subjid", "country", "measurefreq", "tr", "sex",
+             "stunt_inc_birth", "stunt_inc_3m", "stunt_inc_6m", "stunt_inc_9m",
+             "stunt_inc_12m", "stunt_inc_15m"))
 
   # create never stunted category
   data_never_st <- data_processed %>%
@@ -499,7 +501,7 @@ create_stunting_age_indicators = function(data, create_agecats = TRUE){
     select(-c(min_haz, stunt_inc))
   
   # merge data frames with stunting indicators
-  data_st_ind <- left_join(data_never_st, data_st, by = c("studyid", "subjid", "country", "region", "measurefreq", "tr", "sex"))
+  data_st_ind <- left_join(data_never_st, data_st, by = c("studyid", "subjid", "country", "measurefreq", "tr", "sex"))
 
   # check that incident stunting categories do not overlap
   test_inc_cat <- data_st_ind %>% 
