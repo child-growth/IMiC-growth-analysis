@@ -503,7 +503,10 @@ table(elicit $ studyid, elicit $ country)
 
 # Mark the dataset by the studyid and country
 elicit $ studyid = "ELICIT"
-elicit $ country = "TANZANIA, UNITED REPUBLIC OF"
+elicit $ country = "Tanzania"
+elicit $ cohort <- case_when(elicit $ cohort == "VITAL-Lactation-PAKISTAN" ~
+                          "ELICIT-TANZANIA, UNITED REPUBLIC OF", 
+                          TRUE ~ elicit $ cohort)
 
 #saveRDS(wasting_desc_data, file = paste0(BV_dir,"/results/wasting_desc_data_elicit.RDS"))
 
@@ -990,11 +993,18 @@ table(is.na(wasting_desc_data$pooling))
 vital <- wasting_desc_data
 
 # Mark each dataset by the studyid
-elicit $ studyid = "ELICIT"
+# Mark the dataset by the studyid and country
 vital $ studyid = "VITAL-Lactation"
+vital $ country = "Pakistan"
+vital $ cohort <- case_when(vital $ cohort == "ELICIT-TANZANIA, UNITED REPUBLIC OF" ~
+                               "VITAL-Lactation-PAKISTAN", 
+                             TRUE ~ vital $ cohort)
+
 
 # Combine the two datasets
-
 wasting_desc_data <- rbind(vital, elicit)
 
+# Save dataset
 saveRDS(wasting_desc_data, file = paste0(BV_dir,"/results/wasting_desc_data.RDS"))
+
+
