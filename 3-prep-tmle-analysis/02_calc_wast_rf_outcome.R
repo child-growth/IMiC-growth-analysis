@@ -76,7 +76,8 @@ wast_ci_0_6 = d6 %>% ungroup() %>%
   filter(agecat=="0-6 months") %>%
   group_by(studyid,country,subjid) %>%
   #create variable with minhaz by age category, cumulatively
-  mutate(agecat="0-6 months", ever_wasted= 1*(sum(wast_inc, na.rm=T)>0), ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
+  mutate(agecat="0-6 months", ever_wasted= 1*(sum(wast_inc, na.rm=T)>0),
+         ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
   mutate(N=n()) %>%
   ungroup() 
 
@@ -85,7 +86,8 @@ wast_ci_6_24 = d6 %>% ungroup() %>%
   group_by(studyid,country,subjid) %>%
   arrange(studyid,country,subjid, agedays) %>% 
   filter(agecat!="0-6 months") %>%
-  mutate(agecat="6-24 months",  ever_wasted=1*(sum(wast_inc, na.rm=T)>0), ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
+  mutate(agecat="6-24 months",  ever_wasted=1*(sum(wast_inc, na.rm=T)>0),
+         ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
   mutate(N=n()) %>%
   ungroup() 
 
@@ -94,7 +96,8 @@ wast_ci_0_24 = d6 %>% ungroup() %>%
   filter(!is.na(agecat)) %>%
   group_by(studyid,country,subjid) %>%
   #create variable with minhaz by age category, cumulatively
-  mutate(agecat="0-24 months", ever_wasted=1*(sum(wast_inc, na.rm=T)>0),  ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
+  mutate(agecat="0-24 months", ever_wasted=1*(sum(wast_inc, na.rm=T)>0),
+         ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
   mutate(N=n()) %>%
   ungroup() 
 
@@ -116,7 +119,8 @@ wast_ci_0_6_no_birth = d6_nobirth %>% ungroup() %>%
   group_by(studyid,country,subjid) %>%
   arrange(studyid,country,subjid, agedays) %>% 
   filter(wasting_episode!="Born Wasted") %>% #drop children born wasted
-  mutate(agecat="0-6 months (no birth wast)", ever_wasted=1*(sum(wast_inc, na.rm=T)>0),  ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
+  mutate(agecat="0-6 months (no birth wast)", ever_wasted=1*(sum(wast_inc, na.rm=T)>0),
+         ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
   mutate(N=n()) %>%
   ungroup() 
 
@@ -125,7 +129,8 @@ wast_ci_0_24_no_birth = d6_nobirth %>% ungroup() %>%
   group_by(studyid,country,subjid) %>%
   arrange(studyid,country,subjid, agedays) %>% 
   filter(wasting_episode!="Born Wasted") %>% #drop children born wasted
-  mutate(agecat="0-24 months (no birth wast)", ever_wasted=1*(sum(wast_inc, na.rm=T)>0),  ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
+  mutate(agecat="0-24 months (no birth wast)", ever_wasted=1*(sum(wast_inc, na.rm=T)>0),
+         ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
   mutate(N=n()) %>%
   ungroup()
 

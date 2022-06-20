@@ -32,8 +32,9 @@ cuminc.data= df%>%
     N=sum(length(co))) %>%
   filter(N>=50)
 
-cuminc.data$agecat <- "0-24 months"
-co.ci.res=fit.rma(data=cuminc.data,ni="N", xi="ncases",age="0-24 months",measure="PLO",nlab=" measurements", method="REML")
+cuminc.data$agecat <- "0-18 months"
+co.ci.res=fit.rma(data=cuminc.data,ni="N", xi="ncases",age="0-18 months",
+                  measure="PLO",nlab=" measurements", method="REML")
 co.ci.res
 
 #get the pooled CI
@@ -46,7 +47,8 @@ sevcuminc.data= df%>%
     N=sum(length(sevco))) %>%
   filter(N>=50)
 sevcuminc.data$agecat <- "0-24 months"
-sev.co.ci.res=fit.rma(data=sevcuminc.data,ni="N", xi="ncases",age="0-24 months",measure="PLO",nlab=" measurements", method="REML")
+sev.co.ci.res=fit.rma(data=sevcuminc.data,ni="N", xi="ncases",age="0-24 months",
+                      measure="PLO",nlab=" measurements", method="REML")
 sev.co.ci.res
 
 
@@ -56,7 +58,8 @@ prev.data <- summary.prev.co(d)
 prev.country <- d %>% group_by(country) %>% do(summary.prev.co(.)$prev.res)
 
 prev.cohort <-
-  prev.data$prev.cohort %>% subset(., select = c(cohort, country, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
+  prev.data$prev.cohort %>% subset(., select = c(cohort, country, agecat, nmeas,
+                                                 prev,  ci.lb,  ci.ub)) %>%
   rename(est = prev,  lb = ci.lb,  ub = ci.ub)
 
 prev <- bind_rows(
@@ -71,7 +74,7 @@ ci.data <- summary.co.ci(d)
 ci.country <- d %>% group_by(country) %>% do(summary.co.ci(.)$ci.res)
 
 ci.cohort <-
-  ci.data$ci.cohort %>% subset(., select = c(cohort, agecat,  yi,  ci.lb,  ci.ub)) %>%
+  ci.data$ci.cohort %>% subset(., select = c(cohort, agecat, yi, ci.lb, ci.ub)) %>%
   rename(est = yi,  lb = ci.lb,  ub = ci.ub)
 
 ci <- bind_rows(
@@ -87,7 +90,8 @@ sev.prev.data <- summary.prev.co(d, severe = T)
 sev.prev.country <- d %>% group_by(country) %>% do(summary.prev.co(., severe = T)$prev.res)
 
 sev.prev.cohort <-
-  sev.prev.data$prev.cohort %>% subset(., select = c(cohort, country, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
+  sev.prev.data$prev.cohort %>% subset(., select = c(cohort, country, agecat,
+                                                     nmeas,  prev,  ci.lb,  ci.ub)) %>%
   rename(est = prev,  lb = ci.lb,  ub = ci.ub)
 
 sev.prev <- bind_rows(
@@ -104,7 +108,8 @@ df <- calc.prev.agecat(df)
 prev.data <-  summary.prev.whz(df)
 prev.country <- df %>% group_by(country) %>% do(summary.prev.whz(.)$prev.res)
 prev.cohort <-
-  prev.data$prev.cohort %>% subset(., select = c(cohort, country, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
+  prev.data$prev.cohort %>% subset(., select = c(cohort, country, agecat, nmeas,
+                                                 prev,  ci.lb,  ci.ub)) %>%
   rename(est = prev,  lb = ci.lb,  ub = ci.ub)
 
 underweight.prev <- bind_rows(
@@ -119,8 +124,9 @@ waz.data <- summary.waz(df)
 waz.country <- d %>% group_by(country) %>% do(summary.waz(.)$waz.res)
 
 waz.cohort <-
-  waz.data$waz.cohort %>% subset(., select = c(cohort, country, agecat, nmeas,  meanwaz,  ci.lb,  ci.ub)) %>%
-  rename(est = meanwaz,  lb = ci.lb,  ub = ci.ub)
+  waz.data$waz.cohort %>% subset(., select = c(cohort, country, agecat, nmeas,
+                                               meanwaz,  ci.lb,  ci.ub)) %>%
+  rename(meanwaz = est,  ci.lb = lb, ci.ub = ub) # new name = old name.
 
 waz <- bind_rows(
   data.frame(cohort = "pooled", waz.data$waz.res),
@@ -163,7 +169,7 @@ co_desc_data <- bind_rows(
   data.frame(disease = "co-occurrence", age_range="3 months",   birth="yes", severe="no", measure= "Incidence proportion", ci),
   data.frame(disease = "co-occurrence", age_range="3 months",   birth="yes", severe="yes", measure= "Prevalence", sev.prev),
   data.frame(disease = "Underweight", age_range="3 months",   birth="yes", severe="no", measure= "Mean WAZ",  waz),
-  data.frame(disease = "Underweight", age_range="1 month",   birth="yes", severe="no", measure= "Mean WAZ",  monthly.waz),
+  #data.frame(disease = "Underweight", age_range="1 month",   birth="yes", severe="no", measure= "Mean WAZ",  monthly.waz),
   data.frame(disease = "Underweight", age_range="3 months",   birth="yes", severe="no", measure= "Prevalence",  underweight.prev)#,
   #data.frame(disease = "Wasting", age_range="3 months",   birth="yes", severe="no", measure= "MUAC Prevalence",  muaz.prev),
   #data.frame(disease = "Wasting", age_range="3 months",   birth="yes", severe="no", measure= "MUAC WHZ Prevalence",  m.whz.prev)
