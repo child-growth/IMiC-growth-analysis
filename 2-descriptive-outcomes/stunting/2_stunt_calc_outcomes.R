@@ -114,8 +114,9 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
     mutate(agecat=factor(agecat,levels=c("0-3","3-6","6-9","9-12",
                                          "12-15","15-18")))
   
-  haz.data.vel <- summary.haz.age.sex(d_vel, method = calc_method)
-    rename(est = meanhaz,  lb = ci.lb,  ub = ci.ub)
+  haz.data.vel <- summary.haz.age.sex(d_vel, method = calc_method) 
+  haz.data.vel $ haz.res <-  haz.data.vel $ haz.res %>%
+   rename(meanhaz = est, ci.lb = lb,  ci.ub = ub) # new name = old name
   
   haz.vel <- data.frame(haz.data.vel$haz.res)
   
@@ -167,9 +168,11 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   calc_ci = function(datatable, age_list, birth_strat, severe){
     ci.data <- summary.ci(datatable, birthstrat = birth_strat, agelist = age_list,
                           severe.stunted = severe, method = calc_method)
-      rename(est = yi,  lb = ci.lb,  ub = ci.ub, nmeas=nchild)
-    
-    cuminc <- data.frame(ci.data$ci.res)
+      
+      ci.data $ ci.res <- ci.data $ ci.res %>%
+        rename(yi = est,  ci.lb = lb, ci.ub = ub, nchild = nmeas)
+        
+        cuminc <- data.frame(ci.data $ ci.res)
     return(cuminc)
   }
   
