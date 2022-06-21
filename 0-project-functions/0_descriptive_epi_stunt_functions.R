@@ -95,7 +95,7 @@ summary.prev.haz <- function(d, severe.stunted=F, method="REML"){
 
 summary.ci <- function(d,  severe.stunted=F, birthstrat=F,
                        agelist=list("0-3 months","3-6 months","6-9 months","9-12 months",
-                                    "12-15 months","15-18 months","18-21 months","21-24 months"), method="REML"){
+                                    "12-15 months","15-18 months"), method="REML"){
   
   
   # identify ever stunted children
@@ -372,7 +372,7 @@ summary.haz.age.sex <- function(d, method="REML"){
 #   - ip.res: estimated random effects and CI bounds of studies grouped by age category
 #   - ip.cohort: estimated random effects and CI bounds for each specific cohort
 
-summary.stunt.incprop <- function(d, severe.stunted=F, agelist=list("0-3 months","3-6 months","6-9 months","9-12 months","12-15 months","15-18 months","18-21 months","21-24 months"), method="REML"){
+summary.stunt.incprop <- function(d, severe.stunted=F, agelist=list("0-3 months","3-6 months","6-9 months","9-12 months","12-15 months","15-18 months"), method="REML"){
   
   threshold <- if_else(severe.stunted, -3, -2)
   

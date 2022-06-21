@@ -75,8 +75,15 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   ######################################################################
   calc_prevalence = function(severe){
     prev.data <- summary.prev.haz(dprev, severe.stunted = severe, method = calc_method)
+    prev.cohort <-
+      prev.data$prev.cohort %>% 
+      subset(., select = c(cohort, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
+      rename(est = prev,  lb = ci.lb,  ub = ci.ub)
     
-    prev <- data.frame(prev.data$prev.res)
+    prev <- bind_rows(
+      data.frame(cohort = "pooled", prev.data$prev.res),
+      prev.cohort
+    )
     return(prev)
   }
   #----------------------------------------
