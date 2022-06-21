@@ -26,8 +26,8 @@ d <- d %>%
 
 #Overall absolute counts
 df <- d %>% filter(agedays < 19 * 30.4167) %>% 
-            mutate(wast = 1*(whz < -2),
-                   sevwast = 1*(whz < -3))
+  mutate(wast = 1*(whz < -2),
+         sevwast = 1*(whz < -3))
 table(df$wast)
 prop.table(table(df$wast))*100
 table(df$sevwast)
@@ -44,7 +44,7 @@ prop.table(table(df2$anywast))
 #Wasting recovery
 df2 <- d %>% group_by(studyid, country, subjid) %>% mutate(wast=max(wast_inc), 
                                                            rec=max(wast_rec)) %>% 
-              filter(wast==1)
+  filter(wast==1)
 table(df2$rec)
 prop.table(table(df2$rec))
 
@@ -467,11 +467,11 @@ wasting_desc_data <- bind_rows(
   data.frame(disease = "Wasting", age_range="90 days", birth="yes", 
              severe="no", measure= "Recovery", rec90)#,
   # data.frame(disease = "Wasting", age_range="3 months",   birth="yes", 
-#severe="no", measure= "Cumulative incidence - no recovery", ci_3_noRec),
+  #severe="no", measure= "Cumulative incidence - no recovery", ci_3_noRec),
   # data.frame(disease = "Wasting", age_range="6 months",   birth="yes", 
-#severe="yes", measure= "Cumulative incidence - no recovery", sev.ci_noRec),
+  #severe="yes", measure= "Cumulative incidence - no recovery", sev.ci_noRec),
   # data.frame(disease = "Wasting", age_range="6 months",   birth="yes", 
-#severe="no", measure= "Incidence rate - no recovery", ir_noRec)
+  #severe="no", measure= "Incidence rate - no recovery", ir_noRec)
 )
 
 wasting_desc_data <- droplevels(wasting_desc_data)
@@ -505,8 +505,8 @@ table(elicit $ studyid, elicit $ country)
 elicit $ studyid = "ELICIT"
 elicit $ country = "Tanzania"
 elicit $ cohort <- case_when(elicit $ cohort == "VITAL-Lactation-PAKISTAN" ~
-                          "ELICIT-TANZANIA, UNITED REPUBLIC OF", 
-                          TRUE ~ elicit $ cohort)
+                               "ELICIT-TANZANIA, UNITED REPUBLIC OF", 
+                             TRUE ~ elicit $ cohort)
 
 #saveRDS(wasting_desc_data, file = paste0(BV_dir,"/results/wasting_desc_data_elicit.RDS"))
 
@@ -599,7 +599,7 @@ whz <- bind_rows(
 )
 
 #Cumulative inc 3 month intervals
-d3 <- calc.ci.agecat(d, range = 3)
+d3 <- calc.ci.agecat.vital(d, range = 3)
 length(unique(paste0(d3$studyid, d3$subjid)))
 
 #Calculate the raw  proportion of ever-wasted children who became wasted at each age
@@ -650,7 +650,7 @@ ci.data024 <-  lapply(levels(cuminc.data$agecat),function(x)
 
 
 #Cumulative inc 3 month - birth as seperate category
-d3_nobirth <- calc.ci.agecat(d, range = 3, birth="no")
+d3_nobirth <- calc.ci.agecat.vital(d, range = 3, birth="no")
 
 ci.data3_nobirth <- summary.wast.ci(d3_nobirth, age.range=3, birthstrat = T)
 ci.country3_nobirth <- d3_nobirth %>% group_by(country) %>% 
@@ -701,7 +701,7 @@ ip_3_nobirth <- bind_rows(
 
 
 #Cumulative inc, no birth
-d_noBW <- calc.ci.agecat(d_noBW, range = 6)
+d_noBW <- calc.ci.agecat.vital(d_noBW, range = 6)
 ci.data.nobirth <- summary.wast.ci(d_noBW, age.range=6)
 ci.country.nobirth <- d %>% group_by(country) %>% 
   do(summary.wast.ci(., age.range=6)$ci.res) 
@@ -718,7 +718,7 @@ ci_nobw <- bind_rows(
 
 
 #Cumulative inc 3 month intervals
-d3 <- calc.ci.agecat(d_noBW)
+d3 <- calc.ci.agecat.vital(d_noBW)
 ci.data.nobirth3 <- summary.wast.ci(d3, age.range=3)
 ci.country.nobirth3 <- d3 %>% group_by(country) %>% 
   do(summary.wast.ci(., age.range=3)$ci.res) 
@@ -738,7 +738,7 @@ ci_nobw3 <- bind_rows(
 
 
 #Cumulative inc of severe wasting
-d <- calc.ci.agecat(d, range = 6)
+d <- calc.ci.agecat.vital(d, range = 6)
 agelst = list("0-3 months", "3-6 months")
 sev.ci.data <- summary.wast.ci(d=d,  severe.wasted = T, age.range=6)
 sev.ci.country <- d %>% group_by(country) %>% 
@@ -801,7 +801,7 @@ sev.ir <- bind_rows(
 )
 
 #Incidence rate - 3 month intervals
-d3 <- calc.ci.agecat(d, range = 3)
+d3 <- calc.ci.agecat.vital(d, range = 3)
 agelst3 = list(
   "0-3 months",
   "3-6 months"
@@ -820,7 +820,7 @@ ir3 <- bind_rows(
 )
 
 #Incidence rate - no birth wasting
-d_noBW <- calc.ci.agecat(d_noBW, range = 3)
+d_noBW <- calc.ci.agecat.vital(d_noBW, range = 3)
 ir.data.nobirth <- summary.ir(d_noBW)
 ir.country.nobirth <- d_noBW %>% group_by(country) %>% do(summary.ir(.)$ir.res) 
 ir.cohort.nobirth <-
@@ -857,7 +857,7 @@ overall.rec.data60$ci.res
 #overall.rec.data90$ci.res
 
 #Age-strat
-d <- calc.ci.agecat(d, range = 6)
+d <- calc.ci.agecat.vital(d, range = 6)
 rec.data30 <- summary.rec60( d, length = 30)
 rec.data60 <- summary.rec60( d, length = 60)
 #rec.data90 <- summary.rec60( d, length = 90)

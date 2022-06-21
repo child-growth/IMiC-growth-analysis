@@ -280,7 +280,7 @@ prev <- bind_rows(
 )
 
 #cumulative incidence
-d <- calc.ci.agecat(d)
+d <- calc.ci.agecat.vital(d)
 ci.data <- summary.co.ci(d)
 ci.country <- d %>% group_by(country) %>% do(summary.co.ci(.)$ci.res)
 

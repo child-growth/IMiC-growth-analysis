@@ -796,8 +796,46 @@ calc.ci.agecat <- function(d, range = 3, birth = "yes") {
   return(d)
 }
 
-
-
+calc.ci.agecat.vital <- function(d, range = 3, birth = "yes") {
+  # ----------------------------------------------
+  # first age interval includes birth
+  # ----------------------------------------------
+  if (range == 3 & birth == "yes") {
+    d <- d %>%
+      mutate(agecat = ifelse(agedays <= 3 * 30.4167, "0-3 months",
+                             ifelse(agedays > 3 * 30.4167 & agedays <= 6 * 30.4167, "3-6 months","")
+      )) %>%
+      mutate(agecat = factor(agecat, levels = c("0-3 months", "3-6 months")))
+  }
+  if (range == 6 & birth == "yes") {
+    d <- d %>%
+      mutate(agecat = ifelse(agedays <= 7 * 30.4167, "0-6 months", ""))%>%
+      mutate(agecat = factor(agecat, levels = c("0-6 months")))
+  }
+  
+  # ----------------------------------------------
+  # first age interval excludes birth
+  # ----------------------------------------------
+  if (range == 3 & birth == "no") {
+    d <- d %>%
+      mutate(agecat = ifelse(agedays <= 7, "Birth",
+                             ifelse(agedays > 8 & agedays <= 3 * 30.4167, "8 days-3 months",
+                                    ifelse(agedays > 3 * 30.4167 & agedays <= 6 * 30.4167, "3-6 months", "")
+                                                  )
+                             )) %>%
+      mutate(agecat = factor(agecat, levels = c("Birth","8 days-3 months",
+                                                "3-6 months")))
+  }
+  if (range == 6 & birth == "no") {
+    d <- d %>%
+      mutate(agecat = ifelse(agedays <= 7, "Birth",
+                             ifelse(agedays > 7 & agedays <= 6 * 30.4167, "8 days-6 months",""
+                             ))) %>%
+      mutate(agecat = factor(agecat, levels = c("Birth", "8 days-6 months")))
+  }
+  
+  return(d)
+}
 
 
 
