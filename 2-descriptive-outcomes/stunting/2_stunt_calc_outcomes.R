@@ -1,11 +1,11 @@
-##########################################
+################################################################################
 # ki longitudinal manuscripts
 # stunting analysis
 
 # Calculate mean LAZ, prevalence, incidence, 
 # and recovery, repeated for fixed effects models 
 # and sensitivity analysis in monthly cohorts
-# with measurements up to 18 months
+# with measurements up to 18 months for ELICIT and up to 6 months for VITAL.
 
 # Inputs:
 #   0-config.R : configuration file
@@ -20,7 +20,7 @@
 #   quantile_data_stunting_fe.RDS
 #   shiny_desc_data_stunting_objects.RDS
 #   shiny_desc_data_stunting_objects_fe.RDS
-##########################################
+################################################################################
 
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
@@ -116,7 +116,7 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   
   haz.data.vel <- summary.haz.age.sex(d_vel, method = calc_method) 
   haz.data.vel $ haz.res <-  haz.data.vel $ haz.res %>%
-   rename(meanhaz = est, ci.lb = lb,  ci.ub = ub) # new name = old name
+   rename(est = meanhaz, lb = ci.lb, ub = ci.ub)
   
   haz.vel <- data.frame(haz.data.vel$haz.res)
   
@@ -170,7 +170,7 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
                           severe.stunted = severe, method = calc_method)
       
       ci.data $ ci.res <- ci.data $ ci.res %>%
-        rename(yi = est,  ci.lb = lb, ci.ub = ub, nchild = nmeas)
+        rename(est = yi, lb = ci.lb, ub = ci.ub, nmeas = nchild)
         
         cuminc <- data.frame(ci.data $ ci.res)
     return(cuminc)
