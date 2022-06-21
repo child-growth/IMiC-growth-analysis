@@ -4,8 +4,8 @@
 # months, respectively). The following code is hard-coded and uses a specific 
 # time frame (e.g., 24 months) to calculate cumulative measures. As such, 
 # I (Sajia) have calculated these measures for each dataset separately and then 
-# combined them. The file saved is named exactly as the previous one so it 
-# should not interfer with future usage.
+# combined them. The final file saved is named exactly as the previous one so it 
+# should not interfere with future usage.
 ################################################################################
 rm(list = ls())
 source(paste0(here::here(), "/0-config.R"))
@@ -992,7 +992,6 @@ table(is.na(wasting_desc_data$pooling))
 # Save dataset
 vital <- wasting_desc_data
 
-# Mark each dataset by the studyid
 # Mark the dataset by the studyid and country
 vital $ studyid = "VITAL-Lactation"
 vital $ country = "Pakistan"
