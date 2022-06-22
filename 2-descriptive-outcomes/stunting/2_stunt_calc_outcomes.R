@@ -29,7 +29,12 @@ source(paste0(here::here(), "/0-config.R"))
 source(paste0(here::here(), "/0-project-functions/0_descriptive_epi_shared_functions.R"))
 source(paste0(here::here(), "/0-project-functions/0_descriptive_epi_stunt_functions.R"))
 
+# We start with ELICIT----------------------------------------------------------
 d <- readRDS(paste0(ghapdata_dir, "stunting_data.rds"))
+
+# Filter to include only Elicit
+d <- d %>%
+  filter(country == "TANZANIA, UNITED REPUBLIC OF")
 
 agelst3 = list(
   "0-3 months",
@@ -70,20 +75,20 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   d3_birthstrat <<- calc.ci.agecat(data, range = 3, birth="no")
   d6_birthstrat <<- calc.ci.agecat(data, range = 6, birth="no")
   
-  ######################################################################
+  ##############################################################################
   # Prevalence
-  ######################################################################
+  ##############################################################################
   calc_prevalence = function(severe){
     prev.data <- summary.prev.haz(dprev, severe.stunted = severe, method = calc_method)
-    prev.cohort <-
-      prev.data$prev.cohort %>% 
-      subset(., select = c(cohort, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
-      rename(est = prev,  lb = ci.lb,  ub = ci.ub)
+    #prev.cohort <-
+      #prev.data$prev.cohort %>% 
+      #subset(., select = c(cohort, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
+      #rename(est = prev,  lb = ci.lb,  ub = ci.ub)
     
-    prev <- bind_rows(
-      data.frame(cohort = "pooled", prev.data$prev.res),
-      prev.cohort
-    )
+   # prev <- bind_rows(
+      prev <- data.frame(cohort = "pooled", prev.data$prev.res)#,
+      #prev.cohort
+   # )
     return(prev)
   }
   #----------------------------------------
@@ -96,9 +101,9 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   #----------------------------------------
   sev.prev = calc_prevalence(severe = TRUE)
   
-  ######################################################################
+  ##############################################################################
   # Mean HAZ
-  ######################################################################
+  ##############################################################################
   #----------------------------------------
   # mean haz
   #----------------------------------------
@@ -130,9 +135,9 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   saveRDS(haz.vel, file = paste0(res_dir, "stunting/meanlaz_velocity", 
                                  calc_method, output_file_suffix, ".RDS"))
   
-  ######################################################################
+  ##############################################################################
   # Incidence proportion
-  ######################################################################
+  ##############################################################################
   calc_ip = function(datatable, age_list, severe){
     ip.data <- summary.stunt.incprop(datatable, agelist = age_list, 
                                      severe.stunted = severe, method = calc_method)
@@ -168,9 +173,9 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   #----------------------------------------
   sev.ip6 = calc_ip(d6, agelst6, severe = TRUE)
   
-  ######################################################################
+  ##############################################################################
   # Cumulative incidence
-  ######################################################################
+  ##############################################################################
   
   calc_ci = function(datatable, age_list, birth_strat, severe){
     ci.data <- summary.ci(datatable, birthstrat = birth_strat, agelist = age_list,
@@ -257,7 +262,7 @@ calc_method = "REML"
 output_file_suffix = ""
 
 stunt_outcomes = calc_outcomes(data = d, calc_method = "REML", output_file_suffix = "")
-saveRDS(stunt_outcomes, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects.RDS"))
+#saveRDS(stunt_outcomes, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects.RDS"))
 
 stunt_outcomes_fe = calc_outcomes(data = d, calc_method = "FE", output_file_suffix = "_fe")
-saveRDS(stunt_outcomes_fe, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects_fe.RDS"))
+#saveRDS(stunt_outcomes_fe, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects_fe.RDS"))

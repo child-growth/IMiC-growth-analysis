@@ -1,9 +1,9 @@
-##########################################
+################################################################################
 # ki longitudinal manuscripts
 # stunting analysis
 
 # pool velocity outcomes
-##########################################
+################################################################################
 
 
 # load packages
@@ -16,33 +16,35 @@ source(paste0(here::here(),"/0-project-functions/0_descriptive_epi_stunt_functio
 
 d <- readRDS(paste0(ghapdata_dir, "velocity_longfmt_rf.rds"))
 
-#-------------------------------------------
+#----------------------------------------------------------------------
 
 #Summarize N's in study
-d %>% group_by(studyid, country, subjid) %>% slice(1) %>% ungroup() %>% summarize(N=n())
-d %>% group_by(studyid, country, subjid) %>% slice(1) %>%  group_by(studyid, country)  %>% summarize(N=n()) %>% as.data.frame()
-
-
+d %>% group_by(studyid, country, subjid) %>% slice(1) %>% 
+  ungroup() %>% summarize(N=n())
+d %>% group_by(studyid, country, subjid) %>% slice(1) %>%  
+  group_by(studyid, country)  %>% summarize(N=n()) %>% as.data.frame()
 
 #Format results for pooling
 table(d$diffcat)
 
 d <- d %>% rename(agecat = diffcat) %>%
   group_by(studyid, country, agecat, ycat, sex) %>%
-  summarise(mean=mean(y_rate, na.rm=T), var=var(y_rate, na.rm=T), sd=sd(y_rate, na.rm=T), n=n()) %>%
+  summarise(mean=mean(y_rate, na.rm=T), var=var(y_rate, na.rm=T),
+            sd=sd(y_rate, na.rm=T), n=n()) %>%
   mutate(ci.lb=mean - 1.96 * sd/sqrt(n), ci.ub=mean + 1.96 * sd/sqrt(n)) %>%
   country_cohort=paste0(studyid," ", country)
 
 
-#----------------------------------------------------
+#-------------------------------------------------------------------------------
 # age specific pooled results
-#----------------------------------------------------
+#-------------------------------------------------------------------------------
 RE_pool <- function(df, ycategory, gender, method = "REML"){
   
   df <- df %>% filter(ycat==ycategory)
   df <- df %>% filter(sex==gender)
   
-  agecat = list("0-3 months", "3-6 months",  "6-9 months","9-12 months","12-15 months","15-18 months","18-21 months")
+  agecat = list("0-3 months", "3-6 months",  "6-9 months","9-12 months",
+                "12-15 months","15-18 months")
   
   pooled.vel=lapply(agecat,function(x) 
     fit.rma(data=df, yi="mean", vi="var", ni="n", nlab="children",age=x,
@@ -98,9 +100,9 @@ RE_pool <- function(df, ycategory, gender, method = "REML"){
 
 
 
-#----------------------------------------------------
+#-------------------------------------------------------------------------------
 # pool results -- all quarterly studies
-#----------------------------------------------------
+#-------------------------------------------------------------------------------
 
 poolhaz_boys <- RE_pool(d, ycategory="haz", gender="Male")
 poolhaz_girls <- RE_pool(d, ycategory="haz", gender="Female")
@@ -114,10 +116,9 @@ pooled_vel <- rbind(
 saveRDS(pooled_vel, 
         file=paste0(res_dir,"stunting/pool_vel.RDS"))
 
-
-#----------------------------------------------------
+#-------------------------------------------------------------------------------
 # pool results -- all quarterly studies -- fixed effects
-#----------------------------------------------------
+#-------------------------------------------------------------------------------
 
 poolhaz_boys_fe <- RE_pool(d, ycategory="haz", gender="Male", method="FE")
 poolhaz_girls_fe <- RE_pool(d, ycategory="haz", gender="Female", method="FE")
@@ -131,33 +132,33 @@ pooled_vel_fe <- rbind(
 saveRDS(pooled_vel_fe, 
         file=paste0(res_dir,"stunting/pool_vel_fe.RDS"))
 
-#----------------------------------------------------
+#-------------------------------------------------------------------------------
 # pool results -- sensitivity analysis with monthly 
-# cohorts with measurements at each age up to 24 months of age
-#----------------------------------------------------
-study24 = c("MAL-ED", "CMC-V-BCS-2002", "IRC", 
+# cohorts with measurements at each age up to 18 months of age
+#-------------------------------------------------------------------------------
+study18 = c("MAL-ED", "CMC-V-BCS-2002", "IRC", 
             "Keneba", "GMS-Nepal", "CMIN", 
             "CONTENT", "PROVIDE")
 
-dmonth24 <- d %>% filter(studyid %in% study24)
+dmonth18 <- d %>% filter(studyid %in% study18)
 
-poolhaz_boys_month24 <- RE_pool(dmonth24, ycategory="haz", gender="Male")
-poolhaz_girls_month24 <- RE_pool(dmonth24, ycategory="haz", gender="Female")
-poollencm_boys_month24 <- RE_pool(dmonth24, ycategory="lencm", gender="Male")
-poollencm_girls_month24 <- RE_pool(dmonth24, ycategory="lencm", gender="Female")
+poolhaz_boys_month18 <- RE_pool(dmonth18, ycategory="haz", gender="Male")
+poolhaz_girls_month18 <- RE_pool(dmonth18, ycategory="haz", gender="Female")
+poollencm_boys_month18 <- RE_pool(dmonth18, ycategory="lencm", gender="Male")
+poollencm_girls_month18 <- RE_pool(dmonth18, ycategory="lencm", gender="Female")
 
-pooled_vel_month24 <- rbind(
-  poolhaz_boys_month24, poolhaz_girls_month24, 
-  poollencm_boys_month24, poollencm_girls_month24
+pooled_vel_month18 <- rbind(
+  poolhaz_boys_month18, poolhaz_girls_month18, 
+  poollencm_boys_month18, poollencm_girls_month18
 )
 
-saveRDS(pooled_vel_month24,
-        file=paste0(res_dir,"stunting/pool_vel_month24.RDS"))
+saveRDS(pooled_vel_month18,
+        file=paste0(res_dir,"stunting/pool_vel_month18.RDS"))
 
 
-#----------------------------------------------------
+#-------------------------------------------------------------------------------
 #Pool velocity - sensitivity analysis dropping CONTENT and Cohorts Guat.
-#----------------------------------------------------
+#-------------------------------------------------------------------------------
 dsub <- d %>% filter(studyid!="CONTENT") %>% filter(!(studyid=="COHORTS" & country=="GUATEMALA"))
 poolhaz_boys <- RE_pool(dsub, ycategory="haz", gender="Male")
 poolhaz_girls <- RE_pool(dsub, ycategory="haz", gender="Female")
