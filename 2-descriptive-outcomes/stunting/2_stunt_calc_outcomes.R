@@ -32,9 +32,9 @@ source(paste0(here::here(), "/0-project-functions/0_descriptive_epi_stunt_functi
 # We start with ELICIT----------------------------------------------------------
 d <- readRDS(paste0(ghapdata_dir, "stunting_data.rds"))
 
-# Filter to include only Elicit
-d <- d %>%
-  filter(country == "TANZANIA, UNITED REPUBLIC OF")
+# # Filter to include only Elicit
+# d <- d %>%
+#   filter(country == "TANZANIA, UNITED REPUBLIC OF")
 
 agelst3 = list(
   "0-3 months",
@@ -67,6 +67,10 @@ agelst6_birthstrat = list(
   "6-12 months", 
   "12-18 months"
 )
+
+data=d
+calc_method="REML"
+output_file_suffix=""
 
 calc_outcomes = function(data, calc_method, output_file_suffix){
   dprev <<- calc.prev.agecat(data)
@@ -127,8 +131,7 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
                                          "12-15","15-18")))
   
   haz.data.vel <- summary.haz.age.sex(d_vel, method = calc_method) 
-  haz.data.vel $ haz.res <-  haz.data.vel $ haz.res %>%
-   rename(est = meanhaz, lb = ci.lb, ub = ci.ub)
+  haz.data.vel$haz.res <-  haz.data.vel$haz.res #%>% rename(est = meanhaz, lb = ci.lb, ub = ci.ub)
   
   haz.vel <- data.frame(haz.data.vel$haz.res)
   
@@ -181,8 +184,7 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
     ci.data <- summary.ci(datatable, birthstrat = birth_strat, agelist = age_list,
                           severe.stunted = severe, method = calc_method)
       
-      ci.data $ ci.res <- ci.data $ ci.res %>%
-        rename(est = yi, lb = ci.lb, ub = ci.ub, nmeas = nchild)
+      ci.data $ ci.res <- ci.data $ ci.res #%>%rename(est = yi, lb = ci.lb, ub = ci.ub, nmeas = nchild)
         
         cuminc <- data.frame(ci.data $ ci.res)
     return(cuminc)
@@ -224,8 +226,8 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
                birth="yes", severe="yes", measure= "Prevalence", sev.prev),
     data.frame(disease = "Stunting", age_range="3 months",
                birth="yes", severe="no", measure= "Mean LAZ",  haz),
-    data.frame(disease = "Stunting", age_range="1 month",
-               birth="yes", severe="no", measure= "Mean LAZ",  monthly.haz),
+    # data.frame(disease = "Stunting", age_range="1 month",
+    #            birth="yes", severe="no", measure= "Mean LAZ",  monthly.haz),
     data.frame(disease = "Stunting", age_range="3 months",
                birth="yes", severe="no", measure= "Cumulative incidence", cuminc3),
     data.frame(disease = "Stunting", age_range="3 months", 
@@ -248,8 +250,7 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
                birth="yes", severe="yes", measure= "Incidence_proportion",  sev.ip6)
   )
   
-  assert_that(names(table(shiny_desc_data$method.used)) == calc_method)
-  
+
   shiny_desc_data <- shiny_desc_data %>% subset(., select = -c(se, nmeas.f,  ptest.f))
   
   shiny_desc_data$agecat <- as.factor(shiny_desc_data$agecat)
@@ -257,12 +258,10 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   return(shiny_desc_data)
 }
 
-data = d
-calc_method = "REML"
-output_file_suffix = ""
+
 
 stunt_outcomes = calc_outcomes(data = d, calc_method = "REML", output_file_suffix = "")
-#saveRDS(stunt_outcomes, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects.RDS"))
+saveRDS(stunt_outcomes, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects.RDS"))
 
 stunt_outcomes_fe = calc_outcomes(data = d, calc_method = "FE", output_file_suffix = "_fe")
-#saveRDS(stunt_outcomes_fe, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects_fe.RDS"))
+saveRDS(stunt_outcomes_fe, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects_fe.RDS"))

@@ -4,12 +4,9 @@ source(paste0(here::here(), "/0-config.R"))
 
 #Load data
 d <- readRDS(paste0(BV_dir,"/results/desc_data_cleaned.rds"))
-quantiles <- readRDS(paste0(BV_dir,"/results/quantile_data_wasting.RDS"))
-
-d %>% filter(disease=="co-occurrence", measure==c("Incidence proportion"), is.na(pooling))
 
 #Subset to primary analysis
-d <- d %>% mutate(pooling=ifelse(cohort=="pooled" & is.na(pooling),region,pooling)) %>%
+d <- d %>% mutate(pooling=ifelse(cohort=="pooled" & is.na(pooling),cohort,pooling)) %>%
   filter(analysis=="Primary", (pooling!="country" | is.na(pooling)))
 
 #convert cohort specific estimates to percents
@@ -37,130 +34,159 @@ scale_estimates <- function(d) {
   )
   return(d)
 }
+
+
+# make a figure for each of these combinations
+table(d$disease, d$measure)
+
+#Hold: will also make growth velocity figure seperately. 
+
+
 #-------------------------------------------------------------------------------------------
-# Mean WLZ by month 
+# Mean WLZ by month  -NEED TO ADD
 #-------------------------------------------------------------------------------------------
+
+
+
+# df <- d %>% filter(
+#   disease == "Wasting" &
+#     measure == "Mean WLZ" & 
+#     birth == "yes" &
+#     severe == "no" &
+#     age_range == "30 days" )
+# df <- droplevels(df)
+# 
+# df <- df %>% 
+#   arrange(agecat) %>%
+#   filter(!is.na(agecat)) %>%
+#   filter(!is.na(cohort)) %>%
+#   mutate(agecat = as.character(agecat)) %>%
+#   mutate(agecat = ifelse(agecat == "Two weeks", ".5", agecat)) %>%
+#   mutate(agecat = gsub(" month", "", agecat)) %>%
+#   mutate(agecat = gsub(" months", "", agecat)) %>%
+#   mutate(agecat = gsub("s", "", agecat)) %>%
+#   mutate(agecat = ifelse(agecat == "One", "1", agecat)) %>%
+#   mutate(agecat = as.numeric(agecat)) %>% 
+#   arrange(agecat) 
+# 
+# 
+# p <- ggplot(df,aes(y=est,x=agecat, group=cohort)) +
+#   stat_smooth(aes(fill=cohort, color=cohort), se=F, span = 1) +
+#   geom_hline(yintercept = 0, colour = "black") +
+#   scale_y_continuous(breaks = scales::pretty_breaks(n = 10),
+#                      limits = c(-1, 0.5)) +
+#   scale_x_continuous(limits = c(0,24), breaks = seq(0,24,2), labels = seq(0,24,2)) +
+#   scale_fill_manual(values=tableau11, drop=TRUE, limits = levels(df$measure),
+#                     name = 'cohort') +
+#   scale_color_manual(values=tableau11, drop=TRUE, limits = levels(df$measure),
+#                      name = 'cohort') +
+#   xlab("Child age, months")+
+#   ylab("Weight-for-length Z-score") +
+#   ggtitle("") +
+#   theme(legend.position="right")
+# 
+# ggsave(p, file=paste0(fig_dir,"wasting/WLZ_by_cohort.png"), width=10, height=4)
+
+
+#-------------------------------------------------------------------------------------------
+# Mean WLZ by month  -NEED TO ADD
+#-------------------------------------------------------------------------------------------
+
+
 
 df <- d %>% filter(
   disease == "Wasting" &
     measure == "Mean WLZ" & 
     birth == "yes" &
     severe == "no" &
-    age_range == "1 month" &
-    cohort == "pooled" 
-)
+    age_range == "3 months" )
 df <- droplevels(df)
+table(df$agecat)
 
-df <- df %>% 
-  arrange(agecat) %>%
-  filter(!is.na(agecat)) %>%
-  filter(!is.na(region)) %>%
-  mutate(agecat = as.character(agecat)) %>%
-  mutate(agecat = ifelse(agecat == "Two weeks", ".5", agecat)) %>%
-  mutate(agecat = gsub(" month", "", agecat)) %>%
-  mutate(agecat = gsub(" months", "", agecat)) %>%
-  mutate(agecat = gsub("s", "", agecat)) %>%
-  mutate(agecat = ifelse(agecat == "One", "1", agecat)) %>%
-  mutate(agecat = as.numeric(agecat)) %>% 
-  arrange(agecat) 
+# df <- df %>% 
+#   arrange(agecat) %>%
+#   filter(!is.na(agecat)) %>%
+#   filter(!is.na(cohort)) %>%
+#   mutate(agecat = as.character(agecat)) %>%
+#   mutate(agecat = ifelse(agecat == "Birth", ".5", agecat)) %>%
+#   mutate(agecat = gsub(" month", "", agecat)) %>%
+#   mutate(agecat = gsub(" months", "", agecat)) %>%
+#   mutate(agecat = gsub("s", "", agecat)) %>%
+#   mutate(agecat = ifelse(agecat == "One", "1", agecat)) %>%
+#   mutate(agecat = as.numeric(agecat)) %>% 
+#   arrange(agecat) 
 
 
-p <- ggplot(df,aes(y=est,x=agecat, group=region)) +
-  stat_smooth(aes(fill=region, color=region), se=F, span = 1) +
+
+
+  p <- ggplot(df,aes(y=est,x=agecat)) +
+      geom_point(aes(shape=measure, size=measure, fill=cohort, color=cohort), size = 2, stroke = 0, data = df ) +
+    geom_errorbar(aes(color=cohort, group=interaction(measure, cohort),ymin=lb, ymax=ub), width = 0,data = df ) +
+    geom_text(data=df , aes(x = agecat, y = est, label = round(est,2)),hjust = 1.5, vjust = 0.5) + 
+    scale_color_manual(values=tableau11, drop=TRUE, limits = levels(df$measure),guide = FALSE) +
+    scale_size_manual(values = c(2, 1.5), guide = FALSE) +
+    scale_shape_manual(values = c(16, 17),name = 'Measure')+
+    scale_fill_manual(values=tableau11, guide = FALSE) +
+    xlab("")+
+    ylab("") +
+    scale_x_discrete(expand = expand_scale(add = 1)) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 10))  +
+    theme( axis.text.x = element_text(margin =margin(t = 0, r = 0, b = 0, l = 0),size = 14)) +
+    theme(axis.title.y = element_text(size = 14)) +
+    ggtitle("") + facet_wrap(~cohort) +
+      theme(strip.text = element_text(size=12, margin = margin(t = 0)))
+p
+  
+
+
+df <- d %>% filter(
+  disease == "Wasting" &
+    measure == "Prevalence" & 
+    birth == "yes" &
+    severe == "no" &
+    age_range == "3 months" )
+df <- droplevels(df)
+table(df$agecat)
+
+
+p <- ggplot(df,aes(y=est,x=agecat)) +
+  geom_point(aes(shape=measure, size=measure, fill=cohort, color=cohort), size = 2, stroke = 0, data = df ) +
+  geom_errorbar(aes(color=cohort, group=interaction(measure, cohort),ymin=lb, ymax=ub), width = 0,data = df ) +
+  geom_text(data=df , aes(x = agecat, y = est, label = round(est,2)),hjust = 1.5, vjust = 0.5) + 
+  scale_color_manual(values=tableau11, drop=TRUE, limits = levels(df$measure),guide = FALSE) +
+  scale_size_manual(values = c(2, 1.5), guide = FALSE) +
+  scale_shape_manual(values = c(16, 17),name = 'Measure')+
+  scale_fill_manual(values=tableau11, guide = FALSE) +
+  xlab("")+
+  ylab("") +
+  scale_x_discrete(expand = expand_scale(add = 1)) +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))  +
+  theme( axis.text.x = element_text(margin =margin(t = 0, r = 0, b = 0, l = 0),size = 14)) +
+  theme(axis.title.y = element_text(size = 14)) +
+  ggtitle("") + facet_wrap(~cohort) +
+  theme(strip.text = element_text(size=12, margin = margin(t = 0)))
+p
+
+  
+  
+
+p <- ggplot(df,aes(y=est,x=agecat, group=cohort)) +
+  stat_smooth(aes(fill=cohort, color=cohort), se=F, span = 1) +
   geom_hline(yintercept = 0, colour = "black") +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 10),
                      limits = c(-1, 0.5)) +
   scale_x_continuous(limits = c(0,24), breaks = seq(0,24,2), labels = seq(0,24,2)) +
   scale_fill_manual(values=tableau11, drop=TRUE, limits = levels(df$measure),
-                    name = 'Region') +
+                    name = 'cohort') +
   scale_color_manual(values=tableau11, drop=TRUE, limits = levels(df$measure),
-                     name = 'Region') +
+                     name = 'cohort') +
   xlab("Child age, months")+
   ylab("Weight-for-length Z-score") +
   ggtitle("") +
   theme(legend.position="right")
 
-ggsave(p, file=paste0(fig_dir,"wasting/WLZ_by_region.png"), width=10, height=4)
+ggsave(p, file=paste0(fig_dir,"wasting/WLZ_by_cohort.png"), width=10, height=4)
 
-
-
-#-------------------------------------------------------------------------------------------
-# Mean WLZ by month with quantiles
-#-------------------------------------------------------------------------------------------
-
-quantile_d_overall <- quantiles$quantile_d_overall %>% mutate(region="Overall")
-df <- rbind(quantile_d_overall, quantiles$quantile_d)
-
-df$agecat <- factor(df$agecat, 
-                    levels=c("Two weeks", "One month",
-                             paste0(2:24," months")))
-
-df <- df %>% 
-  arrange(agecat) %>%
-  filter(region!="Europe")
-df <-droplevels(df)
-
-df <- df %>% 
-  ungroup(agecat) %>%
-  arrange(agecat) %>%
-  filter(!is.na(agecat)) %>%
-  filter(!is.na(region)) %>%
-  mutate(agecat = as.character(agecat)) %>%
-  mutate(agecat = ifelse(agecat == "Two weeks", ".5", agecat)) %>%
-  mutate(agecat = gsub(" month", "", agecat)) %>%
-  mutate(agecat = gsub(" months", "", agecat)) %>%
-  mutate(agecat = gsub("s", "", agecat)) %>%
-  mutate(agecat = ifelse(agecat == "One", "1", agecat)) %>%
-  mutate(agecat = as.numeric(agecat)) %>%
-  mutate(region = ifelse(region=="Asia", "South Asia", region)) %>% 
-  gather(`ninetyfifth_perc`, `fiftieth_perc`, `fifth_perc`, key = "interval", value = "WLZ") %>% 
-  mutate(region = factor(region, levels = c("Overall", "Africa", "Latin America", "South Asia")))
-
-# NEED TO ADD LEGEND
-
-mean_wlz_plot <- ggplot(df,aes(x = agecat, group = region)) +
-
-  geom_smooth(aes(y = WLZ, color = region, group = interval, linetype = interval), se = F, span = 1) +
-  facet_wrap(~region, nrow=1) +
-  geom_hline(yintercept = 0, colour = "black") +
-  scale_x_continuous(limits = c(0,24), breaks = seq(0,24,2), labels = seq(0,24,2)) + 
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) + 
-  scale_color_manual(values=c("Black", "#1F77B4", "#FF7F0E", "#2CA02C"), drop=TRUE, limits = levels(df$measure), 
-                     name = 'Region') +
-  scale_linetype_manual(name = "interval", values = c("fiftieth_perc" = "solid",
-                                                      "ninetyfifth_perc" = "dashed",
-                                                      "fifth_perc" = "dotted"),
-                        breaks = c("fiftieth_perc",
-                                   "ninetyfifth_perc",
-                                   "fifth_perc"),
-                        labels = c("Mean", "95th percentile", "5th percentile")) +
-  xlab("Child age, months") +
-  ylab("Weight-for-length Z-score") +
-  ggtitle("") +
-  theme(strip.text = element_text(margin=margin(t=5))) +
-  guides(linetype = guide_legend(override.aes = list(col = 'black'), 
-                                 keywidth = 3, keyheight = 1),
-         colour = FALSE) +
-  theme(legend.position = "bottom",
-        legend.title = element_blank(),
-        legend.background = element_blank(),
-        legend.box.background = element_rect(colour = "black"))
-
-
-# define standardized plot names
-mean_wlz_plot_name = create_name(
-  outcome = "WLZ",
-  cutoff = 2,
-  measure = "mean",
-  population = "overall and region-stratified",
-  location = "",
-  age = "All ages",
-  analysis = "primary"
-)
-
-# save plot and underlying data
-ggsave(mean_wlz_plot, file=paste0(BV_dir,"/figures/wasting/fig-",mean_wlz_plot_name,".png"), width=14, height=3)
-saveRDS(df, file=paste0(figdata_dir_wasting,"figdata-",mean_wlz_plot_name,".RDS"))
 
 
 
@@ -179,8 +205,8 @@ prev_plot <- ki_desc_flurry_plot(d,
                      yrange=c(0,24),
                      returnData=T)
 
-temp<-prev_plot[[2]] %>% filter(region=="South Asia",agecat=="Birth")
-temp<-prev_plot[[2]] %>% filter(region=="Overall",agecat=="24")
+temp<-prev_plot[[2]] %>% filter(cohort=="South Asia",agecat=="Birth")
+temp<-prev_plot[[2]] %>% filter(cohort=="Overall",agecat=="24")
 
 prev_plot_africa <- ki_desc_plot(d,
                           Disease="Wasting",
@@ -191,7 +217,7 @@ prev_plot_africa <- ki_desc_plot(d,
                           xlabel="Child age, months",
                           ylabel='Point prevalence (%)',
                           yrange=c(0,30),
-                          Region="Africa",
+                          cohort="Africa",
                           returnData=T
                           )
 
@@ -205,7 +231,7 @@ prev_plot_lam <- ki_desc_plot(d,
                                  ylabel='Point prevalence (%)',
                                  yrange=c(0,30),
                                  returnData=T,
-                                 Region="Latin America")
+                                 cohort="Latin America")
 
 prev_plot_sasia <- ki_desc_plot(d,
                                  Disease="Wasting",
@@ -217,14 +243,14 @@ prev_plot_sasia <- ki_desc_plot(d,
                                  ylabel='Point prevalence (%)',
                                  yrange=c(0,30),
                                  returnData=T,
-                                 Region="South Asia")
+                                 cohort="South Asia")
 
 # define standardized plot names
 prev_plot_name = create_name(
   outcome = "wasting",
   cutoff = 2,
   measure = "prevalence",
-  population = "overall and region-stratified",
+  population = "overall and cohort-stratified",
   location = "",
   age = "All ages",
   analysis = "primary"
@@ -239,7 +265,7 @@ ggsave(prev_plot_sasia$plot, file=paste0(BV_dir,"/figures/wasting/fig-","prev_pl
 saveRDS(prev_plot[[2]], file=paste0(figdata_dir_wasting,"figdata-",prev_plot_name,".RDS"))
 
 
-prev_plot[[2]] %>% filter(pooling=="overall") %>% subset(., select = c(region, nstudies, nmeas, est, lb, ub, agecat)) %>% mutate(est=round(est,2), lb=round(lb,2), ub=round(ub,2))
+prev_plot[[2]] %>% filter(pooling=="overall") %>% subset(., select = c(cohort, nstudies, nmeas, est, lb, ub, agecat)) %>% mutate(est=round(est,2), lb=round(lb,2), ub=round(ub,2))
 
 #ggsave(prev_plot[[1]] + ggtitle("Wasting prevalence"), file=paste0(BV_dir,"/figures/wasting/fig-",prev_plot_name, "_presentation.png"), width=13, height=3)
 
@@ -263,7 +289,7 @@ ip_plot_name = create_name(
   outcome = "wasting",
   cutoff = 2,
   measure = "incidence",
-  population = "overall and region-stratified",
+  population = "overall and cohort-stratified",
   location = "",
   age = "All ages",
   analysis = "primary"
@@ -277,8 +303,8 @@ saveRDS(ip_plot_primary[[2]], file=paste0(figdata_dir_wasting,"figdata-",ip_plot
 #Save plot-objects for figure grid
 saveRDS(list(mean_wlz_plot, prev_plot, ip_plot_primary), file=paste0(BV_dir,"/figures/plot-objects/fig2_plot_objects.rds"))
 
-ip_plot_primary[[2]] %>% filter(pooling=="overall") %>% subset(., select = c(measure, region, nstudies, nmeas, est, lb, ub, agecat)) %>% mutate(est=round(est,2), lb=round(lb,2), ub=round(ub,2))
-ip_plot_primary[[2]] %>% filter(region=="South Asia",pooling=="regional") %>% subset(., select = c(measure, region, nstudies, nmeas, est, lb, ub, agecat)) %>% mutate(est=round(est,2), lb=round(lb,2), ub=round(ub,2))
+ip_plot_primary[[2]] %>% filter(pooling=="overall") %>% subset(., select = c(measure, cohort, nstudies, nmeas, est, lb, ub, agecat)) %>% mutate(est=round(est,2), lb=round(lb,2), ub=round(ub,2))
+ip_plot_primary[[2]] %>% filter(cohort=="South Asia",pooling=="cohortal") %>% subset(., select = c(measure, cohort, nstudies, nmeas, est, lb, ub, agecat)) %>% mutate(est=round(est,2), lb=round(lb,2), ub=round(ub,2))
 
 
 #-------------------------------------------------------------------------------------------
@@ -301,7 +327,7 @@ ip_plot_name = create_name(
   outcome = "wasting",
   cutoff = 2,
   measure = "incidence",
-  population = "overall and region-stratified",
+  population = "overall and cohort-stratified",
   location = "",
   age = "All ages",
   analysis = "primary"
@@ -334,7 +360,7 @@ inc_combo_plot <- function(d, Disease, Measure, Birth, Severe, Age_range,
       severe == Severe &
       age_range %in% Age_range #&
       #cohort == Cohort &
-     # !is.na(region) & !is.na(agecat)
+     # !is.na(cohort) & !is.na(agecat)
   )
   df <- df %>% filter(birth=="yes" | agecat=="0-3 months")
   df <- droplevels(df)
@@ -347,7 +373,7 @@ inc_combo_plot <- function(d, Disease, Measure, Birth, Severe, Age_range,
   #     severe == Severe &
   #     age_range %in% Age_range &
   #     cohort != Cohort &
-  #     !is.na(region) & !is.na(agecat)
+  #     !is.na(cohort) & !is.na(agecat)
   # )
   # df_cohort <- df_cohort %>% filter(birth=="yes" | agecat=="0-3 months")
   # df_cohort <- droplevels(df_cohort)
@@ -371,17 +397,17 @@ inc_combo_plot <- function(d, Disease, Measure, Birth, Severe, Age_range,
   df$agecat <- factor(df$agecat, levels=unique(df$agecat))
   
   df_cohort <- df %>% filter(cohort!="pooled")
-  df_cohort <- mark_region(df_cohort)
+  df_cohort <- mark_cohort(df_cohort)
   df <- df %>% filter(cohort=="pooled")
   
   p <- ggplot(df,aes(y=est,x=agecat)) +
-    facet_wrap(~region, nrow=1) +
-    geom_errorbar(aes(color=region, 
-                      group=interaction(birth, region), ymin=lb, ymax=ub), 
+    facet_wrap(~cohort, nrow=1) +
+    geom_errorbar(aes(color=cohort, 
+                      group=interaction(birth, cohort), ymin=lb, ymax=ub), 
                   width = 0, position = position_dodge(0.5)) +
-    geom_point(aes(shape=birth, fill=region, group=interaction(birth, region)
+    geom_point(aes(shape=birth, fill=cohort, group=interaction(birth, cohort)
     ), color="#878787", size = 2, position = position_jitterdodge(jitter.width = 2, dodge.width=0.5), alpha = 0.25, data=df_cohort) +
-    geom_point(aes(shape=birth, fill=region, color=region, group=interaction(birth, region)
+    geom_point(aes(shape=birth, fill=cohort, color=cohort, group=interaction(birth, cohort)
     ), size = 2, position = position_dodge(0.5)) +
     scale_color_manual(values=tableau11, guide = FALSE) +
     scale_shape_manual(values = c(16, 17),
@@ -435,7 +461,7 @@ inc_plot_name = create_name(
   outcome = "wasting",
   cutoff = 2,
   measure = "incidence rate",
-  population = "overall and region-stratified",
+  population = "overall and cohort-stratified",
   location = "",
   age = "All ages",
   analysis = "primary"
@@ -449,8 +475,8 @@ ggsave(inc_plot_primary$plot, file=paste0(BV_dir,"/figures/wasting/fig-",inc_plo
 saveRDS(inc_plot_primary$data, file=paste0(figdata_dir_wasting,"figdata-",inc_plot_name,".RDS"))
 saveRDS(inc_plot_primary, file=paste0(BV_dir,"/figures/plot-objects/inc_plot_object.rds"))
 
-inc_plot_primary$data %>% group_by(region) %>% summarize(min(nmeas), max(nmeas))
-inc_plot_primary$data %>% arrange(region, agecat)
+inc_plot_primary$data %>% group_by(cohort) %>% summarize(min(nmeas), max(nmeas))
+inc_plot_primary$data %>% arrange(cohort, agecat)
 # 
 # #-------------------------------------------------------------------------------------------
 # # Wasting incidence proportion
@@ -478,7 +504,7 @@ inc_plot_primary$data %>% arrange(region, agecat)
 #   outcome = "wasting",
 #   cutoff = 2,
 #   measure = "incidence only",
-#   population = "overall and region-stratified",
+#   population = "overall and cohort-stratified",
 #   location = "",
 #   age = "All ages",
 #   analysis = "primary"
@@ -507,7 +533,7 @@ rec_combo_plot <- function(d, Disease, Measure, Birth, Severe, Age_range,
       severe == Severe &
       age_range %in% Age_range &
       # cohort == Cohort &
-      !is.na(region) & !is.na(agecat)
+      !is.na(cohort) & !is.na(agecat)
   )
   df <- droplevels(df)
   
@@ -539,16 +565,16 @@ rec_combo_plot <- function(d, Disease, Measure, Birth, Severe, Age_range,
   p <- ggplot(df,aes(y=est,x=agecat)) +
     
     # pooled 
-    geom_errorbar(aes(color=region, 
-                      group=interaction(age_range, region), ymin=lb, ymax=ub), 
+    geom_errorbar(aes(color=cohort, 
+                      group=interaction(age_range, cohort), ymin=lb, ymax=ub), 
                   width = 0, position = position_dodge(0.5),
-                  data = df %>% filter(ispooled == "yes")) +
-    geom_point(aes(shape=age_range, fill=region, color=region, group=interaction(age_range, region)), 
+                  data = df ) +
+    geom_point(aes(shape=age_range, fill=cohort, color=cohort, group=interaction(age_range, cohort)), 
                size = 2, position = position_dodge(0.5),
-               data = df %>% filter(ispooled == "yes")) +
+               data = df ) +
     
     # cohort-stratified
-    geom_point(aes(shape=age_range, group=interaction(age_range, region)),
+    geom_point(aes(shape=age_range, group=interaction(age_range, cohort)),
                color = "#878787", fill = "#878787", size = 1.5, 
                data = df %>% filter(ispooled == "no"),
                position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.5),
@@ -581,7 +607,7 @@ rec_combo_plot <- function(d, Disease, Measure, Birth, Severe, Age_range,
     p <- p + coord_cartesian(ylim=yrange)
   }
   if(facet){
-    p <- p + facet_wrap(~region, nrow=1) 
+    p <- p + facet_wrap(~cohort, nrow=1) 
   }
   
   p <- p +  theme(legend.position = legend.pos,
@@ -611,7 +637,7 @@ rec_plot_name = create_name(
   outcome = "wasting",
   cutoff = 2,
   measure = "recovery",
-  population = "overall and region-stratified",
+  population = "overall and cohort-stratified",
   location = "",
   age = "All ages",
   analysis = "primary"
@@ -623,27 +649,27 @@ saveRDS(rec_plot[[2]], file=paste0(figdata_dir_wasting,"figdata-",rec_plot_name,
 
 saveRDS(rec_plot, file=paste0(BV_dir,"/figures/plot-objects/rec_plot_object.rds"))
 
-rec_plot[[2]] %>% filter(region=="Overall") %>% subset(., select = c(age_range,measure, region, nstudies, nmeas, est, lb, ub, agecat)) %>% mutate(est=round(est,2), lb=round(lb,2), ub=round(ub,2))
+rec_plot[[2]] %>% filter(cohort=="Overall") %>% subset(., select = c(age_range,measure, cohort, nstudies, nmeas, est, lb, ub, agecat)) %>% mutate(est=round(est,2), lb=round(lb,2), ub=round(ub,2))
 
 
 #Plot just the overall facet for presentation slide
 df <- d %>% filter(
     disease == "Wasting" &
-    region == "Overall" &
+    cohort == "Overall" &
     measure == "Recovery" &
     birth == "yes" &
     severe == "no" &
     age_range %in% c("30 days","60 days","90 days") &
     cohort == "pooled" &
-    !is.na(region) & !is.na(agecat)
+    !is.na(cohort) & !is.na(agecat)
 )
 df <- droplevels(df)
 
 p <- ggplot(df,aes(y=est,x=agecat)) +
   geom_errorbar(aes(color=age_range, 
-                    group=interaction(age_range, region), ymin=lb, ymax=ub), 
+                    group=interaction(age_range, cohort), ymin=lb, ymax=ub), 
                 width = 0, position = position_dodge(0.5)) +
-  geom_point(aes(color=age_range, group=interaction(age_range, region)
+  geom_point(aes(color=age_range, group=interaction(age_range, cohort)
   ), size = 3, position = position_dodge(0.5)) +
   scale_color_manual(values=tableau10[c(7,9,10)],  name = 'Measure', 
                      labels = c('30 days', '60 days', '90 days')) +
@@ -703,7 +729,7 @@ perswast_plot_africa <- ki_desc_plot(d,
                               ylabel = 'Proportion (%)',
                               yrange=c(0,27),
                               returnData=T,
-                              Region="Africa")
+                              cohort="Africa")
 
 perswast_plot_lam <- ki_desc_plot(d,
                                      Disease="Wasting",
@@ -716,7 +742,7 @@ perswast_plot_lam <- ki_desc_plot(d,
                                      ylabel = 'Proportion (%)',
                                      yrange=c(0,27),
                                      returnData=T,
-                                     Region="Latin America")
+                                     cohort="Latin America")
 
 perswast_plot_sasia <- ki_desc_plot(d,
                                      Disease="Wasting",
@@ -729,7 +755,7 @@ perswast_plot_sasia <- ki_desc_plot(d,
                                      ylabel = 'Proportion (%)',
                                      yrange=c(0,27),
                                      returnData=T,
-                                     Region="South Asia")
+                                     cohort="South Asia")
 
 
 # define standardized plot names
@@ -737,7 +763,7 @@ perswast_plot_name = create_name(
   outcome = "wasting",
   cutoff = 2,
   measure = "persistent wasting",
-  population = "overall and region-stratified",
+  population = "overall and cohort-stratified",
   location = "",
   age = "All ages",
   analysis = "primary"
@@ -769,7 +795,7 @@ co_plot <- ki_desc_flurry_plot(d,
                    ylabel='Point prevalence of concurrent\nwasting and stunting (%)',
                    yrange=c(0,11),
                    returnData=T)
-co_plot[[2]] %>% filter(cohort=="pooled") %>% group_by(region) %>% summarise(min(nmeas), max(nmeas), min(nstudies), max(nstudies))
+co_plot[[2]] %>% filter(cohort=="pooled") %>% group_by(cohort) %>% summarise(min(nmeas), max(nmeas), min(nstudies), max(nstudies))
 
 
 co_plot_africa <- ki_desc_plot(d,
@@ -783,7 +809,7 @@ co_plot_africa <- ki_desc_plot(d,
                         ylabel='Point prevalence of concurrent\nwasting and stunting (%)',
                         yrange=c(0,20),
                         returnData=T,
-                        Region="Africa")
+                        cohort="Africa")
 
 co_plot_lam <- ki_desc_plot(d,
                                Disease="co-occurrence",
@@ -796,7 +822,7 @@ co_plot_lam <- ki_desc_plot(d,
                                ylabel='Point prevalence of concurrent\nwasting and stunting (%)',
                                yrange=c(0,20),
                                returnData=T,
-                               Region="Latin America")
+                               cohort="Latin America")
 
 co_plot_sasia <- ki_desc_plot(d,
                                Disease="co-occurrence",
@@ -809,14 +835,14 @@ co_plot_sasia <- ki_desc_plot(d,
                                ylabel='Point prevalence of concurrent\nwasting and stunting (%)',
                                yrange=c(0,20),
                                returnData=T,
-                               Region= "South Asia")
+                               cohort= "South Asia")
 
 # define standardized plot names
 co_plot_name = create_name(
   outcome = "wasting",
   cutoff = 2,
   measure = "co-occurrence of wasting and stunting",
-  population = "overall and region-stratified",
+  population = "overall and cohort-stratified",
   location = "",
   age = "All ages",
   analysis = "primary"
@@ -882,7 +908,7 @@ underweight_plot_africa <- ki_desc_plot(d,
                                  xlabel="Child age, months",
                                  ylabel='Point prevalence (%)',
                                  yrange=c(0,60),
-                                 Region="Africa")
+                                 cohort="Africa")
 
 underweight_plot_lam <- ki_desc_plot(d,
                                  Disease="Underweight",
@@ -894,7 +920,7 @@ underweight_plot_lam <- ki_desc_plot(d,
                                  xlabel="Child age, months",
                                  ylabel='Point prevalence (%)',
                                  yrange=c(0,60),
-                                 Region="Latin America")
+                                 cohort="Latin America")
 
 underweight_plot_sasia <- ki_desc_plot(d,
                                      Disease="Underweight",
@@ -906,14 +932,14 @@ underweight_plot_sasia <- ki_desc_plot(d,
                                      xlabel="Child age, months",
                                      ylabel='Point prevalence (%)',
                                      yrange=c(0,60),
-                                     Region="South Asia")
+                                     cohort="South Asia")
 
 # define standardized plot names
 underweight_plot_name = create_name(
   outcome = "wasting",
   cutoff = 2,
   measure = "underweight",
-  population = "overall and region-stratified",
+  population = "overall and cohort-stratified",
   location = "",
   age = "All ages",
   analysis = "primary"
@@ -946,7 +972,7 @@ ki_combo_plot2 <- function(d, Disease, Measure, Birth, Severe, Age_range,
       severe == Severe &
       age_range == Age_range &
       # cohort == Cohort &
-      !is.na(region) & !is.na(agecat)
+      !is.na(cohort) & !is.na(agecat)
   )
   df <- droplevels(df)
   
@@ -962,13 +988,13 @@ ki_combo_plot2 <- function(d, Disease, Measure, Birth, Severe, Age_range,
   p <- ggplot(df,aes(y=est,x=agecat)) +
     
     # pooled 
-    geom_errorbar(aes(color=region, 
-                      group=interaction(measure, region), ymin=lb, ymax=ub), 
+    geom_errorbar(aes(color=cohort, 
+                      group=interaction(measure, cohort), ymin=lb, ymax=ub), 
                   width = 0, position = position_dodge(dodge),
-                  data = df %>% filter(ispooled == "yes")) +
-    geom_point(aes(shape=measure, fill=region, color=region), 
+                  data = df ) +
+    geom_point(aes(shape=measure, fill=cohort, color=cohort), 
                size = 2, position = position_dodge(dodge),
-               data = df %>% filter(ispooled == "yes")) +
+               data = df ) +
     
     # cohort-stratified 
     geom_point(color = "#878787", fill = "#878787", size = 1.5, 
@@ -993,7 +1019,7 @@ ki_combo_plot2 <- function(d, Disease, Measure, Birth, Severe, Age_range,
                                         margin(t = 5, r = 0, b = 0, l = 0),
                                       size = 12)) +
     theme(axis.title.y = element_text(size = 12)) +
-    facet_wrap(~region, nrow=1) +
+    facet_wrap(~cohort, nrow=1) +
     guides(color = FALSE) +
     theme(legend.position = legend.pos,
           legend.title = element_blank(),
@@ -1023,7 +1049,7 @@ muac_plot_name = create_name(
   outcome = "wasting",
   cutoff = 2,
   measure = "MUAC-based wasting",
-  population = "overall and region-stratified",
+  population = "overall and cohort-stratified",
   location = "",
   age = "All ages",
   analysis = "primary"
@@ -1058,7 +1084,7 @@ ir_sens_plot_name = create_name(
   outcome = "wasting",
   cutoff = 2,
   measure = "incidence rate",
-  population = "overall and region-stratified",
+  population = "overall and cohort-stratified",
   location = "",
   age = "All ages",
   analysis = "washout period sensitivity"
@@ -1095,7 +1121,7 @@ sevwast_plot_africa <- ki_desc_plot(d,
                                     xlabel="Child age, months",
                                     ylabel='Point prevalence (%)',
                                     yrange=c(0,20),
-                                    Region="Africa",
+                                    cohort="Africa",
                                     returnData=T
 )
 
@@ -1110,7 +1136,7 @@ sevwast_plot_lam <- ki_desc_plot(d,
                                  ylabel='Point prevalence (%)',
                                  yrange=c(0,20),
                                  returnData=T,
-                                 Region="Latin America")
+                                 cohort="Latin America")
 
 sevwast_plot_sasia <- ki_desc_plot(d,
                                    Disease="Wasting",
@@ -1123,7 +1149,7 @@ sevwast_plot_sasia <- ki_desc_plot(d,
                                    ylabel='Point prevalence (%)',
                                    yrange=c(0,20),
                                    returnData=T,
-                                   Region="South Asia")
+                                   cohort="South Asia")
 
 
 # define standardized plot names
@@ -1131,7 +1157,7 @@ sevwast_plot_name = create_name(
   outcome = "wasting",
   cutoff = 3,
   measure = "prevalence",
-  population = "overall and region-stratified",
+  population = "overall and cohort-stratified",
   location = "",
   age = "All ages",
   analysis = "primary"
@@ -1148,8 +1174,8 @@ saveRDS(sevwast_plot[[2]], file=paste0(figdata_dir_wasting,"figdata-",sevwast_pl
 
 
 #Get N's for figure captions
-prev_plot[[2]] %>% filter(cohort=="pooled") %>% group_by(region) %>% summarise(min(nmeas), max(nmeas), min(nstudies), max(nstudies))
-#ci_plot_primary[[2]] %>% group_by(region) %>% summarise(min(nmeas), max(nmeas), min(nstudies), max(nstudies))
-inc_plot_primary$data %>% filter(cohort=="pooled") %>% group_by(region) %>% summarize(min(nmeas), max(nmeas))
-rec_plot[[2]] %>% filter(cohort=="pooled") %>% group_by(region) %>% filter(age_range=="90 days") %>% summarize(min(nmeas), max(nmeas), sum(nmeas))
-co_plot[[2]] %>% filter(cohort=="pooled") %>% group_by(region) %>% summarize(min(nmeas), max(nmeas))
+prev_plot[[2]] %>% filter(cohort=="pooled") %>% group_by(cohort) %>% summarise(min(nmeas), max(nmeas), min(nstudies), max(nstudies))
+#ci_plot_primary[[2]] %>% group_by(cohort) %>% summarise(min(nmeas), max(nmeas), min(nstudies), max(nstudies))
+inc_plot_primary$data %>% filter(cohort=="pooled") %>% group_by(cohort) %>% summarize(min(nmeas), max(nmeas))
+rec_plot[[2]] %>% filter(cohort=="pooled") %>% group_by(cohort) %>% filter(age_range=="90 days") %>% summarize(min(nmeas), max(nmeas), sum(nmeas))
+co_plot[[2]] %>% filter(cohort=="pooled") %>% group_by(cohort) %>% summarize(min(nmeas), max(nmeas))

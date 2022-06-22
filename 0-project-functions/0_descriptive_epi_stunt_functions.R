@@ -417,7 +417,7 @@ summary.stunt.incprop <- function(d, severe.stunted=F, agelist=list("0-3 months"
   # estimate random effects, format results
   ci.res=lapply((agelist),function(x)
     fit.rma(data=cuminc.data,ni="N", xi="ncases",age=x,measure="PLO",nlab=" measurements",method=method))
-  ci.res=as.data.frame(rbindlist(ci.res))
+  ci.res=as.data.frame(rbindlist(ci.res, fill=TRUE))
   ci.res = ci.res %>%
     mutate(est=est*100, lb=lb*100, ub=ub*100)
   ci.res$ptest.f=sprintf("%0.0f",ci.res$est)
