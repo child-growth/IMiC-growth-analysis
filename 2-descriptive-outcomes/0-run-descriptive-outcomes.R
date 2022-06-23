@@ -9,7 +9,6 @@ source(here("2-descriptive-outcomes/stunting/0-run-descriptive-outcomes-stunting
 
 source(here("2-descriptive-outcomes/compile_desc_outcomes.R"))
 
-d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
 
 
 
