@@ -32,10 +32,6 @@ source(paste0(here::here(), "/0-project-functions/0_descriptive_epi_stunt_functi
 # We start with ELICIT----------------------------------------------------------
 d <- readRDS(paste0(ghapdata_dir, "stunting_data.rds"))
 
-# # Filter to include only Elicit
-#d <- d %>%
- # filter(country != "TANZANIA, UNITED REPUBLIC OF")
-
 agelst3 = list(
   "0-3 months",
   "3-6 months",
@@ -84,15 +80,14 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   ##############################################################################
   calc_prevalence = function(severe){
     prev.data <- summary.prev.haz(dprev, severe.stunted = severe, method = calc_method)
-    #prev.cohort <-
-      #prev.data$prev.cohort %>% 
-      #subset(., select = c(cohort, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
-      #rename(est = prev,  lb = ci.lb,  ub = ci.ub)
+    prev.cohort <- prev.data$prev.cohort %>% 
+      subset(., select = c(cohort, agecat, nmeas,  prev,  ci.lb,  ci.ub)) %>%
+      rename(est = prev,  lb = ci.lb,  ub = ci.ub)
     
-   # prev <- bind_rows(
-      prev <- data.frame(cohort = "pooled", prev.data$prev.res)#,
-      #prev.cohort
-   # )
+   prev <- bind_rows(
+      prev <- data.frame(cohort = "pooled", prev.data$prev.res),
+      prev.cohort
+    )
     return(prev)
   }
   #-----------------------------------------------------------------------------
@@ -104,16 +99,15 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   # Severe stunting prevalence
   #-----------------------------------------------------------------------------
   sev.prev = calc_prevalence(severe = TRUE)
-  
-  ##############################################################################
-  # Mean HAZ
-  ##############################################################################
   #-----------------------------------------------------------------------------
   # mean haz
   #-----------------------------------------------------------------------------
   haz.data <- summary.haz(dprev, method = calc_method)
+  haz.cohort <- haz.data$haz.cohort %>% 
+    subset(., select = c(cohort, agecat, nmeas, meanhaz,  ci.lb,  ci.ub)) %>%
+    rename(est = meanhaz,  lb = ci.lb,  ub = ci.ub)
   
-  haz <- data.frame(haz.data$haz.res)
+  haz <- bind_rows(data.frame(cohort = "pooled", haz.data$haz.res), haz.cohort)
   
   #-----------------------------------------------------------------------------
   # mean haz for growth velocity age categories
@@ -129,12 +123,14 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
                                          "12-15","15-18")))
   
   haz.data.vel <- summary.haz.age.sex(d_vel, method = calc_method) 
-  haz.data.vel$haz.res <-  haz.data.vel$haz.res #%>% rename(est = meanhaz, lb = ci.lb, ub = ci.ub)
+  haz.cohort.vel <- haz.data.vel$haz.cohort %>% 
+    subset(., select = c(cohort, agecat, sex, nmeas,  meanhaz, ci.lb,  ci.ub)) %>% 
+    rename(est = meanhaz,  lb = ci.lb,  ub = ci.ub)
   
-  haz.vel <- data.frame(haz.data.vel$haz.res)
+  haz.vel <- bind_rows(data.frame(cohort = "pooled", haz.data.vel$haz.res), haz.cohort.vel)
   
-  saveRDS(haz.vel, file = paste0(res_dir, "stunting/meanlaz_velocity", 
-                                 calc_method, output_file_suffix, ".RDS"))
+  #saveRDS(haz.vel, file = paste0(res_dir, "stunting/meanlaz_velocity", 
+                                 #calc_method, output_file_suffix, ".RDS"))
   
   ##############################################################################
   # Incidence proportion
@@ -142,8 +138,14 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   calc_ip = function(datatable, age_list, severe){
     ip.data <- summary.stunt.incprop(datatable, agelist = age_list, 
                                      severe.stunted = severe, method = calc_method)
+    ip.cohort <- ip.data$ip.cohort %>% 
+      subset(., select = c(cohort, agecat, nchild,  yi,  ci.lb,  ci.ub)) %>%
+      rename(est = yi,  lb = ci.lb,  ub = ci.ub, nmeas=nchild)
     
-    ip <- data.frame(ip.data$ip.res)
+    ip <- bind_rows(
+      data.frame(cohort = "pooled", ip.data$ip.res),
+      ip.cohort
+    )
     return(ip)
   }
   #-----------------------------------------------------------------------------
@@ -181,10 +183,15 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
   calc_ci = function(datatable, age_list, birth_strat, severe){
     ci.data <- summary.ci(datatable, birthstrat = birth_strat, agelist = age_list,
                           severe.stunted = severe, method = calc_method)
-      
-      ci.data $ ci.res <- ci.data $ ci.res #%>%rename(est = yi, lb = ci.lb, ub = ci.ub, nmeas = nchild)
-        
-        cuminc <- data.frame(ci.data $ ci.res)
+    ci.cohort <-
+      ci.data$ci.cohort %>% 
+      subset(., select = c(cohort, agecat, nchild,  yi,  ci.lb,  ci.ub)) %>%
+      rename(est = yi,  lb = ci.lb,  ub = ci.ub, nmeas=nchild)
+    
+    cuminc <- bind_rows(
+      data.frame(cohort = "pooled", ci.data$ci.res),
+      ci.cohort
+    )
     return(cuminc)
   }
   
@@ -248,7 +255,6 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
                birth="yes", severe="yes", measure= "Incidence_proportion",  sev.ip6)
   )
   
-
   shiny_desc_data <- shiny_desc_data %>% subset(., select = -c(se, nmeas.f,  ptest.f))
   
   shiny_desc_data$agecat <- as.factor(shiny_desc_data$agecat)
