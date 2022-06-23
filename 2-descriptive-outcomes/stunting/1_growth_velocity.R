@@ -1,27 +1,28 @@
-##########################################
+################################################################################
 # IMIC longitudinal analysis
 # stunting analysis
 
 # growth velocity analysis
-##########################################
+################################################################################
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 library(growthstandards)
 
 d <- readRDS(paste0(ghapdata_dir,"FINAL_only_included_studies.rds"))
 
-# check included cohorts NOTE: won't match because some studies not dropped yet/arms dropped at bottom of the script
-# assert_that(setequal(unique(d$studyid), monthly_and_quarterly_cohorts),
+# check included cohorts NOTE: won't match because some studies not dropped 
+#yet/arms dropped at bottom of the script assert_that(setequal(unique(d$studyid),
+#monthly_and_quarterly_cohorts),
 #             msg = "Check data. Included cohorts do not match.")
 
 
 d <- as.data.table(d)
 setkeyv(d, cols = c("country","studyid","subjid"))
 
-#--------------------------------------------------------
+#-------------------------------------------------------------------------------
 # filter out obs with missing sex
 # filter out person-time obs with missing both haz & waz
-#--------------------------------------------------------
+#-------------------------------------------------------------------------------
 #sex must be "Male" or "Female"
 table(d$sex)
 #set blank sex to missing
@@ -32,11 +33,11 @@ d <- d[!is.na(d$sex), ]
 #drop if both haz and waz are missing
 d <- d[!(is.na(d$haz) & is.na(d$waz)), ]
 
-#--------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # birth characteristics
 # separate birthweight and birthlength
 # convert to waz / haz and add to main data set as a new row with "agedays=0"
-#--------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 table(d$studyid, is.na(d$birthlen))
 table(d$studyid, is.na(d$birthwt))

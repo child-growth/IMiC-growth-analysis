@@ -33,8 +33,8 @@ source(paste0(here::here(), "/0-project-functions/0_descriptive_epi_stunt_functi
 d <- readRDS(paste0(ghapdata_dir, "stunting_data.rds"))
 
 # # Filter to include only Elicit
-# d <- d %>%
-#   filter(country == "TANZANIA, UNITED REPUBLIC OF")
+#d <- d %>%
+ # filter(country != "TANZANIA, UNITED REPUBLIC OF")
 
 agelst3 = list(
   "0-3 months",
@@ -95,29 +95,29 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
    # )
     return(prev)
   }
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Prevalence and WHZ  - not including yearly studies
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   prev = calc_prevalence(severe = FALSE)
   
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Severe stunting prevalence
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   sev.prev = calc_prevalence(severe = TRUE)
   
   ##############################################################################
   # Mean HAZ
   ##############################################################################
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # mean haz
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   haz.data <- summary.haz(dprev, method = calc_method)
   
   haz <- data.frame(haz.data$haz.res)
   
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # mean haz for growth velocity age categories
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   d_vel = data %>% 
     mutate(agecat=ifelse(agedays<3*30.4167,"0-3",
                          ifelse(agedays>=3*30.4167 & agedays<6*30.4167,"3-6",
@@ -125,8 +125,6 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
                                        ifelse(agedays>=9*30.4167 & agedays<12*30.4167,"9-12",
                                               ifelse(agedays>=12*30.4167 & agedays<15*30.4167,"12-15",
                                                      ifelse(agedays>=15*30.4167,"15-18", ""))))))) %>%
-                                                            #ifelse(agedays>=18*30.4167 & agedays<21*30.4167,"18-21",
-                                                                   #ifelse(agedays>=21*30.4167& agedays<24*30.4167,"21-24",""
     mutate(agecat=factor(agecat,levels=c("0-3","3-6","6-9","9-12",
                                          "12-15","15-18")))
   
@@ -148,32 +146,32 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
     ip <- data.frame(ip.data$ip.res)
     return(ip)
   }
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Incidence proportion 3 month intervals
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   ip_3 = calc_ip(d3, agelst3, severe = FALSE)
   
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Incidence proportion 3 month intervals
   # stratify by birth
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   ip_3.birthstrat = calc_ip(d3_birthstrat, agelst3_birthstrat, severe = FALSE)
   
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Incidence proportion 6 month intervals
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   ip_6 = calc_ip(d6, agelst6, severe = FALSE)
   
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Incidence proportion of severe stunting 
   # 3 month interval
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   sev.ip3 = calc_ip(d3, agelst3, severe = TRUE)
   
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Incidence proportion of severe stunting
   # 6 month interval
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   sev.ip6 = calc_ip(d6, agelst6, severe = TRUE)
   
   ##############################################################################
@@ -190,33 +188,33 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
     return(cuminc)
   }
   
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Cumulative Incidence  - 3 month intervals
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   cuminc3 = calc_ci(d3, agelst3, birth_strat = FALSE, severe = FALSE)
   
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Cumulative Incidence  - 3 month intervals
   # stratify by birth 
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   cuminc3.birthstrat = calc_ci(d3_birthstrat, agelst3_birthstrat,
                                birth_strat = TRUE, severe = FALSE)
   
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Cumulative Incidence  - 6 month intervals
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   cuminc6 <- calc_ci(d6, agelst6, birth_strat = FALSE, severe = FALSE)
   
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Cumulative Incidence  - 3 month intervals 
   # severe
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   sev.cuminc3 <- calc_ci(d3, agelst3, birth_strat = FALSE, severe = TRUE)
   
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Cumulative Incidence  - 6 month intervals
   # severe
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   sev.cuminc6 <- calc_ci(d6, agelst6, birth_strat = FALSE, severe = TRUE)
   
   shiny_desc_data <- bind_rows(
@@ -259,9 +257,8 @@ calc_outcomes = function(data, calc_method, output_file_suffix){
 }
 
 
-
 stunt_outcomes = calc_outcomes(data = d, calc_method = "REML", output_file_suffix = "")
-saveRDS(stunt_outcomes, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects.RDS"))
+#saveRDS(stunt_outcomes, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects.RDS"))
 
 stunt_outcomes_fe = calc_outcomes(data = d, calc_method = "FE", output_file_suffix = "_fe")
-saveRDS(stunt_outcomes_fe, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects_fe.RDS"))
+#saveRDS(stunt_outcomes_fe, file = paste0(res_dir,"stunting/shiny_desc_data_stunting_objects_fe.RDS"))
