@@ -192,11 +192,52 @@ R <- plot(d, Disease = "Wasting", Measure = "Recovery",
   ggtitle("Wasting Recovery: 6 Months Interval")
 ggsave(R, filename = paste0(BV_dir, "/results/figures/wasting/recovery6.png"))
 
+#-------------------------------------------------------------------------------
+# Stunting
+#-------------------------------------------------------------------------------
+# Cumulative incidence by 3 month interval
+CI <- plot(d, Disease = "Stunting", Measure = "Cumulative incidence", ageRange = "3 months") +
+  ggtitle("Stunting Cumulative Incidence: 3 Months Interval")
+ggsave(CI, filename = paste0(BV_dir, "/results/figures/stunting/CI3.png"))
 
+# Incidence proportion by 3 month interval
+IP <- plot(d, Disease = "Stunting", Measure = "Incidence proportion", ageRange = "3 months") +
+  ggtitle("Stunting Incidence Proportion: 3 Months Interval")
+ggsave(IP, filename = paste0(BV_dir, "/results/figures/stunting/IP3.png"))
 
+# Mean LAZ by 3 month interval
+LAZ <- plot(d, Disease = "Stunting", Measure = "Mean LAZ", ageRange = "3 months") +
+  ggtitle("Mean LAZ: 3 Months Interval")
+ggsave(LAZ, filename = paste0(BV_dir, "/results/figures/stunting/LAZ3.png"))
 
+# Prevalence by 3 month interval
+P <- plot(d, Disease = "Stunting", Measure = "Prevalence", ageRange = "3 months") +
+  ggtitle("Stunting Prevalence: 3 Months Interval")
+ggsave(P, filename = paste0(BV_dir, "/results/figures/stunting/prevalence3.png"))
 
+#-------------------------------------------------------------------------------
+#  Co-Occurrence
+#-------------------------------------------------------------------------------
+# Incidence proportion by 3 month interval
+IP <- plot(d, Disease = "co-occurrence", Measure = "Incidence proportion", ageRange = "3 months") +
+  ggtitle("Co-Occurrence Incidence Proportion: 3 Months Interval")
+ggsave(IP, filename = paste0(BV_dir, "/results/figures/co-oc/IP3.png"))
 
+# Prevalence by 3 month interval
+P <- plot(d, Disease = "co-occurrence", Measure = "Prevalence", ageRange = "3 months") +
+  ggtitle("Co-Occurrence Prevalence: 3 Months Interval")
+ggsave(P, filename = paste0(BV_dir, "/results/figures/co-oc/prevalence3.png"))
 
-  
+#-------------------------------------------------------------------------------
+#  Underweight
+#-------------------------------------------------------------------------------
+# Mean WAZ by 3 month interval
+WAZ <- plot(d, Disease = "Underweight", Measure = "Mean WAZ", ageRange = "3 months") +
+  ggtitle("Mean WAZ: 3 Months Interval")
+ggsave(WAZ, filename = paste0(BV_dir, "/results/figures/underweight/WAZ3.png"))
+
+# Prevalence by 3 month interval
+P <- plot(d, Disease = "Underweight", Measure = "Prevalence", ageRange = "3 months") +
+  ggtitle("Underweight Prevalence: 3 Months Interval")
+ggsave(P, filename = paste0(BV_dir, "/results/figures/underweight/prevalence3.png"))
   
