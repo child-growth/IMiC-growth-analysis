@@ -46,6 +46,20 @@ scale_estimates <- function(d) {
   return(d)
 }
 
+# Change the name of country
+d $ cohort <- case_when(d $ cohort == "ELICIT-TANZANIA, UNITED REPUBLIC OF" ~
+  "Tanzania", d $ cohort == "VITAL-Lactation-PAKISTAN" ~ "Pakistan")
+
+# Get rid of the word "months" from agecat for visualizations
+d $ agecat <- gsub(" months", "m", d $ agecat)
+
+# Relevel the agecat variable
+d $ agecat <- factor(d $ agecat, 
+                     level = c("Birth", "3m", "6m", "9m", "12m", "15m",
+                               "18m", "0-3m", "3-6m", "6-9m",
+                               "9-12m", "15-18m", "8 days-3m", "0-6m", 
+                               "6-12m", "12-18m"))
+
 #-------------------------------------------------------------------------------
 # To do
 #-------------------------------------------------------------------------------
@@ -53,8 +67,7 @@ scale_estimates <- function(d) {
 # make a figure for each of these combinations
 table(d$disease, d$measure)
 
-#Hold: will also make growth velocity figure seperately. 
-
+#Hold: will also make growth velocity figure separately. 
 
 #-------------------------------------------------------------------------------
 # Mean WLZ by month  -NEED TO ADD
@@ -99,79 +112,91 @@ table(d$disease, d$measure)
 # 
 # ggsave(p, file=paste0(fig_dir,"wasting/WLZ_by_cohort.png"), width=10, height=4)
 
-
 #-------------------------------------------------------------------------------
-# Mean WLZ by 3 month interval
+# Make a plot function
 #-------------------------------------------------------------------------------
-
-df <- d %>% filter(
-  disease == "Wasting" &
-    measure == "Mean WLZ" & 
-    birth == "yes" &
-    severe == "no" &
-    age_range == "3 months" )
-df <- droplevels(df)
-
-
+plot <- function (d, Disease, Measure, ageRange) {
+  df <- d %>% filter(
+    disease == Disease &
+      measure == Measure & 
+      birth == "yes" &
+      severe == "no" &
+      age_range == ageRange)
+  df <- droplevels(df)
+  table(df$agecat)
   p <- ggplot(df,aes(y=est,x=agecat)) +
-      geom_point(aes(shape=measure, size=measure, fill=cohort, color=cohort), 
-                 size = 2, stroke = 0, data = df ) +
+    geom_point(aes(shape=measure, size=measure, fill=cohort, color=cohort), 
+               size = 2, stroke = 0, data = df) +
     geom_errorbar(aes(color=cohort, group=interaction(measure, cohort),ymin=lb,
                       ymax=ub), width = 0,data = df ) +
     geom_text(data=df , aes(x = agecat, y = est, label = round(est,2)),
-              hjust = 1.5, vjust = 0.5) + 
+              hjust = 1.2, vjust = 0.5) + 
     scale_color_manual(values=tableau11, drop=TRUE, limits = levels(df$measure),
                        guide = FALSE) +
     scale_size_manual(values = c(2, 1.5), guide = FALSE) +
-    scale_shape_manual(values = c(16, 17),name = 'Measure')+
+    scale_shape_manual(values = c(16, 17),name = 'Measure') +
     scale_fill_manual(values=tableau11, guide = FALSE) +
-    xlab("")+
+    xlab("") +
     ylab("") +
-    scale_x_discrete(expand = expand_scale(add = 1)) +
-    scale_y_continuous(breaks = scales::pretty_breaks(n = 10))  +
-    theme( axis.text.x = element_text(margin =margin(t = 0, r = 0, b = 0, l = 0),
-                                      size = 14)) +
+    scale_x_discrete(expand = expansion(add = 1)) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
+    theme(axis.text.x = element_text(margin =margin(t = 0, r = 0, b = 0, l = 0),
+                                     size = 14)) +
     theme(axis.title.y = element_text(size = 14)) +
     ggtitle("") + facet_wrap(~cohort) +
-      theme(strip.text = element_text(size=12, margin = margin(t = 0)))
-p
-  
+    theme(strip.text = element_text(size=12, margin = margin(t = 0)))
+  return(p)
+}
+
 #-------------------------------------------------------------------------------
-# Wasting prevalence by 3 month interval
+# Wasting
 #-------------------------------------------------------------------------------
+# Cumulative incidence by 3 month interval
+CI <- plot(d, Disease = "Wasting", Measure = "Cumulative incidence", ageRange = "3 months") +
+  ggtitle("Wasting Cumulative Incidence: 3 Months Interval")
+ggsave(CI, filename = paste0(BV_dir, "/results/figures/wasting/CI3.png"))
 
-df <- d %>% filter(
-  disease == "Wasting" &
-    measure == "Prevalence" & 
-    birth == "yes" &
-    severe == "no" &
-    age_range == "3 months" )
-df <- droplevels(df)
-table(df$agecat)
+# Incidence proportion by 3 month interval
+IP <- plot(d, Disease = "Wasting", Measure = "Incidence proportion", ageRange = "3 months") +
+  ggtitle("Wasting Incidence Proportion: 3 Months Interval")
+ggsave(IP, filename = paste0(BV_dir, "/results/figures/wasting/IP3.png"))
+
+# Incidence rate by 3 month interval
+IR <- plot(d, Disease = "Wasting", Measure = "Incidence rate", ageRange = "3 months") +
+  ggtitle("Wasting Incidence Rate: 3 Months Interval")
+ggsave(IR, filename = paste0(BV_dir, "/results/figures/wasting/IR3.png"))
+
+# Incidence rate by 6 month interval
+IR <- plot(d, Disease = "Wasting", Measure = "Incidence rate", ageRange = "6 months") +
+  ggtitle("Wasting Incidence Rate: 6 Months Interval")
+ggsave(IR, filename = paste0(BV_dir, "/results/figures/wasting/IR6.png"))
+
+# Mean WLZ by 3 month interval
+WLZ <- plot(d, Disease = "Wasting", Measure = "Mean WLZ", ageRange = "3 months") +
+  ggtitle("Mean WLZ: 3 Months Interval")
+ggsave(WLZ, filename = paste0(BV_dir, "/results/figures/wasting/WLZ3.png"))
+
+# Persistent wasting by 6 month interval
+PW <- plot(d, Disease = "Wasting", Measure = "Persistent wasting", ageRange = "6 months") +
+  ggtitle("Persistent Wasting: 6 Months Interval")
+ggsave(PW, filename = paste0(BV_dir, "/results/figures/wasting/PW6.png"))
+
+# Prevalence by 3 month interval
+P <- plot(d, Disease = "Wasting", Measure = "Prevalence", ageRange = "3 months") +
+  ggtitle("Wasting Prevalence: 3 Months Interval")
+ggsave(P, filename = paste0(BV_dir, "/results/figures/wasting/prevalence3.png"))
+
+# Recovery by 30-day intervals
+R <- plot(d, Disease = "Wasting", Measure = "Recovery", 
+     ageRange = c("30 days", "60 days", "90 days")) +
+  ggtitle("Wasting Recovery: 6 Months Interval")
+ggsave(R, filename = paste0(BV_dir, "/results/figures/wasting/recovery6.png"))
 
 
-p2 <- ggplot(df,aes(y=est,x=agecat)) +
-  geom_point(aes(shape=measure, size=measure, fill=cohort, color=cohort), 
-             size = 2, stroke = 0, data = df ) +
-  geom_errorbar(aes(color=cohort, group=interaction(measure, cohort),
-                    ymin=lb, ymax=ub), width = 0,data = df ) +
-  geom_text(data=df , aes(x = agecat, y = est, label = round(est,2)),
-            hjust = 1.5, vjust = 0.5) + 
-  scale_color_manual(values=tableau11, drop=TRUE, 
-                     limits = levels(df$measure),guide = FALSE) +
-  scale_size_manual(values = c(2, 1.5), guide = FALSE) +
-  scale_shape_manual(values = c(16, 17),name = 'Measure')+
-  scale_fill_manual(values=tableau11, guide = FALSE) +
-  xlab("")+
-  ylab("") +
-  scale_x_discrete(expand = expand_scale(add = 1)) +
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))  +
-  theme( axis.text.x = element_text(margin =margin(t = 0, r = 0, b = 0, l = 0),
-                                    size = 14)) +
-  theme(axis.title.y = element_text(size = 14)) +
-  ggtitle("") + facet_wrap(~cohort) +
-  theme(strip.text = element_text(size=12, margin = margin(t = 0)))
-p2
+
+
+
+
 
   
   
