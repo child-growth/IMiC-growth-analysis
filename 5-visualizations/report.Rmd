@@ -1,0 +1,42 @@
+---
+title: "Report"
+output: pdf_document
+---
+
+# Wasting
+```{r echo=FALSE}
+include_graphics(paste0(BV_dir,"results/figures/wasting/CI3.png"))
+include_graphics(paste0(BV_dir,"results/figures/wasting/IP3.png"))
+include_graphics(paste0(BV_dir,"results/figures/wasting/IR3.png"))
+include_graphics(paste0(BV_dir,"results/figures/wasting/IR6.png"))
+include_graphics(paste0(BV_dir,"results/figures/wasting/prevalence3.png"))
+include_graphics(paste0(BV_dir,"results/figures/wasting/PW6.png"))
+include_graphics(paste0(BV_dir,"results/figures/wasting/recovery6.png"))
+include_graphics(paste0(BV_dir,"results/figures/wasting/WLZ3.png"))
+```
+
+# Stunting
+```{r}
+include_graphics(paste0(BV_dir,"results/figures/stunting/CI3.png"))
+include_graphics(paste0(BV_dir,"results/figures/stunting/IP3.png"))
+include_graphics(paste0(BV_dir,"results/figures/stunting/LAZ3.png"))
+include_graphics(paste0(BV_dir,"results/figures/stunting/prevalence3.png"))
+```
+
+# Co-Occurence
+```{r}
+include_graphics(paste0(BV_dir,"results/figures/co-oc/IP3.png"))
+include_graphics(paste0(BV_dir,"results/figures/co-oc/prevalence3.png"))
+```
+
+# Underweight
+```{r}
+include_graphics(paste0(BV_dir,"results/figures/underweight/WAZ3.png"))
+include_graphics(paste0(BV_dir,"results/figures/underweight/prevalence3.png"))
+```
+
+
+
+
+
+
