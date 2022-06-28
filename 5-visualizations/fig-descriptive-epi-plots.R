@@ -64,9 +64,6 @@ d $ agecat <- factor(d $ agecat,
 # To do
 #-------------------------------------------------------------------------------
 
-# make a figure for each of these combinations
-table(d$disease, d$measure)
-
 #Hold: will also make growth velocity figure separately. 
 
 #-------------------------------------------------------------------------------

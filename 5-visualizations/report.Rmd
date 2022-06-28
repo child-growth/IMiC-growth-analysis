@@ -1,11 +1,37 @@
 ---
-title: "Report"
-output: pdf_document
+title: | 
+    | Preliminary Results
+author: "The Berkeley Team"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: 
+    pdf_document:
+        toc: true
+        toc_depth: 4
+keep_tex: true
+theme: bclear
+fontsize: 10pt
+geometry: margin=1in
+header-includes:
+- \usepackage{enumitem}
+- \usepackage{indentfirst}
+- \usepackage[default, scale=1]{raleway}
+- \usepackage[T1]{fontenc}
+- \usepackage{inconsolata}
+always_allow_html: true
 ---
+\newpage
+
+```{r setup1, include=FALSE}
+setwd("/home/sajdarwish/iMiC")
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "")
+getwd()
+source("/home/sajdarwish/iMiC/0-config.R")
+```
 
 # Wasting
 ```{r echo=FALSE}
-include_graphics(paste0(BV_dir,"results/figures/wasting/CI3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/CI3.png"))
 include_graphics(paste0(BV_dir,"results/figures/wasting/IP3.png"))
 include_graphics(paste0(BV_dir,"results/figures/wasting/IR3.png"))
 include_graphics(paste0(BV_dir,"results/figures/wasting/IR6.png"))
