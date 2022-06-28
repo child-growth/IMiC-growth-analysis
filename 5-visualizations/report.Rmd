@@ -22,11 +22,16 @@ always_allow_html: true
 \newpage
 
 ```{r setup1, include=FALSE}
-setwd("/home/sajdarwish/iMiC")
-knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "")
-getwd()
-source("/home/sajdarwish/iMiC/0-config.R")
+# setwd("/home/sajdarwish/iMiC")
+# knitr::opts_chunk$set(echo = TRUE)
+# knitr::opts_knit$set(root.dir = "")
+# getwd()
+# source("/home/sajdarwish/iMiC/0-config.R")
+# source(paste0(here::here(),"/0-config.R"))
+
+BV_dir = "/data/KI/imic/"
+library(tidyverse)
+library(knitr)
 ```
 
 # Wasting
