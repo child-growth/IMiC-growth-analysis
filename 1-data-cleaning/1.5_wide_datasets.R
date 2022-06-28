@@ -407,18 +407,29 @@ table1V <- table1(~ . | arm_base, data = combinedWideVital)
 combinedWideVital $ studyid <- "VITAL-Lactation"
 
 #------------------------------------------------------------------------------#
-#                       Plot Outcome Variables: ELICIT [DONE]                  #                                                
+#                       Plot Outcome Variables: [NOT DONE]                  #                                                
 #------------------------------------------------------------------------------#
 
 # Filter out unwanted time points
-elicit2 <- elicit %>%
+elicit <- elicit %>%
   filter(visit2 == "base" | visit2 == "3m" | visit2 == "6m" | visit2 == "9m" |
            visit2 == "12m" | visit2 == "15m" | visit2 == "18m")
 
 # Re order levels
-elicit2 $ visit2 <- factor(elicit2 $ visit2, 
+elicit $ visit2 <- factor(elicit $ visit2, 
                            level = c("base", "1m", "3m", "5m", "6m", "9m",
                                      "12m", "15m", "18m"))
+
+# Re order levels: visit2
+vital $ visit2 <- factor(vital $ visit2, 
+                         level = c("base", "m1", "m2", "m3", "m4", "m5",
+                                   "m6"))
+# Recode the arm variable
+vital $ arm <- case_when(vital $ arm == "Nutrient supplement+Ex.BreastFeed"
+                         ~ "Nutrient+Ex",
+                         vital $ arm == "Nutrient supplement+Ex.BreastFeed+AZT"
+                         ~ "Nutrient+Ex+AZT",
+                         vital $ arm == "Control" ~ "Control")
 
 # Make a function for showing number of observations in plot
 stat_box_data <- function (y) {
@@ -432,8 +443,8 @@ stat_box_data <- function (y) {
 }
 
 # Make a plot function
-plot <- function (data, outcome) {
-  data %>%
+plot <- function (d, outcome) {
+  d %>%
     filter(!is.na(visit2)) %>%
     group_by("subjid") %>%
     ggplot(aes(x = visit2, y = outcome)) +
@@ -451,40 +462,7 @@ plot <- function (data, outcome) {
   #scale_color_brewer(palette = "Spectral")
 }
 
-plot(elicit2, baz)
-
-#------------------------------------------------------------------------------#
-#                       Plot Outcome Variables: VITAL [DONE]                   # 
-#------------------------------------------------------------------------------#
-
-# Re order levels: visit2
-vital $ visit2 <- factor(vital $ visit2, 
-                         level = c("base", "m1", "m2", "m3", "m4", "m5",
-                                   "m6"))
-# Recode the arm variable
-vital $ arm <- case_when(vital $ arm == "Nutrient supplement+Ex.BreastFeed"
-                         ~ "Nutrient+Ex",
-                         vital $ arm == "Nutrient supplement+Ex.BreastFeed+AZT"
-                         ~ "Nutrient+Ex+AZT",
-                         vital $ arm == "Control" ~ "Control")
-
-# Make plots
-vital %>%
-  filter(!is.na(visit2)) %>%
-  group_by("subjid") %>%
-  ggplot(aes(x = visit2, y = whz)) +
-  geom_boxplot() +
-  stat_summary(
-    fun.data = stat_box_data,
-    geom = "text", 
-    hjust = 0.5,
-    vjust = 0.9) + 
-  geom_jitter(width = 0.05, alpha = 0.2) +
-  xlab("Duration") +
-  ylab("Weight-for-Height Z-Score") +
-  #facet_wrap(~ arm) +
-  theme(strip.text.x = element_text(size = 10)) #+
-#scale_color_brewer(palette = "Spectral")
+plot(d = elicit2, outcome = baz)
 
 
 
