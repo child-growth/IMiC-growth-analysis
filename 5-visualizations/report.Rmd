@@ -4,7 +4,7 @@ title: |
 author: "The Berkeley Team"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output: 
-    pdf_document:
+    html_document:
         toc: true
         toc_depth: 4
 keep_tex: true
@@ -19,23 +19,23 @@ header-includes:
 - \usepackage{inconsolata}
 always_allow_html: true
 ---
-\newpage
 
+# Overview
+The overall descriptive epidemiology plots presented in this manuscript are from data pooled across individual studies. Results are presented in 3 or 6 months intervals and estimates are for cumulative incidence, incidence proportion, incidence rate, prevalence, as well as persistent wasting, weight-for-length z-score (WLZ), mean length-for-age z-score (LAZ) and mean weight-for-age z-score (WAZ).
+
+The descriptive statistics tables ...
+
+Outcome plots ...
+
+# Overall: Descriptive Epidemiology Plots
 ```{r setup1, include=FALSE}
-# setwd("/home/sajdarwish/iMiC")
-# knitr::opts_chunk$set(echo = TRUE)
-# knitr::opts_knit$set(root.dir = "")
-# getwd()
-# source("/home/sajdarwish/iMiC/0-config.R")
-# source(paste0(here::here(),"/0-config.R"))
-
 BV_dir = "/data/KI/imic/"
 library(tidyverse)
 library(knitr)
 ```
 
-# Wasting
-```{r echo=FALSE}
+## Wasting
+```{r, echo=FALSE, out.width="50%", out.height="50%"}
 knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/CI3.png"))
 include_graphics(paste0(BV_dir,"results/figures/wasting/IP3.png"))
 include_graphics(paste0(BV_dir,"results/figures/wasting/IR3.png"))
@@ -46,25 +46,49 @@ include_graphics(paste0(BV_dir,"results/figures/wasting/recovery6.png"))
 include_graphics(paste0(BV_dir,"results/figures/wasting/WLZ3.png"))
 ```
 
-# Stunting
-```{r}
+## Stunting
+```{r, echo=FALSE, out.width="50%", out.height="50%"}
 include_graphics(paste0(BV_dir,"results/figures/stunting/CI3.png"))
 include_graphics(paste0(BV_dir,"results/figures/stunting/IP3.png"))
 include_graphics(paste0(BV_dir,"results/figures/stunting/LAZ3.png"))
 include_graphics(paste0(BV_dir,"results/figures/stunting/prevalence3.png"))
 ```
 
-# Co-Occurence
-```{r}
+## Co-Occurence
+```{r, echo=FALSE, out.width="50%", out.height="50%"}
 include_graphics(paste0(BV_dir,"results/figures/co-oc/IP3.png"))
 include_graphics(paste0(BV_dir,"results/figures/co-oc/prevalence3.png"))
 ```
 
-# Underweight
-```{r}
+## Underweight
+```{r, echo=FALSE, out.width="50%", out.height="50%"}
 include_graphics(paste0(BV_dir,"results/figures/underweight/WAZ3.png"))
 include_graphics(paste0(BV_dir,"results/figures/underweight/prevalence3.png"))
 ```
+
+# Descriptive Statistics Tables
+
+## Elicit
+```{r, echo=FALSE, out.width="80%", out.height="80%"}
+readRDS("/data/KI/imic/results/elicitTable.RDS")
+```
+
+## Vital
+```{r, echo=FALSE, out.width="80%", out.height="80%"}
+readRDS("/data/KI/imic/results/vitalTable.RDS")
+```
+
+# Outcome Plots
+```{r, echo=FALSE}
+
+```
+
+
+
+
+
+
+
 
 
 

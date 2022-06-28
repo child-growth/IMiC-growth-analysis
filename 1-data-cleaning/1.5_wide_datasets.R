@@ -2,9 +2,9 @@
 #-------------------------------------------------------------------------------
 # Create wide datasets from the long version of the ELICIT and VITAL datasets.
 #
-# Output: Two datasets with one row per child and all baseline and
-#         Time-varying covariates.
-# Also: make plots of the outcomes given different time intervals.
+# Output: Two descriptive statistics tables in imic/results.
+#.        Two datasets with one row per child and all baseline and
+#         Time-varying covariates also in imic/results.
 #
 # Authors: Sajia Darwish (sajdarwish@berkeley.edu)
 #-------------------------------------------------------------------------------
@@ -15,9 +15,9 @@ library(growthstandards)
 #install.packages(naniar)
 library(naniar) # For missingness
 library(table1)
-
+BV_dir = "/data/KI/imic/"
 #------------------------------------------------------------------------------#
-#           High level clean up of the joint dataset + subset [DONE]           #                                                #
+#           High level clean up of the joint dataset + subset [DONE]           #  
 #------------------------------------------------------------------------------#
 
 d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
@@ -63,7 +63,7 @@ elicit <- d %>%
 sum(table(unique(elicit $ subjid))) #200
 
 #------------------------------------------------------------------------------#
-#               Reshape the ELICIT data from long to wide [DONE]               #                                                #
+#               Reshape the ELICIT data from long to wide [DONE]               # 
 #------------------------------------------------------------------------------#
 
 # Cleanup the visit variable: messy entries: scattered follow ups
@@ -100,6 +100,9 @@ delete <- c("visitimpcm", "visitnum", "visit", "ageimpcm",
             "ageimpfl", "sexn", "delivrdt", "bmid", "armcd", "exbfdef")
 
 elicit <- elicit[, !names(d) %in% delete]
+
+elicit $ h2osrcp <- ifelse(elicit $ h2osrcp == "Surface water(river/dam/lake/pond/stream",
+                           "Surface water", elicit $ h2osrcp)
 
 ## Make id a values vectors
 id = c("country", "studyid", "siteid", "subjid", "subjido", "studytyp")
@@ -195,19 +198,20 @@ gg_miss_var(dStatic[, 1:ncol(dStatic)], show_pct = T)
 combinedWideElicit <- combinedWideElicit %>%
   select(-id)
 
-# Save the anonymized dataset
-#write.csv(combinedWideElicit, file = "wideElicitAnonymized.csv")
+# Save the dataset
+#saveRDS(combinedWideElicit, file = paste0(BV_dir, "/results/wideElicit.RDS"))
 
 #------------------------------------------------------------------------------#
-#                       Make Summary Table - ELICIT [DONE]                     #                                                #
+#                       Make Summary Table - ELICIT [DONE]                     #
 #------------------------------------------------------------------------------#
 table1E <- table1(~ . | arm_base, data = combinedWideElicit)
 
-# Save the table as a csv file
-#write.csv(table1E, file = "table1Elicit.csv")
+# Save the table
+#saveRDS(table1E, file = paste0(BV_dir, "/results/elicitTable.RDS"))
+combinedWideElicit $ studyid <- "ELICIT"
 
 #------------------------------------------------------------------------------#
-#               Reshape the VITAL data from long to wide [DONE]                #                                                #
+#               Reshape the VITAL data from long to wide [DONE]                #
 #------------------------------------------------------------------------------#
 
 ## Get a list of names separated with a comma
@@ -386,26 +390,24 @@ combinedWideV <- merge(combinedWideV, widem6, by = "subjid", all = TRUE)
 # Remove columns with 100% NA in this dataset
 combinedWideV <- combinedWideV[, -which(colMeans(is.na(combinedWideV)) == 1)]
 
-# Save the dataset
-#write.csv(combinedWideV, file = "wideVital.csv")
-
 # Anonymized data
 combinedWideVital <- combinedWideV %>%
   select(-id)
 
 # Save the anonymized dataset
-#write.csv(combinedWideVital, file = "wideVitalAnonymized.csv")
+#saveRDS(combinedWideVital, file = paste0(BV_dir, "/results/wideVital.RDS"))
 
 #------------------------------------------------------------------------------#
-#                       Make Summary Table - VITAL [DONE]                      #                                                #
+#                       Make Summary Table - VITAL [DONE]                      #      
 #------------------------------------------------------------------------------#
 table1V <- table1(~ . | arm_base, data = combinedWideVital)
 
-# Save the table as a csv file
-#write.csv(table1V, file = "table1Vital.csv")
+# Save the table
+#saveRDS(table1V, file = paste0(BV_dir, "/results/vitalTable.RDS"))
+combinedWideVital $ studyid <- "VITAL-Lactation"
 
 #------------------------------------------------------------------------------#
-#                       Plot Outcome Variables: ELICIT [DONE]                  #                                                #
+#                       Plot Outcome Variables: ELICIT [DONE]                  #                                                
 #------------------------------------------------------------------------------#
 
 # Filter out unwanted time points
@@ -429,25 +431,30 @@ stat_box_data <- function (y) {
   )
 }
 
-# Make plots
-elicit2 %>%
-  group_by("subjid") %>%
-  ggplot(aes(x = visit2, y = baz)) +
-  geom_boxplot() +
-  stat_summary(
-    fun.data = stat_box_data, 
-    geom = "text", 
-    hjust = 0.5,
-    vjust = 0.9) + 
-  geom_jitter(width = 0.05, alpha = 0.2) +
-  xlab("Duration") +
-  ylab("BMI-for-Age Z-Score") +
-  facet_wrap(~ arm) +
-  theme(strip.text.x = element_text(size = 10)) #+
-#scale_color_brewer(palette = "Spectral")
+# Make a plot function
+plot <- function (data, outcome) {
+  data %>%
+    filter(!is.na(visit2)) %>%
+    group_by("subjid") %>%
+    ggplot(aes(x = visit2, y = outcome)) +
+    geom_boxplot() +
+    stat_summary(
+      fun.data = stat_box_data, 
+      geom = "text", 
+      hjust = 0.5,
+      vjust = 0.9) + 
+    geom_jitter(width = 0.05, alpha = 0.2) +
+    xlab("Duration") +
+    #ylab("BMI-for-Age Z-Score") +
+    facet_wrap(~ arm) +
+    theme(strip.text.x = element_text(size = 10)) #+
+  #scale_color_brewer(palette = "Spectral")
+}
+
+plot(elicit2, baz)
 
 #------------------------------------------------------------------------------#
-#                       Plot Outcome Variables: VITAL [DONE]                   #                                                #
+#                       Plot Outcome Variables: VITAL [DONE]                   # 
 #------------------------------------------------------------------------------#
 
 # Re order levels: visit2
@@ -468,7 +475,7 @@ vital %>%
   ggplot(aes(x = visit2, y = whz)) +
   geom_boxplot() +
   stat_summary(
-    fun.data = stat_box_data, 
+    fun.data = stat_box_data,
     geom = "text", 
     hjust = 0.5,
     vjust = 0.9) + 
@@ -478,4 +485,9 @@ vital %>%
   #facet_wrap(~ arm) +
   theme(strip.text.x = element_text(size = 10)) #+
 #scale_color_brewer(palette = "Spectral")
+
+
+
+
+
 
