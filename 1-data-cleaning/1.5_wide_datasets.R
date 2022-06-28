@@ -5,6 +5,7 @@
 # Output: Two descriptive statistics tables in imic/results.
 #.        Two datasets with one row per child and all baseline and
 #         Time-varying covariates also in imic/results.
+#         Outcome plots
 #
 # Authors: Sajia Darwish (sajdarwish@berkeley.edu)
 #-------------------------------------------------------------------------------
@@ -407,7 +408,7 @@ table1V <- table1(~ . | arm_base, data = combinedWideVital)
 combinedWideVital $ studyid <- "VITAL-Lactation"
 
 #------------------------------------------------------------------------------#
-#                       Plot Outcome Variables: [NOT DONE]                  #                                                
+#                       Plot Outcome Variables: [NOT DONE]                     #                                                
 #------------------------------------------------------------------------------#
 
 # Filter out unwanted time points
@@ -462,7 +463,9 @@ plot <- function (d, outcome) {
   #scale_color_brewer(palette = "Spectral")
 }
 
-plot(d = elicit2, outcome = baz)
+plot(d = elicit, outcome = baz)
+plot(d = elicit, outcome = haz)
+plot(d = elicit, outcome = waz)
 
 
 
