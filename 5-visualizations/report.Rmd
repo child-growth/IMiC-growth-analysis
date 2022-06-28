@@ -31,39 +31,39 @@ Outcome plots ...
 ```{r setup1, include=FALSE}
 BV_dir = "/data/KI/imic/"
 library(tidyverse)
-library(knitr)
+#library(knitr)
 ```
 
 ## Wasting
 ```{r, echo=FALSE, out.width="50%", out.height="50%"}
 knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/CI3.png"))
-include_graphics(paste0(BV_dir,"results/figures/wasting/IP3.png"))
-include_graphics(paste0(BV_dir,"results/figures/wasting/IR3.png"))
-include_graphics(paste0(BV_dir,"results/figures/wasting/IR6.png"))
-include_graphics(paste0(BV_dir,"results/figures/wasting/prevalence3.png"))
-include_graphics(paste0(BV_dir,"results/figures/wasting/PW6.png"))
-include_graphics(paste0(BV_dir,"results/figures/wasting/recovery6.png"))
-include_graphics(paste0(BV_dir,"results/figures/wasting/WLZ3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/IP3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/IR3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/IR6.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/prevalence3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/PW6.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/recovery6.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/WLZ3.png"))
 ```
 
 ## Stunting
 ```{r, echo=FALSE, out.width="50%", out.height="50%"}
-include_graphics(paste0(BV_dir,"results/figures/stunting/CI3.png"))
-include_graphics(paste0(BV_dir,"results/figures/stunting/IP3.png"))
-include_graphics(paste0(BV_dir,"results/figures/stunting/LAZ3.png"))
-include_graphics(paste0(BV_dir,"results/figures/stunting/prevalence3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/stunting/CI3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/stunting/IP3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/stunting/LAZ3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/stunting/prevalence3.png"))
 ```
 
 ## Co-Occurence
 ```{r, echo=FALSE, out.width="50%", out.height="50%"}
-include_graphics(paste0(BV_dir,"results/figures/co-oc/IP3.png"))
-include_graphics(paste0(BV_dir,"results/figures/co-oc/prevalence3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/co-oc/IP3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/co-oc/prevalence3.png"))
 ```
 
 ## Underweight
 ```{r, echo=FALSE, out.width="50%", out.height="50%"}
-include_graphics(paste0(BV_dir,"results/figures/underweight/WAZ3.png"))
-include_graphics(paste0(BV_dir,"results/figures/underweight/prevalence3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/underweight/WAZ3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/underweight/prevalence3.png"))
 ```
 
 # Descriptive Statistics Tables
@@ -79,10 +79,24 @@ readRDS("/data/KI/imic/results/vitalTable.RDS")
 ```
 
 # Outcome Plots
-```{r, echo=FALSE}
 
+## Elicit: Tanzania
+
+### Overall
+```{r, echo=FALSE, out.width="50%", out.height="50%"}
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/bazE.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/hazE.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/wazE.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/whzE.png"))
 ```
 
+### By Intervention Arm
+```{r, echo=FALSE, out.width="80%", out.height="80%"}
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/bazE-4.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/hazE-4.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/wazE-4.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/whzE-4.png"))
+```
 
 
 
