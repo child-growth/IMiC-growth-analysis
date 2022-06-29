@@ -437,8 +437,8 @@ stat_box_data <- function (y) {
   return( 
     data.frame(
       y = 0.5 + 1.1 * max(y),  #may need to modify this depending on your data
-      label = paste('n=',length(y), '\n')
-      #'mean =', round(mean(y), 1), '\n')
+      label = paste('',length(y), '\n')
+      #'mean =', round(median(y), 1), '\n')
     )
   )
 }
@@ -449,26 +449,94 @@ plot <- function (d, outcome) {
     filter(!is.na(visit2)) %>%
     group_by("subjid") %>%
     ggplot(aes(x = visit2, y = outcome)) +
-    geom_boxplot() +
-    stat_summary(
-      fun.data = stat_box_data, 
-      geom = "text", 
-      hjust = 0.5,
-      vjust = 0.9) + 
-    geom_jitter(width = 0.05, alpha = 0.2) +
-    xlab("Duration") +
-    #ylab("BMI-for-Age Z-Score") +
-    facet_wrap(~ arm) +
-    theme(strip.text.x = element_text(size = 10)) #+
-  #scale_color_brewer(palette = "Spectral")
+    geom_boxplot(outlier.shape = NA) +
+    #geom_violin()+
+    #stat_summary(
+     # fun.data = stat_box_data, 
+      #geom = "text", 
+      #hjust = 0.5,
+     # vjust = 0.9) + 
+    #geom_jitter(width = 0.05, alpha = 0.05) +
+    xlab("") +
+    #ylab("Weight-for-Age Z-Score") +
+    #facet_wrap(~ arm) +
+    theme(strip.text.x = element_text(size = 10))
 }
 
-plot(d = elicit, outcome = baz)
-plot(d = elicit, outcome = haz)
-plot(d = elicit, outcome = waz)
+# Make plots
+# By intervention: ELICIT
+bazE4 <- plot(d = elicit, outcome = elicit $ baz) +
+  ylab("BMI-for-Age Z-Score") +
+  facet_wrap(~ arm)
+ggsave(bazE4, filename = paste0(BV_dir, "/results/figures/outcomes/elicit/bazE-4.png"))
 
+hazE4 <- plot(d = elicit, outcome = elicit $ haz) +
+  ylab("Height-for-Age Z-Score") +
+  facet_wrap(~ arm)
+ggsave(hazE4, filename = paste0(BV_dir, "/results/figures/outcomes/elicit/hazE-4.png"))
 
+wazE4 <- plot(d = elicit, outcome = elicit $ waz) +
+  ylab("Weight-for-Age Z-Score") +
+  facet_wrap(~ arm)
+ggsave(wazE4, filename = paste0(BV_dir, "/results/figures/outcomes/elicit/wazE-4.png"))
 
+whzE4 <- plot(d = elicit, outcome = elicit $ whz) +
+  ylab("Weight-for-Height Z-Score") +
+  facet_wrap(~ arm)
+ggsave(whzE4, filename = paste0(BV_dir, "/results/figures/outcomes/elicit/whzE-4.png"))
 
+# Overall: ELICIT
+bazE <- plot(d = elicit, outcome = elicit $ baz) +
+  ylab("BMI-for-Age Z-Score")
+ggsave(bazE, filename = paste0(BV_dir, "/results/figures/outcomes/elicit/bazE.png"))
 
+hazE <- plot(d = elicit, outcome = elicit $ haz) +
+  ylab("Height-for-Age Z-Score")
+ggsave(hazE, filename = paste0(BV_dir, "/results/figures/outcomes/elicit/hazE.png"))
+
+wazE <- plot(d = elicit, outcome = elicit $ waz) +
+  ylab("Weight-for-Age Z-Score")
+ggsave(wazE, filename = paste0(BV_dir, "/results/figures/outcomes/elicit/wazE.png"))
+
+whzE <- plot(d = elicit, outcome = elicit $ whz) +
+  ylab("Weight-for-Height Z-Score")
+ggsave(whzE, filename = paste0(BV_dir, "/results/figures/outcomes/elicit/whzE.png"))
+
+# By intervention: VITAL
+bazE4 <- plot(d = vital, outcome = vital $ baz) +
+  ylab("BMI-for-Age Z-Score") +
+  facet_wrap(~ arm)
+ggsave(bazE4, filename = paste0(BV_dir, "/results/figures/outcomes/vital/bazV-3.png"))
+
+hazE4 <- plot(d = vital, outcome = vital $ haz) +
+  ylab("Height-for-Age Z-Score") +
+  facet_wrap(~ arm)
+ggsave(hazE4, filename = paste0(BV_dir, "/results/figures/outcomes/vital/hazV-3.png"))
+
+wazE4 <- plot(d = vital, outcome = vital $ waz) +
+  ylab("Weight-for-Age Z-Score") +
+  facet_wrap(~ arm)
+ggsave(wazE4, filename = paste0(BV_dir, "/results/figures/outcomes/vital/wazV-3.png"))
+
+whzE4 <- plot(d = vital, outcome = vital $ whz) +
+  ylab("Weight-for-Height Z-Score") +
+  facet_wrap(~ arm)
+ggsave(whzE4, filename = paste0(BV_dir, "/results/figures/outcomes/vital/whzV-3.png"))
+
+# Overall: VITAL
+bazE <- plot(d = vital, outcome = vital $ baz) +
+  ylab("BMI-for-Age Z-Score")
+ggsave(bazE, filename = paste0(BV_dir, "/results/figures/outcomes/vital/bazV.png"))
+
+hazE <- plot(d = vital, outcome = vital $ haz) +
+  ylab("Height-for-Age Z-Score")
+ggsave(hazE, filename = paste0(BV_dir, "/results/figures/outcomes/vital/hazV.png"))
+
+wazE <- plot(d = vital, outcome = vital $ waz) +
+  ylab("Weight-for-Age Z-Score")
+ggsave(wazE, filename = paste0(BV_dir, "/results/figures/outcomes/vital/wazV.png"))
+
+whzE <- plot(d = vital, outcome = vital $ whz) +
+  ylab("Weight-for-Height Z-Score")
+ggsave(whzE, filename = paste0(BV_dir, "/results/figures/outcomes/vital/whzV.png"))
 

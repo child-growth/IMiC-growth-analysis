@@ -80,7 +80,7 @@ readRDS("/data/KI/imic/results/vitalTable.RDS")
 
 # Outcome Plots
 
-## Elicit: Tanzania
+## ELICIT: Tanzania
 
 ### Overall
 ```{r, echo=FALSE, out.width="50%", out.height="50%"}
@@ -91,13 +91,30 @@ knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/whzE.png"
 ```
 
 ### By Intervention Arm
-```{r, echo=FALSE, out.width="80%", out.height="80%"}
+```{r, echo=FALSE, out.width="100%", out.height="100%"}
 knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/bazE-4.png"))
 knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/hazE-4.png"))
 knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/wazE-4.png"))
 knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/whzE-4.png"))
 ```
 
+## VITAL: Pakistan
+
+### Overall
+```{r, echo=FALSE, out.width="50%", out.height="50%"}
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/bazV.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/hazV.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/wazV.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/whzV.png"))
+```
+
+### By Intervention Arm
+```{r, echo=FALSE, out.width="60%", out.height="60%"}
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/bazV-3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/hazV-3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/wazV-3.png"))
+knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/whzV-3.png"))
+```
 
 
 
