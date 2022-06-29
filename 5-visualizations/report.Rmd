@@ -20,21 +20,37 @@ header-includes:
 always_allow_html: true
 ---
 
+<br>
+
 # Overview
-The overall descriptive epidemiology plots presented in this manuscript are from data pooled across individual studies. Results are presented in 3 or 6 months intervals and estimates are for cumulative incidence, incidence proportion, incidence rate, prevalence, as well as persistent wasting, weight-for-length z-score (WLZ), mean length-for-age z-score (LAZ) and mean weight-for-age z-score (WAZ).
 
-The descriptive statistics tables ...
+<br>
 
-Outcome plots ...
+This report includes preliminary results for the ELICIT and VITAL studies.
+
+The overall descriptive epidemiology plots presented in this report are from data pooled across individual studies. Results are presented in 3 or 6 months intervals and estimates are for cumulative incidence, incidence proportion, incidence rate, prevalence, as well as persistent wasting, weight-for-length z-score (WLZ), mean length-for-age z-score (LAZ) and mean weight-for-age z-score (WAZ).
+
+The descriptive statistics tables present estimates by intervention arms in both ELICIT and VITAL studies. These tables are generated from the wide version of the data. As such, they include descriptive statistics for each time point that data was collected.
+
+Outcome plots include plots (overall and by intervention arm) of BMI-for-age, height-for-age (HAZ), WAZ, and weight-for-height (WHZ) by study.
+
+<br>
 
 # Overall: Descriptive Epidemiology Plots
+
 ```{r setup1, include=FALSE}
 BV_dir = "/data/KI/imic/"
 library(tidyverse)
 #library(knitr)
 ```
 
+<br>
+
 ## Wasting
+
+<br>
+<br>
+
 ```{r, echo=FALSE, out.width="50%", out.height="50%"}
 knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/CI3.png"))
 knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/IP3.png"))
@@ -46,7 +62,13 @@ knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/recovery6.png"))
 knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/WLZ3.png"))
 ```
 
+<br>
+
 ## Stunting
+
+<br>
+<br>
+
 ```{r, echo=FALSE, out.width="50%", out.height="50%"}
 knitr::include_graphics(paste0(BV_dir,"results/figures/stunting/CI3.png"))
 knitr::include_graphics(paste0(BV_dir,"results/figures/stunting/IP3.png"))
@@ -54,33 +76,55 @@ knitr::include_graphics(paste0(BV_dir,"results/figures/stunting/LAZ3.png"))
 knitr::include_graphics(paste0(BV_dir,"results/figures/stunting/prevalence3.png"))
 ```
 
+<br>
+
 ## Co-Occurence
+
+<br>
+<br>
+
 ```{r, echo=FALSE, out.width="50%", out.height="50%"}
 knitr::include_graphics(paste0(BV_dir,"results/figures/co-oc/IP3.png"))
 knitr::include_graphics(paste0(BV_dir,"results/figures/co-oc/prevalence3.png"))
 ```
 
+<br>
+
 ## Underweight
+
+<br>
+<br>
+
 ```{r, echo=FALSE, out.width="50%", out.height="50%"}
 knitr::include_graphics(paste0(BV_dir,"results/figures/underweight/WAZ3.png"))
 knitr::include_graphics(paste0(BV_dir,"results/figures/underweight/prevalence3.png"))
 ```
 
-# Descriptive Statistics Tables
+<br>
 
-## Elicit
+# Descriptive Statistics Tables
+<br>
+
+## Elicit: Tanzania
 ```{r, echo=FALSE, out.width="80%", out.height="80%"}
 readRDS("/data/KI/imic/results/elicitTable.RDS")
 ```
 
-## Vital
+<br>
+
+## Vital: Pakistan
 ```{r, echo=FALSE, out.width="80%", out.height="80%"}
 readRDS("/data/KI/imic/results/vitalTable.RDS")
 ```
 
+<br>
+
 # Outcome Plots
 
 ## ELICIT: Tanzania
+
+<br>
+<br>
 
 ### Overall
 ```{r, echo=FALSE, out.width="50%", out.height="50%"}
@@ -90,7 +134,13 @@ knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/wazE.png"
 knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/whzE.png"))
 ```
 
+<br>
+
 ### By Intervention Arm
+
+<br>
+<br>
+
 ```{r, echo=FALSE, out.width="100%", out.height="100%"}
 knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/bazE-4.png"))
 knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/hazE-4.png"))
@@ -98,9 +148,15 @@ knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/wazE-4.pn
 knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/elicit/whzE-4.png"))
 ```
 
+<br>
+
 ## VITAL: Pakistan
 
 ### Overall
+
+<br>
+<br>
+
 ```{r, echo=FALSE, out.width="50%", out.height="50%"}
 knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/bazV.png"))
 knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/hazV.png"))
@@ -108,7 +164,13 @@ knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/wazV.png")
 knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/whzV.png"))
 ```
 
+<br>
+
 ### By Intervention Arm
+
+<br>
+<br>
+
 ```{r, echo=FALSE, out.width="60%", out.height="60%"}
 knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/bazV-3.png"))
 knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/hazV-3.png"))
