@@ -30,89 +30,173 @@ This report includes preliminary results for the ELICIT and VITAL studies.
 
 <br>
 
-# Overall Descriptive Epidemiology Plots
-
-<br>
-
-These plots are from data pooled across individual studies. Results are presented in 3 or 6 months intervals and estimates are for cumulative incidence, incidence proportion, incidence rate, prevalence, as well as persistent wasting, weight-for-length z-score (WLZ), mean length-for-age z-score (LAZ) and mean weight-for-age z-score (WAZ).
-
 ```{r setup1, include=FALSE}
 BV_dir = "/data/KI/imic/"
 library(tidyverse)
 #library(knitr)
 ```
 
-<br>
+# Outcome Definitions and Plots
 
 ## Wasting
 
-<br>
+### Incident Wasting
+
 <br>
 
-```{r, echo=FALSE, out.width="50%", out.height="50%"}
+Incident wasting episodes were defined as a change in WLZ from above –2 Z in the prior measurement to below –2 Z in the current measurement. Similarly, we defined severe wasting episodes using –3 Z cutoff. We assumed a 60-day washout period between episodes of wasting before a new episode of wasting could occur. Children were considered at risk for wasting at birth, so children born wasted were considered to have an incident episode of wasting at birth. Children were also assumed to be at risk of wasting at the first measurement in studies that enrolled children after birth, so children wasted at the first measurement in a non-birth cohort were assumed to have incident wasting occurring at the age halfway between birth and the first measurement.
+
+```{r, echo=FALSE}
 knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/CI3.png"))
+```
+
+### Incident Proportion
+
+<br>
+
+Incidence proportion of wasting was calculated during a defined age range (e.g. 6-12 months) as the proportion of children not wasted at the start of the period who became wasted during the age period (the proportion of children who had the onset of new episodes during the period). This differs from period prevalence, which would include any children who had any measurement of WLZ < -2 during the period (including children who began the period wasted). Period prevalence would thus additionally include in the numerator and denominator children who were wasted at the start of the period, whereas incidence proportion excludes them.
+
+```{r, echo=FALSE}
 knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/IP3.png"))
+```
+
+### Incident Rate
+
+<br>
+
+Incidence rate of wasting was calculated during defined age ranges as the number of incident episodes of wasting per 1,000 child-days at risk during the age range. Children were considered “at risk” for incident wasting episodes if they were not currently wasted and were classified as recovered from any prior wasting episode (beyond the 60-day washout period). Therefore, wasted children, or children within the washout period, did not contribute to the person-time at risk for wasting used to calculate wasting incidence. To calculate person-time at risk of wasting, we assumed that the onset of a wasting episode occurred when the child’s age was at the midpoint between the measurement of WLZ ≥ –2 and the measurement of WLZ < –2, and conversely the time of recovery occurred when the child’s age was at the midpoint between the last measurement of WLZ < –2 and the first measurement of WLZ ≥ –2 within the 60-day washout period.
+
+```{r, echo=FALSE, out.width="50%", out.height="50%"}
 knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/IR3.png"))
 knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/IR6.png"))
+```
+
+### Wasting Prevalence
+
+<br>
+
+Prevalent wasting was defined as the proportion of measurements within a specific stratum (e.g., age) below the 2006 WHO standard –2 WLZ, and analogously below the 2006 WHO standard –3 WLZ for severe wasting. For each age, we included children with WLZ measurements within one month before and after that age in the point prevalence estimate (e.g., for point prevalence at 6 months, we include children aged 5-7 months). WLZ is not calculable for children with lengths <45cm (10.2% of children at birth), so using WLZ underestimates wasting at birth.
+
+```{r, echo=FALSE}
 knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/prevalence3.png"))
+```
+
+### Persistent Wasting
+
+<br>
+
+Persistent wasting was defined as a >50% longitudinal prevalence of below –2 WLZ (wasting), and analogously >50% longitudinal prevalence of below –3 WLZ for persistent severe wasting.3
+Concurrent prevalence of wasting and stunting was defined as the proportion of measurements at a specific age when a child was both wasted and stunted at the same measurement. For each age, we included children with WLZ and LAZ measurements within one month before and after that age in the point prevalence estimate (e.g., for point prevalence at 6 months, we include children aged 5-7 months).
+
+```{r, echo=FALSE}
 knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/PW6.png"))
-knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/recovery6.png"))
+```
+
+### Weight-for-Length Z-scores
+
+<br>
+
+Weight-for-Length Z-scores were calculated using the 2006 WHO growth standards. Mean WLZ was calculated within strata of interest. We used the medians of triplicate measurements of lengths and weights of children from pre-2006 cohorts to re-calculate Z scores to the 2006 standard.
+
+```{r, echo=FALSE}
 knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/WLZ3.png"))
 ```
 
+### Recovery
+
 <br>
+
+Recovery from wasting was defined as a WLZ change from below to above –2 Z among children who are currently wasted or severely wasted. We required a child to maintain WLZ above –2 for 60 days to be considered “recovered”. Children were only considered “at risk” for recovery if their prior measurement was below –2 WLZ. We measured the proportion of children who recover from moderate wasting (WLZ < –2) within 30, 60, and 90 days of the onset of the episode. We assumed recovery from wasting was spontaneous because we did not have consistent information on referral guidelines across cohorts in the analysis, but some children with moderate wasting may have been referred to clinical facilities for outpatient treatment. Wasting recovery may thus be higher in these highly monitored cohorts than in the general population due to treatment referrals.
+
+```{r, echo=FALSE}
+knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/recovery6.png"))
+```
 
 ## Stunting
 
-<br>
+### Incident Stunting
+
 <br>
 
-```{r, echo=FALSE, out.width="50%", out.height="50%"}
+Incident stunting episodes were defined as a change in LAZ from above –2 Z in the prior measurement to below –2 Z in the current measurement. Similarly, we defined severe stunting episodes using –3 Z cutoff. We assumed a 60-day washout period between episodes of stunting before a new episode of stunting could occur. Children were considered at risk for stunting at birth, so children born stunted were considered to have an incident episode of stunting at birth. Children were also assumed to be at risk of stunting at the first measurement in studies that enrolled children after birth, so children stunted at the first measurement in a non-birth cohort were assumed to have incident stunting occurring at the age halfway between birth and the first measurement.
+
+```{r, echo=FALSE}
 knitr::include_graphics(paste0(BV_dir,"results/figures/stunting/CI3.png"))
+```
+
+### Incident Proportion
+
+<br>
+
+Incidence proportion of stunting was calculated during a defined age range (e.g. 6-12 months) as the proportion of children not stunted at the start of the period who became stunted during the age period (the proportion of children who had the onset of new episodes during the period). This differs from period prevalence, which would include any children who had any measurement of LAZ < -2 during the period (including children who began the period stunted). Period prevalence would thus additionally include in the numerator and denominator children who were stunted at the start of the period, whereas incidence proportion excludes them.
+
+```{r, echo=FALSE}
 knitr::include_graphics(paste0(BV_dir,"results/figures/stunting/IP3.png"))
+```
+
+### Length-for-Age Z-scores
+
+<br>
+
+Length-for-age z-scores were calculated using the 2006 WHO growth standards. Mean LAZ was calculated within strata of interest. We used the medians of triplicate measurements of lengths and weights of children from pre-2006 cohorts to re-calculate z-scores to the 2006 standard.
+
+```{r, echo=FALSE}
 knitr::include_graphics(paste0(BV_dir,"results/figures/stunting/LAZ3.png"))
+```
+
+### Stunting Prevalence
+
+<br>
+
+Prevalent stunting was defined as the proportion of measurements within a specific stratum (e.g., age) below the 2006 WHO standard –2 LAZ, and analogously below the 2006 WHO standard –3 LAZ for severe stunting. For each age, we included children with LAZ measurements within one month before and after that age in the point prevalence estimate (e.g., for point prevalence at 6 months, we include children aged 5-7 months).
+
+```{r, echo=FALSE}
 knitr::include_graphics(paste0(BV_dir,"results/figures/stunting/prevalence3.png"))
 ```
 
-<br>
-
 ## Co-Occurence
 
-<br>
+Concurrent prevalence of wasting and stunting was defined as the proportion of measurements at a specific age when a child was both wasted and stunted at the same measurement. For each age, we included children with WLZ and LAZ measurements within one month before and after that age in the point prevalence estimate (e.g., for point prevalence at 6 months, we include children aged 5-7 months).
+
 <br>
 
-```{r, echo=FALSE, out.width="50%", out.height="50%"}
+### Incidence Proportion
+```{r, echo=FALSE}
 knitr::include_graphics(paste0(BV_dir,"results/figures/co-oc/IP3.png"))
+```
+
+### Prevalence
+```{r, echo=FALSE}
 knitr::include_graphics(paste0(BV_dir,"results/figures/co-oc/prevalence3.png"))
 ```
 
+## Underweight Prevalence
+
+Prevalent underweight was defined as the proportion of measurements at a specific age below the 2006 WHO standard –2 WAZ. For each age, we included children with WAZ measurements within one month before and after that age in the point prevalence estimate (e.g., for point prevalence at 6 months, we include children aged 5-7 months).
+
 <br>
 
-## Underweight
-
-<br>
-<br>
-
-```{r, echo=FALSE, out.width="50%", out.height="50%"}
-knitr::include_graphics(paste0(BV_dir,"results/figures/underweight/WAZ3.png"))
+```{r, echo=FALSE}
 knitr::include_graphics(paste0(BV_dir,"results/figures/underweight/prevalence3.png"))
+```
+
+## Weight-for-Age Z-scores
+
+Weight-for-age z-scores were calculated using the 2006 WHO growth standards. Mean WAZ was calculated within strata of interest. We used the medians of triplicate measurements of lengths and weights of children from pre-2006 cohorts to re-calculate z-scores to the 2006 standard.
+
+<br>
+
+```{r}
+knitr::include_graphics(paste0(BV_dir,"results/figures/underweight/WAZ3.png"))
 ```
 
 <br>
 
-# Outcome Plots
+# Anthropometry Plots
 
 <br>
 
 These plots (overall and by intervention arm) are for BMI-for-age, height-for-age (HAZ), WAZ, and weight-for-height (WHZ) by study.
-
-BMI-for-age was calculated 
-
-HAZ was calculated 
-
-WAZ was calculated
-
-WHZ was calculated
 
 <br>
 
@@ -181,6 +265,7 @@ knitr::include_graphics(paste0(BV_dir,"results/figures/outcomes/vital/whzV-3.png
 <br>
 
 # Descriptive Statistics Tables
+
 <br>
 
 The following tables present estimates by intervention arms in both ELICIT and VITAL studies. These tables are generated from the wide version of the data. As such, they include descriptive statistics for each time point that data was collected.
