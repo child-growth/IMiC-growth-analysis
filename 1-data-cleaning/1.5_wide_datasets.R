@@ -408,7 +408,7 @@ table1V <- table1(~ . | arm_base, data = combinedWideVital)
 combinedWideVital $ studyid <- "VITAL-Lactation"
 
 #------------------------------------------------------------------------------#
-#                       Plot Outcome Variables: [NOT DONE]                     #                                                
+#                       Plot Outcome Variables: [DONE]                         #                                                
 #------------------------------------------------------------------------------#
 
 # Filter out unwanted time points
@@ -458,8 +458,6 @@ plot <- function (d, outcome) {
      # vjust = 0.9) + 
     #geom_jitter(width = 0.05, alpha = 0.05) +
     xlab("") +
-    #ylab("Weight-for-Age Z-Score") +
-    #facet_wrap(~ arm) +
     theme(strip.text.x = element_text(size = 10))
 }
 
@@ -501,6 +499,25 @@ ggsave(wazE, filename = paste0(BV_dir, "/results/figures/outcomes/elicit/wazE.pn
 whzE <- plot(d = elicit, outcome = elicit $ whz) +
   ylab("Weight-for-Height Z-Score")
 ggsave(whzE, filename = paste0(BV_dir, "/results/figures/outcomes/elicit/whzE.png"))
+
+# Make a plot function
+plot <- function (d, outcome) {
+  d %>%
+    #filter(!is.na(c(outcome))) %>%
+    group_by("subjid") %>%
+    ggplot(aes(x = visit2, y = outcome)) +
+    geom_boxplot(outlier.shape = NA) +
+    #stat_summary(
+    # fun.data = stat_box_data, 
+    #geom = "text", 
+    #hjust = 0.5,
+    # vjust = 0.9) + 
+    #geom_jitter(width = 0.05, alpha = 0.05) +
+    xlab("") +
+    theme(strip.text.x = element_text(size = 10))
+}
+
+vital $ haz
 
 # By intervention: VITAL
 bazE4 <- plot(d = vital, outcome = vital $ baz) +
