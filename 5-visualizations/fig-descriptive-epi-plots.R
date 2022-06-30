@@ -48,7 +48,7 @@ scale_estimates <- function(d) {
 
 # Change the name of country
 d $ cohort <- case_when(d $ cohort == "ELICIT-TANZANIA, UNITED REPUBLIC OF" ~
-  "Tanzania", d $ cohort == "VITAL-Lactation-PAKISTAN" ~ "Pakistan")
+  "ELICIT", d $ cohort == "VITAL-Lactation-PAKISTAN" ~ "VITAL")
 
 # Get rid of the word "months" from agecat for visualizations
 d $ agecat <- gsub(" months", "m", d $ agecat)
