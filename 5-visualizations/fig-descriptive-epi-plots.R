@@ -135,7 +135,9 @@ plot <- function (d, Disease, Measure, ageRange) {
     scale_fill_manual(values=tableau11, guide = FALSE) +
     xlab("") +
     ylab("") +
-    scale_x_discrete(expand = expansion(add = 1)) +
+    # Add staggered labels for the x-axis: too wide for the plot.
+    scale_x_discrete(expand = expansion(add = 1), guide = ggplot2::guide_axis(n.dodge = 2), 
+                     labels = function(x) stringr::str_wrap(x, width = 20)) +
     scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
     theme(axis.text.x = element_text(margin =margin(t = 0, r = 0, b = 0, l = 0),
                                      size = 14)) +

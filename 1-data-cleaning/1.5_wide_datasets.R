@@ -203,14 +203,24 @@ combinedWideElicit <- combinedWideElicit %>%
 #saveRDS(combinedWideElicit, file = paste0(BV_dir, "/results/wideElicit.RDS"))
 
 #------------------------------------------------------------------------------#
-#                       Make Summary Table - ELICIT [DONE]                     #
+#          Make Summary Table and missingness plot - ELICIT [DONE]             #
 #------------------------------------------------------------------------------#
-table1E <- table1(~ . | arm_base, data = combinedWideElicit)
+#table1E <- table1(~ . | arm_base, data = combinedWideElicit)
 
 # Save the table
 #saveRDS(table1E, file = paste0(BV_dir, "/results/elicitTable.RDS"))
 combinedWideElicit $ studyid <- "ELICIT"
 
+# Overall missingness
+fifty <- gg_miss_var(combinedWideElicit[, 1:50], show_pct = T)
+fiftyPlus <- gg_miss_var(combinedWideElicit[, 51:106], show_pct = T)
+
+ggsave(fifty, filename = paste0(BV_dir, "/results/figures/missing/fiftyE.png"))
+ggsave(fiftyPlus, filename = paste0(BV_dir, "/results/figures/missing/fiftyPE.png"))
+
+# By arm missingness
+byArm <- gg_miss_case(combinedWideElicit, facet = arm_base)
+ggsave(byArm, filename = paste0(BV_dir, "/results/figures/missing/armE.png"))
 #------------------------------------------------------------------------------#
 #               Reshape the VITAL data from long to wide [DONE]                #
 #------------------------------------------------------------------------------#
@@ -399,13 +409,31 @@ combinedWideVital <- combinedWideV %>%
 #saveRDS(combinedWideVital, file = paste0(BV_dir, "/results/wideVital.RDS"))
 
 #------------------------------------------------------------------------------#
-#                       Make Summary Table - VITAL [DONE]                      #      
+#             Make Summary Table and missingness plots - VITAL [DONE]          #      
 #------------------------------------------------------------------------------#
-table1V <- table1(~ . | arm_base, data = combinedWideVital)
+#table1V <- table1(~ . | arm_base, data = combinedWideVital)
 
 # Save the table
 #saveRDS(table1V, file = paste0(BV_dir, "/results/vitalTable.RDS"))
 combinedWideVital $ studyid <- "VITAL-Lactation"
+
+fifty <- gg_miss_var(combinedWideVital[, 1:50], show_pct = T)
+fiftyPlus <- gg_miss_var(combinedWideVital[, 51:100], show_pct = T)
+hundPlus <- gg_miss_var(combinedWideVital[, 101:140], show_pct = T)
+
+ggsave(fifty, filename = paste0(BV_dir, "/results/figures/missing/fiftyV.png"))
+ggsave(fiftyPlus, filename = paste0(BV_dir, "/results/figures/missing/fiftyPV.png"))
+ggsave(hundPlus, filename = paste0(BV_dir, "/results/figures/missing/hundPV.png"))
+
+# Recode the arm variable
+combinedWideVital $ arm_base <- case_when(combinedWideVital $ arm_base == "Nutrient supplement+Ex.BreastFeed"
+                         ~ "Nutrient+Ex",
+                         combinedWideVital $ arm_base == "Nutrient supplement+Ex.BreastFeed+AZT"
+                         ~ "Nutrient+Ex+AZT",
+                         combinedWideVital $ arm_base == "Control" ~ "Control")
+
+byArm <- gg_miss_case(combinedWideVital, facet = arm_base)
+ggsave(byArm, filename = paste0(BV_dir, "/results/figures/missing/armV.png"))
 
 #------------------------------------------------------------------------------#
 #                       Plot Outcome Variables: [DONE]                         #                                                
