@@ -16,7 +16,7 @@ source(paste0(here::here(),"/0-project-functions/0_descriptive_epi_stunt_functio
 
 d <- readRDS(paste0(ghapdata_dir, "velocity_longfmt_rf.rds"))
 
-#----------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 #Summarize N's in study
 d %>% group_by(studyid, country, subjid) %>% slice(1) %>% 
@@ -97,8 +97,6 @@ RE_pool <- function(df, ycategory, gender, method = "REML"){
   return(plotdf)
 }
 
-
-
 #-------------------------------------------------------------------------------
 # pool results -- all quarterly studies
 #-------------------------------------------------------------------------------
@@ -132,7 +130,7 @@ saveRDS(pooled_vel_fe,
         file=paste0(res_dir,"stunting/pool_vel_fe.RDS"))
 
 #-------------------------------------------------------------------------------
-# pool results -- sensitivity analysis with monthly 
+# Pool results -- sensitivity analysis with monthly 
 # cohorts with measurements at each age up to 18 months of age
 #-------------------------------------------------------------------------------
 study18 = c("MAL-ED", "CMC-V-BCS-2002", "IRC", 
@@ -153,7 +151,6 @@ pooled_vel_month18 <- rbind(
 
 saveRDS(pooled_vel_month18,
         file=paste0(res_dir,"stunting/pool_vel_month18.RDS"))
-
 
 #-------------------------------------------------------------------------------
 #Pool velocity - sensitivity analysis dropping CONTENT and Cohorts Guat.

@@ -64,7 +64,7 @@ d $ agecat <- factor(d $ agecat,
 # To do
 #-------------------------------------------------------------------------------
 
-#Hold: will also make growth velocity figure separately. 
+#Hold: will also make growth velocity figure separately.
 
 #-------------------------------------------------------------------------------
 # Mean WLZ by month  -NEED TO ADD
