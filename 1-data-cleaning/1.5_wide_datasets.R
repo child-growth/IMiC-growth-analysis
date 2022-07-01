@@ -3,9 +3,10 @@
 # Create wide datasets from the long version of the ELICIT and VITAL datasets.
 #
 # Output: Two descriptive statistics tables in imic/results.
-#.        Two datasets with one row per child and all baseline and
-#         Time-varying covariates also in imic/results.
-#         Outcome plots
+#        Two datasets with one row per child and all baseline and time-varying
+#         covariates also in imic/results.
+#         Outcome plots for each dataset.
+#         Missingness plots for each dataset.
 #
 # Authors: Sajia Darwish (sajdarwish@berkeley.edu)
 #-------------------------------------------------------------------------------
