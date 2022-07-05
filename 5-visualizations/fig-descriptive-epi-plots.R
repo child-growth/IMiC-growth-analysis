@@ -61,12 +61,6 @@ d $ agecat <- factor(d $ agecat,
                                "6-12m", "12-18m"))
 
 #-------------------------------------------------------------------------------
-# To do
-#-------------------------------------------------------------------------------
-
-#Hold: will also make growth velocity figure separately.
-
-#-------------------------------------------------------------------------------
 # Mean WLZ by month  -NEED TO ADD
 #-------------------------------------------------------------------------------
 
@@ -239,4 +233,14 @@ ggsave(WAZ, filename = paste0(BV_dir, "/results/figures/underweight/WAZ3.png"))
 P <- plot(d, Disease = "Underweight", Measure = "Prevalence", ageRange = "3 months") #+
   #ggtitle("Underweight Prevalence: 3 Months Interval")
 ggsave(P, filename = paste0(BV_dir, "/results/figures/underweight/prevalence3.png"))
+
+
+
+
+
+
+
+
+
+
   
