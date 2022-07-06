@@ -3,9 +3,10 @@
 # Create wide datasets from the long version of the ELICIT and VITAL datasets.
 #
 # Output: Two descriptive statistics tables in imic/results.
-#.        Two datasets with one row per child and all baseline and
-#         Time-varying covariates also in imic/results.
-#         Outcome plots
+#        Two datasets with one row per child and all baseline and time-varying
+#         covariates also in imic/results.
+#         Outcome plots for each dataset.
+#         Missingness plots for each dataset.
 #
 # Authors: Sajia Darwish (sajdarwish@berkeley.edu)
 #-------------------------------------------------------------------------------
@@ -203,14 +204,24 @@ combinedWideElicit <- combinedWideElicit %>%
 #saveRDS(combinedWideElicit, file = paste0(BV_dir, "/results/wideElicit.RDS"))
 
 #------------------------------------------------------------------------------#
-#                       Make Summary Table - ELICIT [DONE]                     #
+#          Make Summary Table and missingness plot - ELICIT [DONE]             #
 #------------------------------------------------------------------------------#
-table1E <- table1(~ . | arm_base, data = combinedWideElicit)
+#table1E <- table1(~ . | arm_base, data = combinedWideElicit)
 
 # Save the table
 #saveRDS(table1E, file = paste0(BV_dir, "/results/elicitTable.RDS"))
 combinedWideElicit $ studyid <- "ELICIT"
 
+# Overall missingness
+fifty <- gg_miss_var(combinedWideElicit[, 1:50], show_pct = T)
+fiftyPlus <- gg_miss_var(combinedWideElicit[, 51:106], show_pct = T)
+
+ggsave(fifty, filename = paste0(BV_dir, "/results/figures/missing/fiftyE.png"))
+ggsave(fiftyPlus, filename = paste0(BV_dir, "/results/figures/missing/fiftyPE.png"))
+
+# By arm missingness
+byArm <- gg_miss_case(combinedWideElicit, facet = arm_base)
+ggsave(byArm, filename = paste0(BV_dir, "/results/figures/missing/armE.png"))
 #------------------------------------------------------------------------------#
 #               Reshape the VITAL data from long to wide [DONE]                #
 #------------------------------------------------------------------------------#
@@ -399,32 +410,55 @@ combinedWideVital <- combinedWideV %>%
 #saveRDS(combinedWideVital, file = paste0(BV_dir, "/results/wideVital.RDS"))
 
 #------------------------------------------------------------------------------#
-#                       Make Summary Table - VITAL [DONE]                      #      
+#             Make Summary Table and missingness plots - VITAL [DONE]          #      
 #------------------------------------------------------------------------------#
-table1V <- table1(~ . | arm_base, data = combinedWideVital)
+#table1V <- table1(~ . | arm_base, data = combinedWideVital)
 
 # Save the table
 #saveRDS(table1V, file = paste0(BV_dir, "/results/vitalTable.RDS"))
 combinedWideVital $ studyid <- "VITAL-Lactation"
 
+fifty <- gg_miss_var(combinedWideVital[, 1:50], show_pct = T)
+fiftyPlus <- gg_miss_var(combinedWideVital[, 51:100], show_pct = T)
+hundPlus <- gg_miss_var(combinedWideVital[, 101:140], show_pct = T)
+
+ggsave(fifty, filename = paste0(BV_dir, "/results/figures/missing/fiftyV.png"))
+ggsave(fiftyPlus, filename = paste0(BV_dir, "/results/figures/missing/fiftyPV.png"))
+ggsave(hundPlus, filename = paste0(BV_dir, "/results/figures/missing/hundPV.png"))
+
+# Recode the arm variable
+combinedWideVital $ arm_base <- case_when(combinedWideVital $ arm_base == "Nutrient supplement+Ex.BreastFeed"
+                         ~ "Nutrient+Ex",
+                         combinedWideVital $ arm_base == "Nutrient supplement+Ex.BreastFeed+AZT"
+                         ~ "Nutrient+Ex+AZT",
+                         combinedWideVital $ arm_base == "Control" ~ "Control")
+
+byArm <- gg_miss_case(combinedWideVital, facet = arm_base)
+ggsave(byArm, filename = paste0(BV_dir, "/results/figures/missing/armV.png"))
+
 #------------------------------------------------------------------------------#
 #                       Plot Outcome Variables: [DONE]                         #                                                
 #------------------------------------------------------------------------------#
 
+# Get rid of the letter "m" from visit2 for visualizations
+elicit $ visit2 <- gsub("m", "", elicit $ visit2)
+
 # Filter out unwanted time points
 elicit <- elicit %>%
-  filter(visit2 == "base" | visit2 == "3m" | visit2 == "6m" | visit2 == "9m" |
-           visit2 == "12m" | visit2 == "15m" | visit2 == "18m")
+  filter(visit2 == "base" | visit2 == "3" | visit2 == "6" | visit2 == "9" |
+           visit2 == "12" | visit2 == "15" | visit2 == "18")
 
 # Re order levels
 elicit $ visit2 <- factor(elicit $ visit2, 
-                           level = c("base", "1m", "3m", "5m", "6m", "9m",
-                                     "12m", "15m", "18m"))
+                           level = c("base", "1", "3", "5", "6", "9",
+                                     "12", "15", "18"))
+
+# Get rid of the letter "m" from visit2 for visualizations
+vital $ visit2 <- gsub("m", "", vital $ visit2)
 
 # Re order levels: visit2
 vital $ visit2 <- factor(vital $ visit2, 
-                         level = c("base", "m1", "m2", "m3", "m4", "m5",
-                                   "m6"))
+                         level = c("base", "1", "2", "3", "4", "5", "6"))
 # Recode the arm variable
 vital $ arm <- case_when(vital $ arm == "Nutrient supplement+Ex.BreastFeed"
                          ~ "Nutrient+Ex",
@@ -503,7 +537,7 @@ ggsave(whzE, filename = paste0(BV_dir, "/results/figures/outcomes/elicit/whzE.pn
 # Make a plot function
 plot <- function (d, outcome) {
   d %>%
-    #filter(!is.na(c(outcome))) %>%
+    #filter(!is.na(d)) %>%
     group_by("subjid") %>%
     ggplot(aes(x = visit2, y = outcome)) +
     geom_boxplot(outlier.shape = NA) +

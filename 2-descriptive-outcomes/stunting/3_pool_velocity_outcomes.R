@@ -16,7 +16,7 @@ source(paste0(here::here(),"/0-project-functions/0_descriptive_epi_stunt_functio
 
 d <- readRDS(paste0(ghapdata_dir, "velocity_longfmt_rf.rds"))
 
-#----------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 #Summarize N's in study
 d %>% group_by(studyid, country, subjid) %>% slice(1) %>% 
@@ -97,8 +97,6 @@ RE_pool <- function(df, ycategory, gender, method = "REML"){
   return(plotdf)
 }
 
-
-
 #-------------------------------------------------------------------------------
 # pool results 
 #-------------------------------------------------------------------------------
@@ -130,3 +128,4 @@ pooled_vel_fe <- rbind(
 
 saveRDS(pooled_vel_fe, 
         file=paste0(res_dir,"stunting/pool_vel_fe.RDS"))
+

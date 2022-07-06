@@ -51,20 +51,14 @@ d $ cohort <- case_when(d $ cohort == "ELICIT-TANZANIA, UNITED REPUBLIC OF" ~
   "ELICIT", d $ cohort == "VITAL-Lactation-PAKISTAN" ~ "VITAL")
 
 # Get rid of the word "months" from agecat for visualizations
-d $ agecat <- gsub(" months", "m", d $ agecat)
+d $ agecat <- gsub(" months", "", d $ agecat)
 
 # Relevel the agecat variable
 d $ agecat <- factor(d $ agecat, 
-                     level = c("Birth", "3m", "6m", "9m", "12m", "15m",
-                               "18m", "0-3m", "3-6m", "6-9m",
-                               "9-12m", "15-18m", "8 days-3m", "0-6m", 
-                               "6-12m", "12-18m"))
-
-#-------------------------------------------------------------------------------
-# To do
-#-------------------------------------------------------------------------------
-
-#Hold: will also make growth velocity figure separately. 
+                     level = c("Birth", "3", "6", "9", "12", "15",
+                               "18", "0-3", "3-6", "6-9",
+                               "9-12", "15-18", "8 days-3", "0-6", 
+                               "6-12", "12-18"))
 
 #-------------------------------------------------------------------------------
 # Mean WLZ by month  -NEED TO ADD
@@ -135,7 +129,9 @@ plot <- function (d, Disease, Measure, ageRange) {
     scale_fill_manual(values=tableau11, guide = FALSE) +
     xlab("") +
     ylab("") +
-    scale_x_discrete(expand = expansion(add = 1)) +
+    # Add staggered labels for the x-axis: too wide for the plot.
+    scale_x_discrete(expand = expansion(add = 1)) + #, guide = ggplot2::guide_axis(n.dodge = 2), 
+                     #labels = function(x) stringr::str_wrap(x, width = 20)) +
     scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
     theme(axis.text.x = element_text(margin =margin(t = 0, r = 0, b = 0, l = 0),
                                      size = 14)) +
@@ -237,4 +233,14 @@ ggsave(WAZ, filename = paste0(BV_dir, "/results/figures/underweight/WAZ3.png"))
 P <- plot(d, Disease = "Underweight", Measure = "Prevalence", ageRange = "3 months") #+
   #ggtitle("Underweight Prevalence: 3 Months Interval")
 ggsave(P, filename = paste0(BV_dir, "/results/figures/underweight/prevalence3.png"))
+
+
+
+
+
+
+
+
+
+
   
