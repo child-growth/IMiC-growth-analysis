@@ -194,7 +194,7 @@ gg_miss_var(dStatic[, 1:ncol(dStatic)], show_pct = T)
 # dataset for ELICIT.
 
 # Save the dataset
-#write.csv(combinedWideElicit, file = "wideElicit.csv")
+saveRDS(combinedWideElicit, file = paste0(BV_dir, "/results/wideElicit.RDS"))
 
 # Anonymized data
 combinedWideElicit <- combinedWideElicit %>%
@@ -401,6 +401,9 @@ combinedWideV <- merge(combinedWideV, widem6, by = "subjid", all = TRUE)
 
 # Remove columns with 100% NA in this dataset
 combinedWideV <- combinedWideV[, -which(colMeans(is.na(combinedWideV)) == 1)]
+
+# Save data
+saveRDS(combinedWideV, file = paste0(BV_dir, "/results/wideVital.RDS"))
 
 # Anonymized data
 combinedWideVital <- combinedWideV %>%
