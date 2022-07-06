@@ -98,7 +98,7 @@ RE_pool <- function(df, ycategory, gender, method = "REML"){
 }
 
 #-------------------------------------------------------------------------------
-# pool results -- all quarterly studies
+# pool results 
 #-------------------------------------------------------------------------------
 
 poolhaz_boys <- RE_pool(d, ycategory="haz", gender="Male")
@@ -114,7 +114,7 @@ saveRDS(pooled_vel,
         file=paste0(res_dir,"stunting/pool_vel.RDS"))
 
 #-------------------------------------------------------------------------------
-# pool results -- all quarterly studies -- fixed effects
+# pool results  -- fixed effects
 #-------------------------------------------------------------------------------
 
 poolhaz_boys_fe <- RE_pool(d, ycategory="haz", gender="Male", method="FE")
@@ -128,43 +128,4 @@ pooled_vel_fe <- rbind(
 
 saveRDS(pooled_vel_fe, 
         file=paste0(res_dir,"stunting/pool_vel_fe.RDS"))
-
-#-------------------------------------------------------------------------------
-# Pool results -- sensitivity analysis with monthly 
-# cohorts with measurements at each age up to 18 months of age
-#-------------------------------------------------------------------------------
-study18 = c("MAL-ED", "CMC-V-BCS-2002", "IRC", 
-            "Keneba", "GMS-Nepal", "CMIN", 
-            "CONTENT", "PROVIDE")
-
-dmonth18 <- d %>% filter(studyid %in% study18)
-
-poolhaz_boys_month18 <- RE_pool(dmonth18, ycategory="haz", gender="Male")
-poolhaz_girls_month18 <- RE_pool(dmonth18, ycategory="haz", gender="Female")
-poollencm_boys_month18 <- RE_pool(dmonth18, ycategory="lencm", gender="Male")
-poollencm_girls_month18 <- RE_pool(dmonth18, ycategory="lencm", gender="Female")
-
-pooled_vel_month18 <- rbind(
-  poolhaz_boys_month18, poolhaz_girls_month18, 
-  poollencm_boys_month18, poollencm_girls_month18
-)
-
-saveRDS(pooled_vel_month18,
-        file=paste0(res_dir,"stunting/pool_vel_month18.RDS"))
-
-#-------------------------------------------------------------------------------
-#Pool velocity - sensitivity analysis dropping CONTENT and Cohorts Guat.
-#-------------------------------------------------------------------------------
-dsub <- d %>% filter(studyid!="CONTENT") %>% filter(!(studyid=="COHORTS" & country=="GUATEMALA"))
-poolhaz_boys <- RE_pool(dsub, ycategory="haz", gender="Male")
-poolhaz_girls <- RE_pool(dsub, ycategory="haz", gender="Female")
-poollencm_boys <- RE_pool(dsub, ycategory="lencm", gender="Male")
-poollencm_girls <- RE_pool(dsub, ycategory="lencm", gender="Female")
-
-pooled_vel_sub <- rbind(
-  poolhaz_boys, poolhaz_girls, poollencm_boys, poollencm_girls
-)
-
-saveRDS(pooled_vel_sub,
-        file=paste0(res_dir,"stunting/pool_vel_sub.RDS"))
 
