@@ -440,20 +440,25 @@ ggsave(byArm, filename = paste0(BV_dir, "/results/figures/missing/armV.png"))
 #                       Plot Outcome Variables: [DONE]                         #                                                
 #------------------------------------------------------------------------------#
 
+# Get rid of the letter "m" from visit2 for visualizations
+elicit $ visit2 <- gsub("m", "", elicit $ visit2)
+
 # Filter out unwanted time points
 elicit <- elicit %>%
-  filter(visit2 == "base" | visit2 == "3m" | visit2 == "6m" | visit2 == "9m" |
-           visit2 == "12m" | visit2 == "15m" | visit2 == "18m")
+  filter(visit2 == "base" | visit2 == "3" | visit2 == "6" | visit2 == "9" |
+           visit2 == "12" | visit2 == "15" | visit2 == "18")
 
 # Re order levels
 elicit $ visit2 <- factor(elicit $ visit2, 
-                           level = c("base", "1m", "3m", "5m", "6m", "9m",
-                                     "12m", "15m", "18m"))
+                           level = c("base", "1", "3", "5", "6", "9",
+                                     "12", "15", "18"))
+
+# Get rid of the letter "m" from visit2 for visualizations
+vital $ visit2 <- gsub("m", "", vital $ visit2)
 
 # Re order levels: visit2
 vital $ visit2 <- factor(vital $ visit2, 
-                         level = c("base", "m1", "m2", "m3", "m4", "m5",
-                                   "m6"))
+                         level = c("base", "1", "2", "3", "4", "5", "6"))
 # Recode the arm variable
 vital $ arm <- case_when(vital $ arm == "Nutrient supplement+Ex.BreastFeed"
                          ~ "Nutrient+Ex",
@@ -532,7 +537,7 @@ ggsave(whzE, filename = paste0(BV_dir, "/results/figures/outcomes/elicit/whzE.pn
 # Make a plot function
 plot <- function (d, outcome) {
   d %>%
-    #filter(!is.na(c(outcome))) %>%
+    #filter(!is.na(d)) %>%
     group_by("subjid") %>%
     ggplot(aes(x = visit2, y = outcome)) +
     geom_boxplot(outlier.shape = NA) +

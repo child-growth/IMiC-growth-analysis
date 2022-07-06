@@ -20,6 +20,7 @@
 
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
+library(gridExtra)
 
 # Load data
 vel <- readRDS(paste0(BV_dir,"/results/stunting/pool_vel.RDS"))
@@ -49,6 +50,13 @@ vel <- vel %>% mutate(pct_15 = ifelse(ycat == 'haz', NA, pct_15))
 vel$ycat <- gsub('haz', 'LAZ change (Z-score per month)', vel$ycat)
 vel$ycat <- gsub('lencm', 'Length velocity (cm per month)', vel$ycat)
 
+# Separate datasets
+elicit <- vel %>%
+  filter(country_cohort == "Elicit Tanzania, United Republic Of")
+
+vital <- vel %>%
+  filter(country_cohort == "Vital-lactation Pakistan")
+
 # define color palette
 mypalette = c("#D87A16", "#0EA76A")
 
@@ -62,111 +70,92 @@ vel_cohorts
 #Our transformation function
 scaleFUN <- function(x) sprintf("%0.1f", x)
 
-# Figure 5a: length velocity plots ---------------------------------------------
-
 ## Absolute length plot --------------------------------------------------------
 
-velplot_cm = vel %>% 
-  filter(ycat == "Length velocity (cm per month)") %>%
-  dplyr::select(country_cohort, pooled, Mean, `Lower.95.CI`, `Upper.95.CI`, 
-                strata, sex, pct_50, pct_25) %>%
-  mutate(sex = as.factor(sex)) %>%
-  gather(`pct_25`, `pct_50`, `Mean`, key = "msmt_type", value = "length_cm") %>%
-  mutate(msmt_type = factor(msmt_type, levels = c("pct_50", "pct_25", "Mean"))) %>% 
-  mutate(linecol = ifelse(msmt_type != "Mean", "black", 
-                          ifelse(sex == "Male", "male_color", "female_color")), 
-         sexcol = ifelse(sex == "Male", "male_color2", "female_color2"))
+# Make a plot function
 
-velplot_cm_cohort_data = vel %>% 
-  dplyr::select(country_cohort, Mean, 
-                strata, sex, pct_50, pct_25, pct_15) %>%
-  gather(`pct_15`, `pct_25`, `pct_50`, `Mean`, key = "msmt_type", value = "length_cm") %>%
-  filter(
-      msmt_type == "Mean"
-  ) %>%
- # mutate(region = as.character(region)) %>% 
-  mutate(msmt_type = factor(msmt_type, levels = c("pct_50", "pct_25", "Mean"))) %>% 
-  mutate(linecol = ifelse(msmt_type != "Mean", "black", 
-                          ifelse(sex == "Male", "male_color", "female_color")), 
-         sexcol = ifelse(sex == "Male", "male_color2", "female_color2"))# %>% 
-  # drop european cohort
-  # filter(country_cohort != "Probit Belarus") %>% 
-  # filter(region!="Overall")
+velplot <- function (data) {
+  velplot_cm = data %>% 
+    filter(ycat == "Length velocity (cm per month)") %>%
+    dplyr::select(country_cohort, pooled, Mean, `Lower.95.CI`, `Upper.95.CI`, 
+                  strata, sex, pct_50, pct_25) %>%
+    mutate(sex = as.factor(sex)) %>%
+    gather(`pct_25`, `pct_50`, `Mean`, key = "msmt_type", value = "length_cm") %>%
+    mutate(msmt_type = factor(msmt_type, levels = c("pct_50", "pct_25", "Mean"))) %>% 
+    mutate(linecol = ifelse(msmt_type != "Mean", "black", 
+                            ifelse(sex == "Male", "male_color", "female_color")), 
+           sexcol = ifelse(sex == "Male", "male_color2", "female_color2"))
+  
+  # Plot
+  plot_cm <- ggplot(velplot_cm, aes(y = length_cm, x = strata))+
+    
+    facet_grid(~ sex) +
+    
+    # cohort-specific lines
+    geom_line(aes(group = country_cohort),
+              alpha=0.18) +
+    
+    # WHO standard lines
+    geom_line(aes(y = length_cm, group = msmt_type, color = linecol,
+                  linetype = msmt_type),
+              data = velplot_cm %>%  filter(
+                msmt_type=="pct_25"|
+                  msmt_type=="pct_50"),
+              size = 0.4) +
+    
+    # IMic pooled lines
+    geom_line(aes(y = length_cm, group = msmt_type, color = linecol),
+              data = velplot_cm %>%  filter( msmt_type=="Mean"),
+              size = 0.8) +
+    
+    # confidence intervals
+    geom_errorbar(aes(ymin = Lower.95.CI, ymax = Upper.95.CI, color = sexcol),
+                  alpha=0.5, size=0.8, width=0.15) +
+    
+    scale_color_manual("WHO Growth\nVelocity Standards", 
+                       values = c("black" = "black",
+                                  "male_color" = mypalette[2],
+                                  "female_color" = mypalette[1],
+                                  "male_color" = "male_color", 
+                                  "female_color2" = mypalette[1],
+                                  "male_color2" = mypalette[2],
+                                  "female_color2" = mypalette[1],
+                                  "male_color2" = mypalette[2])) +
+    scale_y_continuous(limits=c(0.25,4), breaks=seq(0.4,4,0.2),
+                       labels=scaleFUN) +
+    xlab("Child age, months") +  
+    ylab("Difference in length (cm) per month")+
+    labs(x = "Year",
+         y = "(%)",
+         color = "Legend") +
+    #ggtitle("a") +
+    theme(plot.title = element_text(hjust=0, size = 20, face = "bold"),
+          strip.text.x = element_text(size=20, face="bold"),
+          strip.text.y = element_text(size=20),
+          axis.title.x = element_text(size=20),
+          axis.title.y = element_text(size=20))
+  
+  return(plot_cm)
+}
 
-# impute missing region
-# velplot_cm_cohort_data$region[velplot_cm_cohort_data$country_cohort=="Mal-ed Tanzania"] = "Africa"
-# velplot_cm_cohort_data$region[velplot_cm_cohort_data$country_cohort=="Tanzaniachild2 Tanzania"] = "Africa"
-# 
-# velplot_cm_cohort_data = velplot_cm_cohort_data %>% 
-#   mutate(region = factor(region, levels = c("Africa", "Latin America", "South Asia")))
+# Plot for ELICIT
+plot_cm_e <- velplot(elicit)
 
-plot_cm <- ggplot(velplot_cm, aes(y = length_cm, x = strata))+
-  
-  facet_grid(~ sex) +
-  
-  # cohort-specific lines
-  geom_line(data = velplot_cm_cohort_data, aes(group = country_cohort),
-            alpha=0.18) +
-  
-  # WHO standard lines
-  geom_line(data = velplot_cm, aes(y = length_cm, group = msmt_type, color = linecol,
-                linetype = msmt_type),
-            data = velplot_cm %>%  filter(
-              msmt_type=="pct_25"|
-                msmt_type=="pct_50"),
-            size = 0.4) +
-  
-  # # ki pooled lines
-  # geom_line(velplot_cm, aes(y = length_cm, group = msmt_type, color = linecol),
-  #           data = velplot_cm %>%  filter( msmt_type=="Mean"),
-  #           size = 0.8) +
-  
-  # confidence intervals
-  geom_errorbar(aes(ymin = Lower.95.CI, ymax = Upper.95.CI, color = sexcol),
-                alpha=0.5, size=0.8, width=0.15) +
-  
-  scale_color_manual("WHO Growth\nVelocity Standards", values = c("black" = "black",
-                                                                  "male_color" = mypalette[2],
-                                                                  "female_color" = mypalette[1], 
-                                                                  "male_color" = "male_color", 
-                                                                  "female_color2" = mypalette[1], 
-                                                                  "male_color2" = mypalette[2],
-                                                                  "female_color2" = mypalette[1], 
-                                                                  "male_color2" = mypalette[2])) +
-  scale_y_continuous(limits=c(0.25,4), breaks=seq(0.4,4,0.2),
-                     labels=scaleFUN) +
-  xlab("Child age, months") +  
-  ylab("Difference in length (cm) per month")+
-  ggtitle("a") +
-  theme(plot.title = element_text(hjust=0, size = 20, face = "bold"),
-        strip.text.x = element_text(size=20, face="bold"),
-        strip.text.y = element_text(size=20),
-        axis.title.x = element_text(size=20),
-        axis.title.y = element_text(size=20))
-
-plot_cm
-
-# define standardized plot names
-plot_cm_name = create_name(
-  outcome = "LAZ",
-  cutoff = 2,
-  measure = "length velocity",
-  population = "overall",
-  location = "",
-  age = "All ages",
-  analysis = "primary"
-)
-
-# save plot and underlying data
-ggsave(plot_cm, file=paste0(fig_dir, "stunting/fig-",plot_cm_name,".png"), 
+ggsave(plot_cm_e, filename = paste0(BV_dir, "/results/figures/lenVelE.png"), 
        width=10, height=8)
-saveRDS(velplot_cm, file=paste0(figdata_dir_stunting, "figdata-",plot_cm_name,".RDS"))
+
+# Plot for VITAL
+plot_cm_v <- velplot(vital)
+
+ggsave(plot_cm_v, filename = paste0(BV_dir, "/results/figures/lenVelV.png"), 
+       width=10, height=8)
+
 
 # Figure 5b: LAZ velocity plots ------------------------------------------------
 
 ## LAZ plot - stratified by region----------------------------------------------
 
-velplot_laz = vel %>% filter(ycat == "LAZ change (Z-score per month)") %>%
+velplot_laz = elicit %>% filter(ycat == "LAZ change (Z-score per month)") %>%
   mutate(sex = factor(sex)) 
 
 plot_laz <- ggplot(velplot_laz, aes(y=Mean,x=strata))+
@@ -176,14 +165,14 @@ plot_laz <- ggplot(velplot_laz, aes(y=Mean,x=strata))+
              aes(fill=sex, color=sex), size = 3,             
              position = position_jitterdodge(dodge.width = 0.75), alpha =0.2)  +
   
-  # region pooled point estimates
-  geom_point(data = velplot_laz  %>% filter(pooled==1),
-             aes(fill=sex, color=sex), size = 3, position = position_dodge(width=0.75)) +
-  
-  # region pooled CIs
-  geom_errorbar(data = velplot_laz  %>% filter(pooled==1),
-                aes(ymin=Lower.95.CI, ymax=Upper.95.CI, color=sex),
-                position = position_dodge(width=0.75), size=1, width = 0.15) +
+  # # region pooled point estimates
+  # geom_point(data = velplot_laz  %>% filter(pooled==1),
+  #            aes(fill=sex, color=sex), size = 3, position = position_dodge(width=0.75)) +
+  # 
+  # # region pooled CIs
+  # geom_errorbar(data = velplot_laz  %>% filter(pooled==1),
+  #               aes(ymin=Lower.95.CI, ymax=Upper.95.CI, color=sex),
+  #               position = position_dodge(width=0.75), size=1, width = 0.15) +
   
   scale_color_manual(values=mypalette)+  
   scale_y_continuous(limits=c(-0.45,0.3), breaks=seq(-0.4,0.3,0.1), 
@@ -191,7 +180,7 @@ plot_laz <- ggplot(velplot_laz, aes(y=Mean,x=strata))+
   xlab("Child age, months") +  
   ylab("Difference in length-for-age\nZ-score per month")+
   geom_hline(yintercept = -0) +
-  ggtitle("b") +
+  #ggtitle("b") +
   theme(plot.title = element_text(hjust=0, size = 20, face = "bold"),
         strip.text.x = element_text(size=20, face="bold"),
         axis.title.x = element_text(size=20),
@@ -202,16 +191,16 @@ plot_laz <- ggplot(velplot_laz, aes(y=Mean,x=strata))+
 
 plot_laz
 
-# define standardized plot names
-plot_laz_name = create_name(
-  outcome = "LAZ",
-  cutoff = 2,
-  measure = "LAZ velocity",
-  population = "overall",
-  location = "",
-  age = "All ages",
-  analysis = "primary"
-)
+# # define standardized plot names
+# plot_laz_name = create_name(
+#   outcome = "LAZ",
+#   cutoff = 2,
+#   measure = "LAZ velocity",
+#   population = "overall",
+#   location = "",
+#   age = "All ages",
+#   analysis = "primary"
+# )
 
 # save plot and underlying data
 ggsave(plot_laz, file=paste0(fig_dir, "stunting/fig-",plot_laz_name,".png"), width=12, height=6)
@@ -220,7 +209,7 @@ saveRDS(velplot_laz, file=paste0(figdata_dir_stunting, "figdata-",plot_laz_name,
 
 # combined LAZ and length plots ------------------------------------------------
 
-combined_plot = grid.arrange(plot_cm, plot_laz, nrow = 2, heights = c(10, 5))
+#combined_plot = grid.arrange(plot_cm, plot_laz, ncol = 2, heights = c(5, 5))
 
 ## define standardized plot names ----------------------------------------------
 
