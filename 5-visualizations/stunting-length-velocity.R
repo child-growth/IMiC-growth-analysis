@@ -8,11 +8,11 @@
 # WHO_linear_growth_velocity_standard.RDS
 
 # Outputs: 
-# Overall plots: 
-#   fig-stunt-2-vel-overall--allage-primary.png
-#   fig-laz-2-length_vel-overall--allage-primary.png
-#   fig-laz-2-laz_vel-overall--allage-primary.png
-
+# Plots: 
+#   lenVelE.png
+#   lenVelV.png
+#   lazVelE.png
+#   lazVelV.png
 
 # data for each plot is saved as an RDS file
 # with the same file name and the prefix "figdata"
@@ -124,10 +124,7 @@ velplot <- function (data) {
     scale_y_continuous(limits=c(0.25,4), breaks=seq(0.4,4,0.2),
                        labels=scaleFUN) +
     xlab("Child age, months") +  
-    ylab("Difference in length (cm) per month")+
-    labs(x = "Year",
-         y = "(%)",
-         color = "Legend") +
+    ylab("Difference in length (cm) per month") +
     #ggtitle("a") +
     theme(plot.title = element_text(hjust=0, size = 20, face = "bold"),
           strip.text.x = element_text(size=20, face="bold"),
@@ -153,91 +150,58 @@ ggsave(plot_cm_v, filename = paste0(BV_dir, "/results/figures/lenVelV.png"),
 
 # Figure 5b: LAZ velocity plots ------------------------------------------------
 
-## LAZ plot - stratified by region----------------------------------------------
+## LAZ plot --------------------------------------------------------------------
 
-velplot_laz = elicit %>% filter(ycat == "LAZ change (Z-score per month)") %>%
-  mutate(sex = factor(sex)) 
-
-plot_laz <- ggplot(velplot_laz, aes(y=Mean,x=strata))+
+plot <- function (data) {
+  velplot_laz = data %>% 
+    filter(ycat == "LAZ change (Z-score per month)") %>%
+    mutate(sex = factor(sex))
   
-  # cohort point estimates
-  geom_point(data = velplot_laz  %>% filter(pooled==0),
-             aes(fill=sex, color=sex), size = 3,             
-             position = position_jitterdodge(dodge.width = 0.75), alpha =0.2)  +
+  #saveRDS(velplot_laz, file=paste0(BV_dir, "/results/figdata-lazVelE.RDS"))
+  #saveRDS(velplot_laz, file=paste0(BV_dir, "/results/figdata-lazVelV.RDS"))
   
-  # # region pooled point estimates
-  # geom_point(data = velplot_laz  %>% filter(pooled==1),
-  #            aes(fill=sex, color=sex), size = 3, position = position_dodge(width=0.75)) +
-  # 
-  # # region pooled CIs
-  # geom_errorbar(data = velplot_laz  %>% filter(pooled==1),
-  #               aes(ymin=Lower.95.CI, ymax=Upper.95.CI, color=sex),
-  #               position = position_dodge(width=0.75), size=1, width = 0.15) +
+  plot_laz <- ggplot(velplot_laz, aes(y=Mean,x=strata))+
+    
+    # cohort point estimates
+    geom_point(data = velplot_laz  %>% filter(pooled==0),
+               aes(fill=sex, color=sex), size = 3,             
+               position = position_jitterdodge(dodge.width = 0.75), alpha =0.2) +
+    # CIs
+    geom_errorbar(data = velplot_laz  %>% filter(pooled==0),
+                  aes(ymin=Lower.95.CI, ymax=Upper.95.CI, color=sex),
+                  position = position_dodge(width=0.75), size=1, width = 0.15) +
+    
+    scale_color_manual(values=mypalette)+  
+    scale_y_continuous(limits=c(-0.45,0.3), breaks=seq(-0.4,0.3,0.1), 
+                       labels=seq(-0.4,0.3,0.1)) +
+    xlab("Child age, months") +  
+    ylab("Difference in length-for-age\nZ-score per month")+
+    geom_hline(yintercept = -0) +
+    #ggtitle("b") +
+    theme(plot.title = element_text(hjust=0, size = 20, face = "bold"),
+          strip.text.x = element_text(size=20, face="bold"),
+          axis.title.x = element_text(size=20),
+          axis.title.y = element_text(size=20),
+          legend.position = "bottom",
+          legend.text = element_text(size=16),
+          legend.title = element_blank())
   
-  scale_color_manual(values=mypalette)+  
-  scale_y_continuous(limits=c(-0.45,0.3), breaks=seq(-0.4,0.3,0.1), 
-                     labels=seq(-0.4,0.3,0.1)) +
-  xlab("Child age, months") +  
-  ylab("Difference in length-for-age\nZ-score per month")+
-  geom_hline(yintercept = -0) +
-  #ggtitle("b") +
-  theme(plot.title = element_text(hjust=0, size = 20, face = "bold"),
-        strip.text.x = element_text(size=20, face="bold"),
-        axis.title.x = element_text(size=20),
-        axis.title.y = element_text(size=20),
-        legend.position = "bottom",
-        legend.text = element_text(size=16),
-        legend.title = element_blank())
+  return(plot_laz)
+}
 
-plot_laz
+# Plot for ELICIT
+plot_e <- plot(elicit)
 
-# # define standardized plot names
-# plot_laz_name = create_name(
-#   outcome = "LAZ",
-#   cutoff = 2,
-#   measure = "LAZ velocity",
-#   population = "overall",
-#   location = "",
-#   age = "All ages",
-#   analysis = "primary"
-# )
+ggsave(plot_e, filename = paste0(BV_dir, "/results/figures/lazVelE.png"), 
+       width=10, height=8)
 
-# save plot and underlying data
-ggsave(plot_laz, file=paste0(fig_dir, "stunting/fig-",plot_laz_name,".png"), width=12, height=6)
-saveRDS(velplot_laz, file=paste0(figdata_dir_stunting, "figdata-",plot_laz_name,".RDS"))
+# Plot for VITAL
+plot_v <- plot(vital)
+
+ggsave(plot_v, filename = paste0(BV_dir, "/results/figures/lazVelV.png"), 
+       width=10, height=8)
 
 
-# combined LAZ and length plots ------------------------------------------------
 
-#combined_plot = grid.arrange(plot_cm, plot_laz, ncol = 2, heights = c(5, 5))
-
-## define standardized plot names ----------------------------------------------
-
-combined_plot_name = create_name(
-  outcome = "stunting",
-  cutoff = 2,
-  measure = "growth velocity",
-  population = "overall",
-  location = "",
-  age = "All ages",
-  analysis = "primary"
-)
-
-# save plots and data ----------------------------------------------------------
-
-## save overall plots together -------------------------------------------------
-
-ggsave(combined_plot, file=paste0(fig_dir, "stunting/fig-",combined_plot_name,
-                                  ".png"), width=12, height=12)
-
-## save input data  ------------------------------------------------------------
-
-saveRDS(
-  list(
-    velplot_cm = velplot_cm,
-    velplot_laz = velplot_laz
-  ),
-  file = paste0(figdata_dir_stunting, "figdata-", combined_plot_name, ".RDS")
-)
 
 
