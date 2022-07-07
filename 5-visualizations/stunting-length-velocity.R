@@ -102,6 +102,10 @@ velplot <- function (data) {
                 msmt_type == "pct_25"|
                   msmt_type == "pct_50"),
               size = 0.4) +
+
+    scale_linetype_manual("msmt_type", values = c("pct_25" = 2,
+                                                  "pct_50" = 1),
+                          labels = c("25th percentile", "50th percentile")) +
     
     # IMic pooled lines
     geom_line(aes(y = length_cm, group = msmt_type, color = linecol),
@@ -112,25 +116,34 @@ velplot <- function (data) {
     geom_errorbar(aes(ymin = Lower.95.CI, ymax = Upper.95.CI, color = sexcol),
                   alpha = 0.5, size = 0.8, width = 0.15) +
     
-    scale_color_manual("WHO Growth\nVelocity Standards", 
-                       values = c("black" = "black",
+    scale_color_manual(values = c("black" = "black",
                                   "male_color" = mypalette[2],
                                   "female_color" = mypalette[1],
-                                  "male_color" = "male_color", 
+                                  "male_color" = "male_color",
                                   "female_color2" = mypalette[1],
                                   "male_color2" = mypalette[2],
                                   "female_color2" = mypalette[1],
                                   "male_color2" = mypalette[2])) +
-    scale_y_continuous(limits = c(0.25, 4), breaks=seq(0.4, 4, 0.2),
+    
+    scale_y_continuous(limits = c(0.25, 4), breaks = seq(0.4, 4, 0.2),
                        labels = scaleFUN) +
+    
     xlab("Child age, months") +  
     ylab("Difference in length (cm) per month") +
+    
     #ggtitle("a") +
     theme(plot.title = element_text(hjust = 0, size = 20, face = "bold"),
           strip.text.x = element_text(size = 20, face = "bold"),
           strip.text.y = element_text(size = 20),
           axis.title.x = element_text(size = 20),
-          axis.title.y = element_text(size = 20))
+          axis.title.y = element_text(size = 20),
+          legend.direction = "horizontal", 
+          legend.position = "bottom", 
+          legend.key = element_blank(), 
+          legend.background = element_rect(fill = "white", colour = "gray30")) +
+    
+    guides(color = FALSE, keywidth = 3, keyheight = 1,
+           linetype = guide_legend("WHO Growth Velocity Standards"))
   
   return(plot_cm)
 }
