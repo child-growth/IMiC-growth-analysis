@@ -66,9 +66,9 @@ knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/IP3.png"))
 
 Incidence rate of wasting was calculated during defined age ranges as the number of incident episodes of wasting per 1,000 child-days at risk during the age range. Children were considered “at risk” for incident wasting episodes if they were not currently wasted and were classified as recovered from any prior wasting episode (beyond the 60-day washout period). Therefore, wasted children, or children within the washout period, did not contribute to the person-time at risk for wasting used to calculate wasting incidence. To calculate person-time at risk of wasting, we assumed that the onset of a wasting episode occurred when the child’s age was at the midpoint between the measurement of WLZ ≥ –2 and the measurement of WLZ < –2, and conversely the time of recovery occurred when the child’s age was at the midpoint between the last measurement of WLZ < –2 and the first measurement of WLZ ≥ –2 within the 60-day washout period.
 
-```{r, echo=FALSE, out.width="50%", out.height="50%"}
+```{r, echo=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/IR3.png"))
-knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/IR6.png"))
+#knitr::include_graphics(paste0(BV_dir,"results/figures/wasting/IR6.png"))
 ```
 
 ### Wasting Prevalence

@@ -47,8 +47,8 @@ vel <- vel %>% mutate(pct_25 = ifelse(ycat == 'haz', NA, pct_25))
 vel <- vel %>% mutate(pct_15 = ifelse(ycat == 'haz', NA, pct_15))
 
 # clean up y label
-vel$ycat <- gsub('haz', 'LAZ change (Z-score per month)', vel$ycat)
-vel$ycat <- gsub('lencm', 'Length velocity (cm per month)', vel$ycat)
+vel $ ycat <- gsub('haz', 'LAZ change (Z-score per month)', vel $ ycat)
+vel $ ycat <- gsub('lencm', 'Length velocity (cm per month)', vel $ ycat)
 
 # Separate datasets
 elicit <- vel %>%
@@ -62,9 +62,9 @@ mypalette = c("#D87A16", "#0EA76A")
 
 
 # get N's for figure caption
-vel_cohorts = vel %>% filter(pooled==0) %>%
+vel_cohorts = vel %>% filter(pooled == 0) %>%
   mutate(unique_cohorts = length(unique(country_cohort))) %>%
-  summarize(unique_cohorts=unique_cohorts[1])
+  summarize(unique_cohorts = unique_cohorts[1])
 vel_cohorts
 
 #Our transformation function
@@ -93,24 +93,24 @@ velplot <- function (data) {
     
     # cohort-specific lines
     geom_line(aes(group = country_cohort),
-              alpha=0.18) +
+              alpha = 0.18) +
     
     # WHO standard lines
     geom_line(aes(y = length_cm, group = msmt_type, color = linecol,
                   linetype = msmt_type),
               data = velplot_cm %>%  filter(
-                msmt_type=="pct_25"|
-                  msmt_type=="pct_50"),
+                msmt_type == "pct_25"|
+                  msmt_type == "pct_50"),
               size = 0.4) +
     
     # IMic pooled lines
     geom_line(aes(y = length_cm, group = msmt_type, color = linecol),
-              data = velplot_cm %>%  filter( msmt_type=="Mean"),
+              data = velplot_cm %>%  filter( msmt_type == "Mean"),
               size = 0.8) +
     
     # confidence intervals
     geom_errorbar(aes(ymin = Lower.95.CI, ymax = Upper.95.CI, color = sexcol),
-                  alpha=0.5, size=0.8, width=0.15) +
+                  alpha = 0.5, size = 0.8, width = 0.15) +
     
     scale_color_manual("WHO Growth\nVelocity Standards", 
                        values = c("black" = "black",
@@ -121,16 +121,16 @@ velplot <- function (data) {
                                   "male_color2" = mypalette[2],
                                   "female_color2" = mypalette[1],
                                   "male_color2" = mypalette[2])) +
-    scale_y_continuous(limits=c(0.25,4), breaks=seq(0.4,4,0.2),
-                       labels=scaleFUN) +
+    scale_y_continuous(limits = c(0.25, 4), breaks=seq(0.4, 4, 0.2),
+                       labels = scaleFUN) +
     xlab("Child age, months") +  
     ylab("Difference in length (cm) per month") +
     #ggtitle("a") +
-    theme(plot.title = element_text(hjust=0, size = 20, face = "bold"),
-          strip.text.x = element_text(size=20, face="bold"),
-          strip.text.y = element_text(size=20),
-          axis.title.x = element_text(size=20),
-          axis.title.y = element_text(size=20))
+    theme(plot.title = element_text(hjust = 0, size = 20, face = "bold"),
+          strip.text.x = element_text(size = 20, face = "bold"),
+          strip.text.y = element_text(size = 20),
+          axis.title.x = element_text(size = 20),
+          axis.title.y = element_text(size = 20))
   
   return(plot_cm)
 }
@@ -139,13 +139,13 @@ velplot <- function (data) {
 plot_cm_e <- velplot(elicit)
 
 ggsave(plot_cm_e, filename = paste0(BV_dir, "/results/figures/lenVelE.png"), 
-       width=10, height=8)
+       width = 10, height = 8)
 
 # Plot for VITAL
 plot_cm_v <- velplot(vital)
 
 ggsave(plot_cm_v, filename = paste0(BV_dir, "/results/figures/lenVelV.png"), 
-       width=10, height=8)
+       width = 10, height = 8)
 
 
 # Figure 5b: LAZ velocity plots ------------------------------------------------
@@ -160,30 +160,30 @@ plot <- function (data) {
   #saveRDS(velplot_laz, file=paste0(BV_dir, "/results/figdata-lazVelE.RDS"))
   #saveRDS(velplot_laz, file=paste0(BV_dir, "/results/figdata-lazVelV.RDS"))
   
-  plot_laz <- ggplot(velplot_laz, aes(y=Mean,x=strata))+
+  plot_laz <- ggplot(velplot_laz, aes(y = Mean,x = strata))+
     
     # cohort point estimates
-    geom_point(data = velplot_laz  %>% filter(pooled==0),
-               aes(fill=sex, color=sex), size = 3,             
-               position = position_jitterdodge(dodge.width = 0.75), alpha =0.2) +
+    geom_point(data = velplot_laz  %>% filter(pooled == 0),
+               aes(fill = sex, color = sex), size = 3,
+               position = position_dodge(width = 0.75)) +
     # CIs
     geom_errorbar(data = velplot_laz  %>% filter(pooled==0),
-                  aes(ymin=Lower.95.CI, ymax=Upper.95.CI, color=sex),
-                  position = position_dodge(width=0.75), size=1, width = 0.15) +
+                  aes(ymin = Lower.95.CI, ymax = Upper.95.CI, color = sex),
+                  position = position_dodge(width = 0.75), size = 1, width = 0.15) +
     
     scale_color_manual(values=mypalette)+  
-    scale_y_continuous(limits=c(-0.45,0.3), breaks=seq(-0.4,0.3,0.1), 
-                       labels=seq(-0.4,0.3,0.1)) +
+    scale_y_continuous(limits=c(-0.45, 0.3), breaks=seq(-0.4, 0.3, 0.1), 
+                       labels=seq(-0.4, 0.3, 0.1)) +
     xlab("Child age, months") +  
     ylab("Difference in length-for-age\nZ-score per month")+
     geom_hline(yintercept = -0) +
     #ggtitle("b") +
-    theme(plot.title = element_text(hjust=0, size = 20, face = "bold"),
-          strip.text.x = element_text(size=20, face="bold"),
-          axis.title.x = element_text(size=20),
-          axis.title.y = element_text(size=20),
+    theme(plot.title = element_text(hjust = 0, size = 20, face = "bold"),
+          strip.text.x = element_text(size = 20, face = "bold"),
+          axis.title.x = element_text(size = 20),
+          axis.title.y = element_text(size = 20),
           legend.position = "bottom",
-          legend.text = element_text(size=16),
+          legend.text = element_text(size = 16),
           legend.title = element_blank())
   
   return(plot_laz)
@@ -193,13 +193,13 @@ plot <- function (data) {
 plot_e <- plot(elicit)
 
 ggsave(plot_e, filename = paste0(BV_dir, "/results/figures/lazVelE.png"), 
-       width=10, height=8)
+       width = 10, height = 8)
 
 # Plot for VITAL
 plot_v <- plot(vital)
 
 ggsave(plot_v, filename = paste0(BV_dir, "/results/figures/lazVelV.png"), 
-       width=10, height=8)
+       width = 10, height = 8)
 
 
 
