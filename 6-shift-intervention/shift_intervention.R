@@ -3,6 +3,9 @@ library(haldensify)
 library(sl3)
 library(tmle3)
 library(tmle3shift)
+library(speedglm)
+library(nnls)
+install.packages("haldensify")
 
 #https://tlverse.org/tlverse-handbook/shift.html
 
@@ -65,20 +68,36 @@ learner_list <- list(Y = sl_reg_lrnr, A = sl_dens_lrnr)
 
 # 3. Apply
 
+## Load data
+vitalWide <- readRDS("/data/KI/imic/results/wideVital.RDS")
+names(vitalWide)
+
+# Since the wide vital dataset and the vital biomarker datasets are not mergable
+# yet, we randomly select 150 observations from the vital biomarker dataset and 
+# combine it with the wide data for testing the models.
+
+# Randomly sample 150 observations from the biomarker dataset.
+rand_df <- vital[sample(nrow(vitalWide2), nrow(vitalWide2)), ]
+
+# Combine datasets
+data <- cbind(vitalWide, rand_df)
+
 ## Baseline covariates.
-W <- c()
+W <- data %>%
+  select("sex_base", "nlchild_base", "nperson_base", "nrooms_base", 
+         "meducyrs_base", "h2osrcp_base", "cookplac_base")
 
 ## Create treatment based on baseline W.
-A <- c()
+A <- c(data $ TPP)
 
 ## Create outcome as a linear function of A, W + white noise.
-Y <- c()
+Y <- c(data $ haz_m6)
 
 # Organize data and nodes for tmle3.
 data <- data.table(W, A, Y)
-setnames(data, c("W1", "W2", "A", "Y"))
+setnames(data, c("W1", "W2", "W3", "W4", "W5", "W6", "W7", "A", "Y"))
 node_list <- list(
-  W = c("W1", "W2"),
+  W = c("W1", "W2", "W3", "W4", "W5", "W6", "W7"),
   A = "A",
   Y = "Y"
 )
