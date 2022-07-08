@@ -5,7 +5,8 @@ library(tmle3)
 library(tmle3shift)
 library(speedglm)
 library(nnls)
-install.packages("haldensify")
+library(dplyr)
+library(MASS)
 
 #https://tlverse.org/tlverse-handbook/shift.html
 
@@ -70,22 +71,23 @@ learner_list <- list(Y = sl_reg_lrnr, A = sl_dens_lrnr)
 
 ## Load data
 vitalWide <- readRDS("/data/KI/imic/results/wideVital.RDS")
-names(vitalWide)
+vitalBio <- read.table("/data/KI/imic/data/raw_lab_data/Allen_Bvit_VITAL.csv",
+                                sep = ",", header = TRUE)
 
 # Since the wide vital dataset and the vital biomarker datasets are not mergable
 # yet, we randomly select 150 observations from the vital biomarker dataset and 
 # combine it with the wide data for testing the models.
 
 # Randomly sample 150 observations from the biomarker dataset.
-rand_df <- vital[sample(nrow(vitalWide2), nrow(vitalWide2)), ]
+rand_df <- vitalBio[sample(nrow(vitalBio), nrow(vitalWide)), ]
 
 # Combine datasets
-data <- cbind(vitalWide, rand_df)
+data <- as.data.frame(cbind(vitalWide, rand_df))
 
 ## Baseline covariates.
-W <- data %>%
-  select("sex_base", "nlchild_base", "nperson_base", "nrooms_base", 
-         "meducyrs_base", "h2osrcp_base", "cookplac_base")
+data %>%
+  select(c("sex_base", "nlchild_base", "nperson_base", "nrooms_base", 
+         "meducyrs_base", "h2osrcp_base", "cookplac_base"))
 
 ## Create treatment based on baseline W.
 A <- c(data $ TPP)
