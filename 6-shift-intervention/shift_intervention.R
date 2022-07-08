@@ -85,9 +85,9 @@ rand_df <- vitalBio[sample(nrow(vitalBio), nrow(vitalWide)), ]
 data <- as.data.frame(cbind(vitalWide, rand_df))
 
 ## Baseline covariates.
-data %>%
-  select(c("sex_base", "nlchild_base", "nperson_base", "nrooms_base", 
-         "meducyrs_base", "h2osrcp_base", "cookplac_base"))
+W <- cbind(as.factor(data $ sex_base), data $ nlchild_base, data $ nperson_base, 
+           data $ nrooms_base, data $ meducyrs_base, as.factor(data $ h2osrcp_base),
+           as.factor(data $ cookplac_base))
 
 ## Create treatment based on baseline W.
 A <- c(data $ TPP)
@@ -108,7 +108,7 @@ head(data)
 
 # Initialize a TMLE specification.
 tmle_spec <- tmle_shift(
-  shift_val = 0.5, # shift on the scale of treatment A.
+  shift_val = 0.05, # shift on the scale of treatment A.
   shift_fxn = shift_additive,
   shift_fxn_inv = shift_additive_inv
 )
