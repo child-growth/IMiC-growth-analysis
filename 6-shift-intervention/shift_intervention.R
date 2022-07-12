@@ -30,7 +30,7 @@ shiftFunc <- function (W, A, Y, shift) {
   
   # 1. OUTCOME REGRESSION
   
-  # learners used for conditional mean of the outcome.
+  # learners used for conditional mean of the continuous outcome.
   mean_lrnr <- Lrnr_mean $ new()
   fglm_lrnr <- Lrnr_glm_fast $ new()
   rf_lrnr <- Lrnr_ranger $ new()
@@ -114,7 +114,7 @@ shiftFunc <- function (W, A, Y, shift) {
   # Targeted estimation of stochastic intervention effects.
   tmle_fit <- tmle3(tmle_spec, data2, node_list, learner_list)
   
-  # TO DO: return a dataframe
+  # Return a dataframe
   
   return(tmle_fit)
 }
@@ -123,6 +123,8 @@ shiftFunc <- function (W, A, Y, shift) {
 
 ## Load data
 vitalWide <- readRDS("/data/KI/imic/results/wideVital.RDS")
+
+# Read in comma-separated dataset.
 vitalBio <- read.table("/data/KI/imic/data/raw_lab_data/Allen_Bvit_VITAL.csv",
                                 sep = ",", header = TRUE)
 
@@ -149,8 +151,11 @@ Y <- c(data $ haz_m6)
 
 shiftFunc(W = W, A = A, Y = Y, shift = 0.05)
 
+# TO DO: Run the function over each biomarker
 
-#FOR FUTURE---------------------------------------------------------------------
+
+
+# FOR FUTURE---------------------------------------------------------------------
 
 # If we wanted a stable stochastic intervention (i.e., avoid positivity violations)
 # we could make a choice of the shift based on the impact of the candidate values
