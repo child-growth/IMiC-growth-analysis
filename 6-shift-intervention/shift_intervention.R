@@ -26,7 +26,7 @@ library(MASS)
 
 # Make a wrapper function-------------------------------------------------------
 
-shiftFunc <- function (W, A, Y, shift) {
+shiftFunc <- function (covariates, treat, outcome, shift) {
   
   # 1. OUTCOME REGRESSION
   
@@ -79,27 +79,19 @@ shiftFunc <- function (W, A, Y, shift) {
   
   # 3. Apply
   
-  ## Baseline covariates.
-  W <- W
-  
-  ## Create treatment based on baseline W.
-  A <- A
-  
-  ## Create outcome as a linear function of A, W + white noise.
-  Y <- Y
-  
   # Organize data and nodes for tmle3.
-  data <- data.table(W, A, Y)
+  data <- data.table(covariates, treat, outcome)
   
-  # Filter out NA's from the dataset
-  data2 <- data %>%
+  # Filter out NA's from the dataset.
+  data <- data %>%
     drop_na()
   
-  # TO DO: write a for loop to accomodiate any number of covariates.
+  # Change column names while accommodating any number of covariates.
+  num = ncol(data) - 2
+  setnames(data, c(paste0("W", 1:num), "A", "Y"))
   
-  setnames(data2, c("W1", "W2", "W3", "A", "Y"))
   node_list <- list(
-    W = c("W1", "W2", "W3"),
+    W = dput(names(data[, 1:num])),
     A = "A",
     Y = "Y"
   )
@@ -112,7 +104,7 @@ shiftFunc <- function (W, A, Y, shift) {
   )
   
   # Targeted estimation of stochastic intervention effects.
-  tmle_fit <- tmle3(tmle_spec, data2, node_list, learner_list)
+  tmle_fit <- tmle3(tmle_spec, data, node_list, learner_list)
   
   # Return a dataframe
   
@@ -148,14 +140,13 @@ A <- c(data $ TPP)
 Y <- c(data $ haz_m6)
 
 # Use the function
-
-shiftFunc(W = W, A = A, Y = Y, shift = 0.05)
+shiftFunc(covariates = W, treat = A, outcome = Y, shift = 0.05)
 
 # TO DO: Run the function over each biomarker
 
 
 
-# FOR FUTURE---------------------------------------------------------------------
+# FOR FUTURE--------------------------------------------------------------------
 
 # If we wanted a stable stochastic intervention (i.e., avoid positivity violations)
 # we could make a choice of the shift based on the impact of the candidate values
@@ -172,7 +163,7 @@ tmle_spec <- tmle_vimshift_delta(
 
 # Targeted estimation of stochastic intervention effects.
 tmle_fit <- tmle3(tmle_spec, data2, node_list, learner_list)
-#--------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 
 
