@@ -107,7 +107,6 @@ shiftFunc <- function (covariates, treat, outcome, shift) {
   tmle_fit <- tmle3(tmle_spec, data, node_list, learner_list)
   
   # Return a dataframe
-  
   return(tmle_fit)
 }
 
@@ -142,8 +141,11 @@ Y <- c(data $ haz_m6)
 # Use the function
 shiftFunc(covariates = W, treat = A, outcome = Y, shift = 0.05)
 
-# TO DO: Run the function over each biomarker
-
+# Run the function over each biomarker
+vitalBio $ X = NULL
+for (i in 1:ncol(vitalBio)) {
+  shiftFunc(covariates = W, treat = vitalBio[, i], outcome = Y, shift = 0.05)
+}
 
 
 # FOR FUTURE--------------------------------------------------------------------
