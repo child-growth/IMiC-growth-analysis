@@ -1,13 +1,16 @@
 ---
-title: | 
-    | Preliminary Results
+title: |
+  | Preliminary Results
 author: "The Berkeley Team"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
-output: 
-    html_document:
-        toc: true
-        toc_depth: 4
-keep_tex: true
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+keep_tex: yes
 theme: bclear
 fontsize: 10pt
 geometry: margin=1in
@@ -17,7 +20,7 @@ header-includes:
 - \usepackage[default, scale=1]{raleway}
 - \usepackage[T1]{fontenc}
 - \usepackage{inconsolata}
-always_allow_html: true
+always_allow_html: yes
 ---
 
 <br>
