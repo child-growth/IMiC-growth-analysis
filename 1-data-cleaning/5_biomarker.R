@@ -4,6 +4,8 @@
 #   Allen_Bvit_CHILD.csv
 #   Allen_Bvit_VITAL.csv
 #   PBL_VITAL_Normalized.csv
+# Author:
+#   Sajia Darwish
 #-------------------------------------------------------------------------------
 
 # Load data

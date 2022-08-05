@@ -1,0 +1,76 @@
+---
+title: |
+  | Biomarker Datasets
+author: "The Berkeley Team"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+keep_tex: yes
+theme: bclear
+fontsize: 10pt
+geometry: margin=1in
+header-includes:
+- \usepackage{enumitem}
+- \usepackage{indentfirst}
+- \usepackage[default, scale=1]{raleway}
+- \usepackage[T1]{fontenc}
+- \usepackage{inconsolata}
+always_allow_html: yes
+---
+
+# Load data
+```{r}
+BV_dir = "/data/KI/imic/"
+
+library(DataExplorer)
+library(tidyverse)
+library(table1)
+library(data.table)
+
+hmo <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/HMO_ELICIT.csv")
+sapient <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Sapient_ELICIT.csv")
+bvit <- read.table("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Allen_Bvit_Elicit.csv",
+                    sep = ",", header = TRUE)
+biocratesNorm <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Biocrates_ELICIT_Normalized_toAll_NS.csv")
+biocrates <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Biocrates_ELICIT_NOT_Normalized.csv")
+```
+
+# HMO data
+```{r}
+hmo $ X = NULL
+hmoElicit <- table1(~ ., data = hmo)
+saveRDS(hmoElicit, file = paste0(BV_dir, "/results/hmoElicit.RDS"))
+```
+
+# Sapient data
+```{r}
+sapient[, 1:5]
+sapient $ V1 = NULL
+sapientElicit <- table1(~ ., data = sapient)
+saveRDS(sapientElicit, file = paste0(BV_dir, "/results/sapientElicit.RDS"))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
