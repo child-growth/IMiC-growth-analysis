@@ -24,7 +24,7 @@ always_allow_html: yes
 ---
 
 # ELICIT
-```{r setup1, include=FALSE}
+```{r setup1, echo=FALSE, warning = FALSE, message = FALSE}
 BV_dir = "/data/KI/imic/"
 
 library(DataExplorer)
@@ -32,55 +32,174 @@ library(tidyverse)
 library(table1)
 library(data.table)
 
-#hmo <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/HMO_ELICIT.csv")
+hmo <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/HMO_ELICIT.csv")
 sapient <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Sapient_ELICIT.csv")
-#bvit <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Allen_Bvit_ELICIT.csv")
+bvit <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Allen_Bvit_ELICIT.csv")
 biocratesNorm <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Biocrates_ELICIT_Normalized_toALL_NS.csv")
 biocrates <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Biocrates_ELICIT_NOT_Normalized.csv")
+metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/MetaboIndicators/Biocrates_ELICIT_Normalized_MetaboINDICATOR.csv")
 ```
 
-## HMO data
+## HMO
+Note: “Secretor”, “Diversity”, “Evenness”, “SUM_nmol/mL”, “SUM_ug/mL”, “Sia_nmol/mL”, and “Fuc_nmol/mL” are summary variables. The suffix “_nmol/mL”, “_ug/mL” and “_pct” indicate different units for the same HMOs.
 ```{r, echo=FALSE, out.width="80%", out.height="80%"}
-# hmo $ X = NULL
-# hmoElicit <- table1(~ ., data = hmo)
-# saveRDS(hmoElicit, file = paste0(BV_dir, "/results/hmoElicit.RDS"))
+hmo $ X = NULL
+hmoElicit <- table1(~ ., data = hmo)
+saveRDS(hmoElicit, file = paste0(BV_dir, "/results/hmoElicit.RDS"))
 
-knitr::include_graphics(paste0(BV_dir,"results/hmoElicit.RDS"))
+readRDS("/data/KI/imic/results/hmoElicit.RDS")
 ```
 
-## Bvit data
+## B-Vitamins
 ```{r, echo=FALSE, out.width="80%", out.height="80%"}
-# bvit $ X = NULL
-# bvitElicit <- table1(~ ., data = bvit)
-# saveRDS(bvitElicit, file = paste0(BV_dir, "/results/bvitElicit.RDS"))
+bvit $ X = NULL
+bvitElicit <- table1(~ ., data = bvit)
+saveRDS(bvitElicit, file = paste0(BV_dir, "/results/bvitElicit.RDS"))
 
-knitr::include_graphics(paste0(BV_dir, "/results/bvitElicit.RDS"))
+readRDS("/data/KI/imic/results/bvitElicit.RDS")
 ```
 
-## Sapient data
+## MetaboIndicators: metabolite sums and ratios
 ```{r}
+print("Dimension")
+dim(metabolInd)
+print("Type of features")
+table(sapply(metabolInd, class))
+print("Sample data")
+head(metabolInd)[15:17]
+print("Sample column names")
+names(metabolInd)[10:50]
+```
+
+## Sapient: untargeted metabolomics
+```{r, echo=FALSE}
+print("Dimension")
 dim(sapient)
-head(sapient)
-names(sapient)
+print("Type of features")
+table(sapply(sapient, class))
+print("Sample data")
+head(sapient)[15:17]
+print("Sample column names")
+names(sapient)[50000:50100]
 ```
 
-## Biocrates
-```{r}
+## Biocrates: info on each metabolite, provided by Biocrates
+```{r, echo=FALSE}
+print("Dimension")
 dim(biocrates)
-head(biocrates)
-names(biocrates)
+print("Type of features")
+table(sapply(biocrates, class))
+print("Sample data")
+head(biocrates)[12:15]
+print("Sample column names")
+names(biocrates)[1:100]
 ```
 
-## Biocrates Normalized
-```{r}
+## Biocrates Normalized: normalized between plates
+```{r, echo=FALSE}
+print("Dimension")
 dim(biocratesNorm)
-head(biocratesNorm)
-names(biocratesNorm)
+print("Sample data")
+head(biocratesNorm)[12:15]
+print("Column names are identical to the non-normalized biocrates dataset.")
 ```
 
+# VITAL
+```{r}
+hmo <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/HMO_VITAL.csv")
+sapient <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Sapient_VITAL.csv")
+bvit <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Allen_Bvit_VITAL.csv")
+biocrates <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Biocrates_VITAL_NOT_Normalized.csv")
+biocratesNorm <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Biocrates_VITAL_Normalized_toALL_NS.csv")
+pbl <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/PBL_VITAL_NOT_Normalized.csv")
+pblNorm <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/PBL_VITAL_Normalized.csv")
+metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/MetaboIndicators/Biocrates_VITAL_Normalized_MetaboINDICATOR.csv")
+```
 
+## HMO
+Note: “Secretor”, “Diversity”, “Evenness”, “SUM_nmol/mL”, “SUM_ug/mL”, “Sia_nmol/mL”, and “Fuc_nmol/mL” are summary variables. The suffix “_nmol/mL”, “_ug/mL” and “_pct” indicate different units for the same HMOs.
+```{r, echo=FALSE, out.width="80%", out.height="80%"}
+hmo $ X = NULL
+hmoVITAL <- table1(~ ., data = hmo)
+saveRDS(hmoVITAL, file = paste0(BV_dir, "/results/hmoVITAL.RDS"))
 
+readRDS("/data/KI/imic/results/hmoVITAL.RDS")
+```
 
+## B-Vitamins
+```{r, echo=FALSE, out.width="80%", out.height="80%"}
+bvit $ X = NULL
+bvitVITAL <- table1(~ ., data = bvit)
+saveRDS(bvitVITAL, file = paste0(BV_dir, "/results/bvitVITAL.RDS"))
+
+readRDS("/data/KI/imic/results/bvitVITAL.RDS")
+```
+
+## MetaboIndicators: metabolite sums and ratios
+```{r}
+print("Dimension")
+dim(metabolInd)
+print("Type of features")
+table(sapply(metabolInd, class))
+print("Sample data")
+head(metabolInd)[15:17]
+print("Sample column names")
+names(metabolInd)[10:50]
+```
+
+## Sapient: untargeted metabolomics
+```{r, echo=FALSE}
+print("Dimension")
+dim(sapient)
+print("Type of features")
+table(sapply(sapient, class))
+print("Sample data")
+head(sapient)[15:17]
+print("Sample column names")
+names(sapient)[50000:50100]
+```
+
+## Biocrates: info on each metabolite, provided by Biocrates
+```{r, echo=FALSE}
+print("Dimension")
+dim(biocrates)
+print("Type of features")
+table(sapply(biocrates, class))
+print("Sample data")
+head(biocrates)[12:15]
+print("Sample column names")
+names(biocrates)[1:100]
+```
+
+## Biocrates Normalized: normalized between plates
+```{r, echo=FALSE}
+print("Dimension")
+dim(biocratesNorm)
+print("Sample data")
+head(biocratesNorm)[12:15]
+print("Column names are identical to the non-normalized biocrates dataset.")
+```
+
+## PBL: LC-MS proteomic data
+```{r, echo=FALSE}
+print("Dimension")
+dim(pbl)
+print("Type of features")
+table(sapply(pbl, class))
+print("Sample data")
+head(pbl)[12:15]
+print("Sample column names")
+names(pbl)[1:100]
+```
+
+## PBL Normalized
+```{r, echo=FALSE}
+print("Dimension")
+dim(pblNorm)
+print("Sample data")
+head(pblNorm)[12:15]
+print("Column names are identical to the non-normalized PBL dataset.")
+```
 
 
 
