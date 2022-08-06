@@ -60,7 +60,7 @@ readRDS("/data/KI/imic/results/bvitElicit.RDS")
 ```
 
 ## MetaboIndicators: metabolite sums and ratios
-```{r}
+```{r, echo=FALSE}
 print("Dimension")
 dim(metabolInd)
 print("Type of features")
@@ -83,7 +83,7 @@ print("Sample column names")
 names(sapient)[50000:50100]
 ```
 
-## Biocrates: info on each metabolite, provided by Biocrates
+## Biocrates: info on each metabolite, provided by biocrates
 ```{r, echo=FALSE}
 print("Dimension")
 dim(biocrates)
@@ -95,7 +95,7 @@ print("Sample column names")
 names(biocrates)[1:100]
 ```
 
-## Biocrates Normalized: normalized between plates
+## Biocrates normalized: normalized between plates
 ```{r, echo=FALSE}
 print("Dimension")
 dim(biocratesNorm)
@@ -105,7 +105,7 @@ print("Column names are identical to the non-normalized biocrates dataset.")
 ```
 
 # VITAL
-```{r}
+```{r, echo=FALSE}
 hmo <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/HMO_VITAL.csv")
 sapient <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Sapient_VITAL.csv")
 bvit <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Allen_Bvit_VITAL.csv")
@@ -136,7 +136,7 @@ readRDS("/data/KI/imic/results/bvitVITAL.RDS")
 ```
 
 ## MetaboIndicators: metabolite sums and ratios
-```{r}
+```{r, echo=FALSE}
 print("Dimension")
 dim(metabolInd)
 print("Type of features")
@@ -159,7 +159,7 @@ print("Sample column names")
 names(sapient)[50000:50100]
 ```
 
-## Biocrates: info on each metabolite, provided by Biocrates
+## Biocrates: info on each metabolite, provided by biocrates
 ```{r, echo=FALSE}
 print("Dimension")
 dim(biocrates)
@@ -171,7 +171,7 @@ print("Sample column names")
 names(biocrates)[1:100]
 ```
 
-## Biocrates Normalized: normalized between plates
+## Biocrates normalized: normalized between plates
 ```{r, echo=FALSE}
 print("Dimension")
 dim(biocratesNorm)
@@ -192,7 +192,7 @@ print("Sample column names")
 names(pbl)[1:100]
 ```
 
-## PBL Normalized
+## PBL normalized
 ```{r, echo=FALSE}
 print("Dimension")
 dim(pblNorm)
