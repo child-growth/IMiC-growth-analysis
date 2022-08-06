@@ -1,6 +1,6 @@
 ---
 title: |
-  | Biomarker dataset
+  | Biomarker datasets
 author: "The Berkeley Team"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output:
@@ -43,21 +43,29 @@ metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Met
 
 ## HMOs
 Note: “Secretor”, “Diversity”, “Evenness”, “SUM_nmol/mL”, “SUM_ug/mL”, “Sia_nmol/mL”, and “Fuc_nmol/mL” are summary variables. The suffix “_nmol/mL”, “_ug/mL” and “_pct” indicate different units for the same HMOs.
-```{r, echo=FALSE, out.width="80%", out.height="80%"}
-hmo $ X = NULL
-hmoElicit <- table1(~ ., data = hmo)
-saveRDS(hmoElicit, file = paste0(BV_dir, "/results/hmoElicit.RDS"))
-
-readRDS("/data/KI/imic/results/hmoElicit.RDS")
+```{r, echo=FALSE}
+# hmo $ X = NULL
+# hmoElicit <- table1(~ ., data = hmo)
+# saveRDS(hmoElicit, file = paste0(BV_dir, "/results/hmoElicit.RDS"))
+# readRDS("/data/KI/imic/results/hmoElicit.RDS")
+ExpData(data=hmo, type=1)
+print("Sample data")
+head(hmo)[15:17]
+print("Sample column names")
+names(hmo)[10:50]
 ```
 
 ## B-Vitamins
-```{r, echo=FALSE, out.width="80%", out.height="80%"}
-bvit $ X = NULL
-bvitElicit <- table1(~ ., data = bvit)
-saveRDS(bvitElicit, file = paste0(BV_dir, "/results/bvitElicit.RDS"))
-
-readRDS("/data/KI/imic/results/bvitElicit.RDS")
+```{r, echo=FALSE}
+# bvit $ X = NULL
+# bvitElicit <- table1(~ ., data = bvit)
+# saveRDS(bvitElicit, file = paste0(BV_dir, "/results/bvitElicit.RDS"))
+# readRDS("/data/KI/imic/results/bvitElicit.RDS")
+ExpData(data=bvit, type=1)
+print("Sample data")
+head(bvit)[15:17]
+print("Column names")
+names(bvit)
 ```
 
 ## MetaboIndicators: metabolite sums and ratios
@@ -109,21 +117,29 @@ metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Meta
 
 ## HMOs
 Note: “Secretor”, “Diversity”, “Evenness”, “SUM_nmol/mL”, “SUM_ug/mL”, “Sia_nmol/mL”, and “Fuc_nmol/mL” are summary variables. The suffix “_nmol/mL”, “_ug/mL” and “_pct” indicate different units for the same HMOs.
-```{r, echo=FALSE, out.width="80%", out.height="80%"}
-hmo $ X = NULL
-hmoVITAL <- table1(~ ., data = hmo)
-saveRDS(hmoVITAL, file = paste0(BV_dir, "/results/hmoVITAL.RDS"))
-
-readRDS("/data/KI/imic/results/hmoVITAL.RDS")
+```{r, echo=FALSE}
+# hmo $ X = NULL
+# hmoVital <- table1(~ ., data = hmo)
+# saveRDS(hmoVital, file = paste0(BV_dir, "/results/hmoVital.RDS"))
+# readRDS("/data/KI/imic/results/hmoVital.RDS")
+ExpData(data=hmo, type=1)
+print("Sample data")
+head(hmo)[15:17]
+print("Sample column names")
+names(hmo)[10:50]
 ```
 
 ## B-Vitamins
-```{r, echo=FALSE, out.width="80%", out.height="80%"}
-bvit $ X = NULL
-bvitVITAL <- table1(~ ., data = bvit)
-saveRDS(bvitVITAL, file = paste0(BV_dir, "/results/bvitVITAL.RDS"))
-
-readRDS("/data/KI/imic/results/bvitVITAL.RDS")
+```{r, echo=FALSE}
+# bvit $ X = NULL
+# bvitVital <- table1(~ ., data = bvit)
+# saveRDS(bvitVital, file = paste0(BV_dir, "/results/bvitVital.RDS"))
+# readRDS("/data/KI/imic/results/bvitVital.RDS")
+ExpData(data=bvit, type=1)
+print("Sample data")
+head(bvit)[15:17]
+print("Column names")
+names(bvit)
 ```
 
 ## MetaboIndicators: metabolite sums and ratios
