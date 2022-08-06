@@ -184,8 +184,8 @@ pre code {
 <li><a href="#b-vitamins">B-Vitamins</a></li>
 <li><a href="#metaboindicators-metabolite-sums-and-ratios">MetaboIndicators: metabolite sums and ratios</a></li>
 <li><a href="#sapient-untargeted-metabolomics">Sapient: untargeted metabolomics</a></li>
-<li><a href="#biocrates-info-on-each-metabolite-provided-by-biocrates">Biocrates: info on each metabolite, provided by Biocrates</a></li>
-<li><a href="#biocrates-normalized-normalized-between-plates">Biocrates Normalized: normalized between plates</a></li>
+<li><a href="#biocrates-info-on-each-metabolite-provided-by-biocrates">Biocrates: info on each metabolite, provided by biocrates</a></li>
+<li><a href="#biocrates-normalized-normalized-between-plates">Biocrates normalized: normalized between plates</a></li>
 </ul></li>
 <li><a href="#vital">VITAL</a>
 <ul>
@@ -193,10 +193,10 @@ pre code {
 <li><a href="#b-vitamins-1">B-Vitamins</a></li>
 <li><a href="#metaboindicators-metabolite-sums-and-ratios-1">MetaboIndicators: metabolite sums and ratios</a></li>
 <li><a href="#sapient-untargeted-metabolomics-1">Sapient: untargeted metabolomics</a></li>
-<li><a href="#biocrates-info-on-each-metabolite-provided-by-biocrates-1">Biocrates: info on each metabolite, provided by Biocrates</a></li>
-<li><a href="#biocrates-normalized-normalized-between-plates-1">Biocrates Normalized: normalized between plates</a></li>
+<li><a href="#biocrates-info-on-each-metabolite-provided-by-biocrates-1">Biocrates: info on each metabolite, provided by biocrates</a></li>
+<li><a href="#biocrates-normalized-normalized-between-plates-1">Biocrates normalized: normalized between plates</a></li>
 <li><a href="#pbl-lc-ms-proteomic-data">PBL: LC-MS proteomic data</a></li>
-<li><a href="#pbl-normalized">PBL Normalized</a></li>
+<li><a href="#pbl-normalized">PBL normalized</a></li>
 </ul></li>
 </ul>
 </div>
@@ -1302,19 +1302,13 @@ pre code {
 </div>
 <div id="metaboindicators-metabolite-sums-and-ratios" class="section level2">
 <h2>MetaboIndicators: metabolite sums and ratios</h2>
-<pre class="r"><code>print(&quot;Dimension&quot;)</code></pre>
 <pre><code>## [1] &quot;Dimension&quot;</code></pre>
-<pre class="r"><code>dim(metabolInd)</code></pre>
 <pre><code>## [1] 408 112</code></pre>
-<pre class="r"><code>print(&quot;Type of features&quot;)</code></pre>
 <pre><code>## [1] &quot;Type of features&quot;</code></pre>
-<pre class="r"><code>table(sapply(metabolInd, class))</code></pre>
 <pre><code>## 
 ## character   numeric 
 ##         1       111</code></pre>
-<pre class="r"><code>print(&quot;Sample data&quot;)</code></pre>
 <pre><code>## [1] &quot;Sample data&quot;</code></pre>
-<pre class="r"><code>head(metabolInd)[15:17]</code></pre>
 <pre><code>##   Cysteine.Synthesis Cystine.Synthesis
 ## 1         0.02944170          3.103262
 ## 2         0.08664675          2.869296
@@ -1329,9 +1323,7 @@ pre code {
 ## 4                                        1.824727
 ## 5                                        1.055549
 ## 6                                        4.061354</code></pre>
-<pre class="r"><code>print(&quot;Sample column names&quot;)</code></pre>
 <pre><code>## [1] &quot;Sample column names&quot;</code></pre>
-<pre class="r"><code>names(metabolInd)[10:50]</code></pre>
 <pre><code>##  [1] &quot;Betaine.Synthesis&quot;                                   
 ##  [2] &quot;Carnosine.Synthesis&quot;                                 
 ##  [3] &quot;Citrulline.Synthesis&quot;                                
@@ -1427,7 +1419,7 @@ pre code {
 ## [100] &quot;rLC_neg_mtb_7386555&quot; &quot;rLC_neg_mtb_5221157&quot;</code></pre>
 </div>
 <div id="biocrates-info-on-each-metabolite-provided-by-biocrates" class="section level2">
-<h2>Biocrates: info on each metabolite, provided by Biocrates</h2>
+<h2>Biocrates: info on each metabolite, provided by biocrates</h2>
 <pre><code>## [1] &quot;Dimension&quot;</code></pre>
 <pre><code>## [1] 467 631</code></pre>
 <pre><code>## [1] &quot;Type of features&quot;</code></pre>
@@ -1470,7 +1462,7 @@ pre code {
 ##  [97] &quot;GCA&quot;             &quot;GCDCA&quot;           &quot;GDCA&quot;            &quot;GLCA&quot;</code></pre>
 </div>
 <div id="biocrates-normalized-normalized-between-plates" class="section level2">
-<h2>Biocrates Normalized: normalized between plates</h2>
+<h2>Biocrates normalized: normalized between plates</h2>
 <pre><code>## [1] &quot;Dimension&quot;</code></pre>
 <pre><code>## [1] 446 631</code></pre>
 <pre><code>## [1] &quot;Sample data&quot;</code></pre>
@@ -1486,14 +1478,6 @@ pre code {
 </div>
 <div id="vital" class="section level1">
 <h1>VITAL</h1>
-<pre class="r"><code>hmo &lt;- read.csv(&quot;/data/KI/imic/data/raw_lab_data/vital/milk_analytes/HMO_VITAL.csv&quot;)
-sapient &lt;- read.csv(&quot;/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Sapient_VITAL.csv&quot;)
-bvit &lt;- read.csv(&quot;/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Allen_Bvit_VITAL.csv&quot;)
-biocrates &lt;- read.csv(&quot;/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Biocrates_VITAL_NOT_Normalized.csv&quot;)
-biocratesNorm &lt;- read.csv(&quot;/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Biocrates_VITAL_Normalized_toALL_NS.csv&quot;)
-pbl &lt;- read.csv(&quot;/data/KI/imic/data/raw_lab_data/vital/milk_analytes/PBL_VITAL_NOT_Normalized.csv&quot;)
-pblNorm &lt;- read.csv(&quot;/data/KI/imic/data/raw_lab_data/vital/milk_analytes/PBL_VITAL_Normalized.csv&quot;)
-metabolInd &lt;- read.csv(&quot;/data/KI/imic/data/raw_lab_data/vital/milk_analytes/MetaboIndicators/Biocrates_VITAL_Normalized_MetaboINDICATOR.csv&quot;)</code></pre>
 <div id="hmo-1" class="section level2">
 <h2>HMO</h2>
 <p>Note: “Secretor”, “Diversity”, “Evenness”, “SUM_nmol/mL”, “SUM_ug/mL”, “Sia_nmol/mL”, and “Fuc_nmol/mL” are summary variables. The suffix “_nmol/mL”, “_ug/mL” and “_pct” indicate different units for the same HMOs.</p>
@@ -2573,19 +2557,13 @@ metabolInd &lt;- read.csv(&quot;/data/KI/imic/data/raw_lab_data/vital/milk_analy
 </div>
 <div id="metaboindicators-metabolite-sums-and-ratios-1" class="section level2">
 <h2>MetaboIndicators: metabolite sums and ratios</h2>
-<pre class="r"><code>print(&quot;Dimension&quot;)</code></pre>
 <pre><code>## [1] &quot;Dimension&quot;</code></pre>
-<pre class="r"><code>dim(metabolInd)</code></pre>
 <pre><code>## [1] 310 112</code></pre>
-<pre class="r"><code>print(&quot;Type of features&quot;)</code></pre>
 <pre><code>## [1] &quot;Type of features&quot;</code></pre>
-<pre class="r"><code>table(sapply(metabolInd, class))</code></pre>
 <pre><code>## 
 ## character   numeric 
 ##         1       111</code></pre>
-<pre class="r"><code>print(&quot;Sample data&quot;)</code></pre>
 <pre><code>## [1] &quot;Sample data&quot;</code></pre>
-<pre class="r"><code>head(metabolInd)[15:17]</code></pre>
 <pre><code>##   Cysteine.Synthesis Cystine.Synthesis
 ## 1         0.08292578          1.818500
 ## 2         0.12476348          2.257989
@@ -2600,9 +2578,7 @@ metabolInd &lt;- read.csv(&quot;/data/KI/imic/data/raw_lab_data/vital/milk_analy
 ## 4                                        1.812500
 ## 5                                        3.978407
 ## 6                                        1.889229</code></pre>
-<pre class="r"><code>print(&quot;Sample column names&quot;)</code></pre>
 <pre><code>## [1] &quot;Sample column names&quot;</code></pre>
-<pre class="r"><code>names(metabolInd)[10:50]</code></pre>
 <pre><code>##  [1] &quot;Betaine.Synthesis&quot;                                   
 ##  [2] &quot;Carnosine.Synthesis&quot;                                 
 ##  [3] &quot;Citrulline.Synthesis&quot;                                
@@ -2698,7 +2674,7 @@ metabolInd &lt;- read.csv(&quot;/data/KI/imic/data/raw_lab_data/vital/milk_analy
 ## [100] &quot;rLC_neg_mtb_7386555&quot; &quot;rLC_neg_mtb_5221157&quot;</code></pre>
 </div>
 <div id="biocrates-info-on-each-metabolite-provided-by-biocrates-1" class="section level2">
-<h2>Biocrates: info on each metabolite, provided by Biocrates</h2>
+<h2>Biocrates: info on each metabolite, provided by biocrates</h2>
 <pre><code>## [1] &quot;Dimension&quot;</code></pre>
 <pre><code>## [1] 355 631</code></pre>
 <pre><code>## [1] &quot;Type of features&quot;</code></pre>
@@ -2741,7 +2717,7 @@ metabolInd &lt;- read.csv(&quot;/data/KI/imic/data/raw_lab_data/vital/milk_analy
 ##  [97] &quot;GCA&quot;             &quot;GCDCA&quot;           &quot;GDCA&quot;            &quot;GLCA&quot;</code></pre>
 </div>
 <div id="biocrates-normalized-normalized-between-plates-1" class="section level2">
-<h2>Biocrates Normalized: normalized between plates</h2>
+<h2>Biocrates normalized: normalized between plates</h2>
 <pre><code>## [1] &quot;Dimension&quot;</code></pre>
 <pre><code>## [1] 340 631</code></pre>
 <pre><code>## [1] &quot;Sample data&quot;</code></pre>
@@ -2823,7 +2799,7 @@ metabolInd &lt;- read.csv(&quot;/data/KI/imic/data/raw_lab_data/vital/milk_analy
 ##  [99] &quot;AAWSPYEDAVPAANAR_2&quot;                 &quot;AAYDVSSFSFFQR_2&quot;</code></pre>
 </div>
 <div id="pbl-normalized" class="section level2">
-<h2>PBL Normalized</h2>
+<h2>PBL normalized</h2>
 <pre><code>## [1] &quot;Dimension&quot;</code></pre>
 <pre><code>## [1]   178 14534</code></pre>
 <pre><code>## [1] &quot;Sample data&quot;</code></pre>
