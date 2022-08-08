@@ -18,11 +18,7 @@ library(nnls)
 library(dplyr)
 library(MASS)
 
-## Load data
-vitalWide <- readRDS("/data/KI/imic/results/wideVital.RDS")
-# Read in comma-separated dataset.
-vitalBio <- read.table("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Allen_Bvit_VITAL.csv",
-                       sep = ",", header = TRUE)
+# Try to merge biomarker with the covariates dataset [DELETE AFTER]-------------
 
 elicitWide <- readRDS("/data/KI/imic/results/wideElicit.RDS")
 bvitE <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Allen_Bvit_ELICIT.csv")
@@ -34,7 +30,15 @@ bvitE $ X = substring(bvitE $ X, 6)
 sum(table(unique(bvitE $ X)))
 
 # Check for similarities between the ID's in elicitWide and bvitE
+intersect(elicitWide $ subjid, bvitE $ X) # Only 6 shared obs. Not a great way to merge.
+setdiff(bvitE $ X, elicitWide $ subjid)
+#-------------------------------------------------------------------------------
 
+## Load data
+vitalWide <- readRDS("/data/KI/imic/results/wideVital.RDS")
+# Read in comma-separated dataset.
+vitalBio <- read.table("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Allen_Bvit_VITAL.csv",
+                       sep = ",", header = TRUE)
 
 # Since the wide vital dataset and the vital biomarker datasets are not mergable
 # yet, we randomly select 150 observations from the vital biomarker dataset and 
