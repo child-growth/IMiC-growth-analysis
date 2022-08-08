@@ -48,7 +48,7 @@ Note: “Secretor”, “Diversity”, “Evenness”, “SUM_nmol/mL”, “SUM
 # hmoElicit <- table1(~ ., data = hmo)
 # saveRDS(hmoElicit, file = paste0(BV_dir, "/results/hmoElicit.RDS"))
 # readRDS("/data/KI/imic/results/hmoElicit.RDS")
-ExpData(data=hmo, type=1)
+ExpData(data = hmo, type = 1)
 print("Sample data")
 head(hmo)[15:17]
 print("Sample column names")
@@ -61,7 +61,7 @@ names(hmo)[10:50]
 # bvitElicit <- table1(~ ., data = bvit)
 # saveRDS(bvitElicit, file = paste0(BV_dir, "/results/bvitElicit.RDS"))
 # readRDS("/data/KI/imic/results/bvitElicit.RDS")
-ExpData(data=bvit, type=1)
+ExpData(data = bvit, type = 1)
 print("Sample data")
 head(bvit)[15:17]
 print("Column names")
@@ -70,7 +70,7 @@ names(bvit)
 
 ## MetaboIndicators: metabolite sums and ratios
 ```{r, echo=FALSE}
-ExpData(data=metabolInd, type=1)
+ExpData(data = metabolInd, type = 1)
 print("Sample data")
 head(metabolInd)[15:17]
 print("Sample column names")
@@ -79,7 +79,7 @@ names(metabolInd)[10:50]
 
 ## Sapient: untargeted metabolomics
 ```{r, echo=FALSE}
-ExpData(data=sapient, type=1)
+ExpData(data = sapient, type = 1)
 print("Sample data")
 head(sapient)[15:17]
 print("Sample column names")
@@ -88,7 +88,7 @@ names(sapient)[50000:50100]
 
 ## Biocrates: info on each metabolite, provided by biocrates
 ```{r, echo=FALSE}
-ExpData(data=biocrates, type=1)
+ExpData(data = biocrates, type = 1)
 print("Sample data")
 head(biocrates)[12:15]
 print("Sample column names")
@@ -97,7 +97,7 @@ names(biocrates)[1:100]
 
 ## Biocrates normalized: normalized between plates
 ```{r, echo=FALSE}
-ExpData(data=biocratesNorm, type=1)
+ExpData(data = biocratesNorm, type = 1)
 print("Sample data")
 head(biocratesNorm)[12:15]
 print("Column names are identical to the non-normalized biocrates dataset.")
@@ -122,7 +122,7 @@ Note: “Secretor”, “Diversity”, “Evenness”, “SUM_nmol/mL”, “SUM
 # hmoVital <- table1(~ ., data = hmo)
 # saveRDS(hmoVital, file = paste0(BV_dir, "/results/hmoVital.RDS"))
 # readRDS("/data/KI/imic/results/hmoVital.RDS")
-ExpData(data=hmo, type=1)
+ExpData(data = hmo, type = 1)
 print("Sample data")
 head(hmo)[15:17]
 print("Sample column names")
@@ -135,7 +135,7 @@ names(hmo)[10:50]
 # bvitVital <- table1(~ ., data = bvit)
 # saveRDS(bvitVital, file = paste0(BV_dir, "/results/bvitVital.RDS"))
 # readRDS("/data/KI/imic/results/bvitVital.RDS")
-ExpData(data=bvit, type=1)
+ExpData(data = bvit, type = 1)
 print("Sample data")
 head(bvit)[15:17]
 print("Column names")
@@ -144,7 +144,7 @@ names(bvit)
 
 ## MetaboIndicators: metabolite sums and ratios
 ```{r, echo=FALSE}
-ExpData(data=metabolInd, type=1)
+ExpData(data = metabolInd, type = 1)
 print("Sample data")
 head(metabolInd)[15:17]
 print("Sample column names")
@@ -153,7 +153,7 @@ names(metabolInd)[10:50]
 
 ## Sapient: untargeted metabolomics
 ```{r, echo=FALSE}
-ExpData(data=sapient, type=1)
+ExpData(data = sapient, type = 1)
 print("Sample data")
 head(sapient)[15:17]
 print("Sample column names")
@@ -162,7 +162,7 @@ names(sapient)[50000:50100]
 
 ## Biocrates: info on each metabolite, provided by biocrates
 ```{r, echo=FALSE}
-ExpData(data=biocrates, type=1)
+ExpData(data = biocrates, type = 1)
 print("Sample data")
 head(biocrates)[12:15]
 print("Sample column names")
@@ -171,7 +171,7 @@ names(biocrates)[1:100]
 
 ## Biocrates normalized: normalized between plates
 ```{r, echo=FALSE}
-ExpData(data=biocratesNorm, type=1)
+ExpData(data = biocratesNorm, type = 1)
 print("Sample data")
 head(biocratesNorm)[12:15]
 print("Column names are identical to the non-normalized biocrates dataset.")
@@ -179,7 +179,7 @@ print("Column names are identical to the non-normalized biocrates dataset.")
 
 ## PBL: LC-MS proteomic data
 ```{r, echo=FALSE}
-ExpData(data=pbl, type=1)
+ExpData(data = pbl, type = 1)
 print("Sample data")
 head(pbl)[12:15]
 print("Sample column names")
@@ -188,7 +188,7 @@ names(pbl)[1:100]
 
 ## PBL normalized
 ```{r, echo=FALSE}
-ExpData(data=pblNorm, type=1)
+ExpData(data = pblNorm, type = 1)
 print("Sample data")
 head(pblNorm)[12:15]
 print("Column names are identical to the non-normalized PBL dataset.")

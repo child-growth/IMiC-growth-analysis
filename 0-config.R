@@ -17,18 +17,14 @@ library(here)
 library(data.table)
 library(ggthemes)
 
-
-
-
-
 # Define directories
 # results that can be pushed to github:
 res_dir                           = "/data/KI/imic/results/"
-data_dir                           = "/data/KI/imic/data/"
+data_dir                          = "/data/KI/imic/data/"
 ghapdata_dir                      = "/data/KI/imic/data/"
 
 #Bluevelvet directory
-BV_dir                           = "/data/KI/imic/"
+BV_dir                            = "/data/KI/imic/"
 
 
 project_functions_dir             = paste0(here::here(),"/0-project-functions")
@@ -67,6 +63,7 @@ source(paste0(project_functions_dir, "/0_descriptive_epi_shared_functions.R"))
 source(paste0(project_functions_dir, "/0_descriptive_epi_stunt_functions.R"))
 source(paste0(project_functions_dir, "/0_descriptive_epi_wast_functions.R"))
 source(paste0(project_functions_dir, "/0_risk_factor_functions.R"))
+source(paste0(project_functions_dir, "/0_shift_intervention_functions.R"))
 
 
 # Set theme
