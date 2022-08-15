@@ -287,10 +287,10 @@ subset <- function (data) {
 baselineV <- subset("base")
 m1 <- subset("m1")
 m2 <- subset("m2")
-m2 <- subset("m3")
-m2 <- subset("m4")
-m2 <- subset("m5")
-m2 <- subset("m6")
+m3 <- subset("m3")
+m4 <- subset("m4")
+m5 <- subset("m5")
+m6 <- subset("m6")
 
 # Here we can see that in the monthly datasets, there are multiple rows per 
 # subject, which means that we need to fix those before we pivot to wide. 
@@ -332,10 +332,10 @@ subset <- function (data) {
 baselineV <- subset("base")
 m1 <- subset("m1")
 m2 <- subset("m2")
-m2 <- subset("m3")
-m2 <- subset("m4")
-m2 <- subset("m5")
-m2 <- subset("m6")
+m3 <- subset("m3")
+m4 <- subset("m4")
+m5 <- subset("m5")
+m6 <- subset("m6")
 
 # This is good for baseline and m1: we have exactly 150 observations but it is
 # not good for other months because they are all less than 150, especially m2.
@@ -380,7 +380,7 @@ monthly <- function (data) {
     pivot_wider(id_cols = id,
                 names_from = visit2,
                 values_from = all_of(valuesMonthly)) %>%
-    select(-id)
+    dplyr::select(-id)
 }
 
 # Pivot all monthly data to wide
