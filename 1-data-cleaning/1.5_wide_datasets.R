@@ -28,6 +28,7 @@ head(d)
 
 table(is.na(d$exbfdu_r))
 table((d$h2osrcp))
+
 # Fill out empty cells with NA
 d <- d %>% mutate_all(na_if,"")
 
@@ -45,6 +46,17 @@ d $ visit <- gsub("Enrolment", "base", d $ visit)
 ## Look at visit and ageday and figure out how to clean the visit variable
 visitAgedays <- d %>%
   select(visit, agedays)
+
+## Fill out all BMID rows with the same ID for each subject.
+d <- d %>%
+  group_by("studyid", "subjido") %>%
+  fill(bmid) %>%
+  fill(bmid, .direction = "up") # Upwards.
+
+d <- d %>%
+  group_by("studyid", "subjido") %>%
+  fill(bmid) %>%
+  fill(bmid, .direction = "down") # Downwards.
 
 # Subset the data into 2 sites. This is because when pivoting to wide, 
 # only 200 got included. This is because some specific measures are exclusively
@@ -99,7 +111,7 @@ table(elicit $ visit2)
 
 # Clean up the dataset: delete unnecessary variables
 delete <- c("visitimpcm", "visitnum", "visit", "ageimpcm", 
-            "ageimpfl", "sexn", "delivrdt", "bmid", "armcd", "exbfdef")
+            "ageimpfl", "sexn", "delivrdt", "armcd", "exbfdef")
 
 elicit <- elicit[, !names(d) %in% delete]
 
@@ -109,7 +121,7 @@ elicit $ h2osrcp <- ifelse(elicit $ h2osrcp == "Surface water(river/dam/lake/pon
 ## Make id a values vectors
 id = c("country", "studyid", "siteid", "subjid", "subjido", "studytyp")
 
-valuesBaselineE = c("arm", "sex", "brthyr", "brthweek", "mage", "parity", 
+valuesBaselineE = c("bmid", "arm", "sex", "brthyr", "brthweek", "mage", "parity", 
                     "nlchild", "nperson", "nrooms", "meducyrs", "h2osrcp", 
                     "cookplac", "inctot", "inctotu", "epochn", "epoch", 
                     "mhtcm", "mwtkg", "mbmi",  "pregout", "dlvloc", "dvseason",
@@ -160,7 +172,7 @@ other <- function (data1, data2) {
     pivot_wider(id_cols = id,
                 names_from = visit2,
                 values_from = data2) %>%
-    select(-id)
+    dplyr::select(-id)
 }
 
 # Use the function
@@ -197,11 +209,8 @@ gg_miss_var(dStatic[, 1:ncol(dStatic)], show_pct = T)
 saveRDS(combinedWideElicit, file = paste0(BV_dir, "/results/wideElicit.RDS"))
 
 # Anonymized data
-combinedWideElicit <- combinedWideElicit %>%
-  select(-id)
-
-# Save the dataset
-#saveRDS(combinedWideElicit, file = paste0(BV_dir, "/results/wideElicit.RDS"))
+# combinedWideElicit <- combinedWideElicit %>%
+#   dplyr::select(-id)
 
 #------------------------------------------------------------------------------#
 #          Make Summary Table and missingness plot - ELICIT [DONE]             #
@@ -259,7 +268,7 @@ table(vital $ visit2, vital $ agedays)
 
 # Clean up the dataset: delete unnecessary variables
 delete <- c("visitimpcm", "visitnum", "visit", "ageimpcm", 
-            "ageimpfl", "sexn", "delivrdt", "bmid", "armcd", "exbfdef")
+            "ageimpfl", "sexn", "delivrdt", "armcd", "exbfdef")
 
 vital <- vital[, !names(vital) %in% delete]
 
@@ -344,7 +353,7 @@ m6 <- subset("m6")
 ## Make values vectors for pivoting
 #cat(paste(shQuote(names(vital), type="cmd"), collapse=", "))
 
-valuesBase <- c("arm", "sex", "brthyr", "brthweek", "mage", "parity", "nlchild", 
+valuesBase <- c("bmid", "arm", "sex", "brthyr", "brthweek", "mage", "parity", "nlchild", 
                 "nperson", "nrooms", "meducyrs", "h2osrcp", "cookplac", "agedays", 
                 "epochn", "epoch", "mhtcm", "mwtkg", "mbmi", "mhgb", "pregout", 
                 "dlvloc", "wtkg", "lencm", "bmi", "muaccm", "waz", "haz", "whz",
@@ -406,11 +415,8 @@ combinedWideV <- combinedWideV[, -which(colMeans(is.na(combinedWideV)) == 1)]
 saveRDS(combinedWideV, file = paste0(BV_dir, "/results/wideVital.RDS"))
 
 # Anonymized data
-combinedWideVital <- combinedWideV %>%
-  select(-id)
-
-# Save the anonymized dataset
-#saveRDS(combinedWideVital, file = paste0(BV_dir, "/results/wideVital.RDS"))
+# combinedWideVital <- combinedWideV %>%
+#   select(-id)
 
 #------------------------------------------------------------------------------#
 #             Make Summary Table and missingness plots - VITAL [DONE]          #      

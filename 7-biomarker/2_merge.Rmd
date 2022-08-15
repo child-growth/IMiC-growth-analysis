@@ -1,0 +1,62 @@
+Merge wide and biomarker datasets using the BMID variable for both VITAL and ELICIT.
+
+## Load libraries
+```{r}
+BV_dir = "/data/KI/imic/"
+
+library(DataExplorer)
+library(tidyverse)
+library(table1)
+library(data.table)
+library(SmartEDA)
+```
+
+# ELICIT
+
+## Load datasets: wide + biomarker
+```{r}
+wideElicit <- readRDS("/data/KI/imic/results/wideElicit.RDS")
+hmo <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/HMO_ELICIT.csv")
+hmo <- rename("bmid_base" = "X", hmo)
+
+sapient <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Sapient_ELICIT.csv")
+sapient <- rename("bmid_base" = "X", sapient)
+
+bvit <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Allen_Bvit_ELICIT.csv")
+biocratesNorm <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Biocrates_ELICIT_Normalized_toALL_NS.csv")
+biocrates <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Biocrates_ELICIT_NOT_Normalized.csv")
+metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/MetaboIndicators/Biocrates_ELICIT_Normalized_MetaboINDICATOR.csv")
+```
+
+## Merge
+```{r}
+hmoMerged <- merge(wideElicit, hmo, by = "bmid_base", all = TRUE)
+sapientMerged <- merge(wideElicit, sapient, by = "bmid_base", all = TRUE)
+```
+
+# VITAL
+```{r, echo=FALSE}
+wideVital <- readRDS("/data/KI/imic/results/wideVital.RDS")
+hmo <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/HMO_VITAL.csv")
+sapient <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Sapient_VITAL.csv")
+bvit <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Allen_Bvit_VITAL.csv")
+biocrates <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Biocrates_VITAL_NOT_Normalized.csv")
+biocratesNorm <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Biocrates_VITAL_Normalized_toALL_NS.csv")
+pbl <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/PBL_VITAL_NOT_Normalized.csv")
+pblNorm <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/PBL_VITAL_Normalized.csv")
+metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/MetaboIndicators/Biocrates_VITAL_Normalized_MetaboINDICATOR.csv")
+```
+
+## Merge
+```{r}
+hmoMerged <- merge(wideElicit, hmo, by = "bmid_base", all = TRUE)
+sapientMerged <- merge(wideElicit, sapient, by = "bmid_base", all = TRUE)
+```
+
+
+
+
+
+
+
+
