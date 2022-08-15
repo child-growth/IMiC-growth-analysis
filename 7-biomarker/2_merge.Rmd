@@ -16,6 +16,7 @@ library(SmartEDA)
 ## Load datasets: wide + biomarker
 ```{r}
 wideElicit <- readRDS("/data/KI/imic/results/wideElicit.RDS")
+
 hmo <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/HMO_ELICIT.csv")
 hmo <- rename("bmid_base" = "X", hmo)
 
@@ -23,15 +24,37 @@ sapient <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Sapien
 sapient <- rename("bmid_base" = "X", sapient)
 
 bvit <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Allen_Bvit_ELICIT.csv")
+bvit <- rename("bmid_base" = "X", bvit)
+
 biocratesNorm <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Biocrates_ELICIT_Normalized_toALL_NS.csv")
+biocratesNorm <- rename("bmid_base" = "X", biocratesNorm)
+
 biocrates <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Biocrates_ELICIT_NOT_Normalized.csv")
+biocrates <- rename("bmid_base" = "X", biocrates)
+
 metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/MetaboIndicators/Biocrates_ELICIT_Normalized_MetaboINDICATOR.csv")
+metabolInd <- rename("bmid_base" = "X", metabolInd)
 ```
 
 ## Merge
 ```{r}
 hmoMerged <- merge(wideElicit, hmo, by = "bmid_base", all = TRUE)
+saveRDS(hmoMerged, file = paste0(BV_dir, "/data/raw_lab_data/elicit/merged/hmo.RDS"))
+
 sapientMerged <- merge(wideElicit, sapient, by = "bmid_base", all = TRUE)
+saveRDS(sapientMerged, file = paste0(BV_dir, "/data/raw_lab_data/elicit/merged/sapient.RDS"))
+
+bvitMerged <- merge(wideElicit, bvit, by = "bmid_base", all = TRUE)
+saveRDS(bvitMerged, file = paste0(BV_dir, "/data/raw_lab_data/elicit/merged/bvit.RDS"))
+
+biocratesNormMerged <- merge(wideElicit, biocratesNorm, by = "bmid_base", all = TRUE)
+saveRDS(biocratesNormMerged, file = paste0(BV_dir, "/data/raw_lab_data/elicit/merged/biocratesNorm.RDS"))
+
+biocratesMerged <- merge(wideElicit, biocrates, by = "bmid_base", all = TRUE)
+saveRDS(biocratesMerged, file = paste0(BV_dir, "/data/raw_lab_data/elicit/merged/biocrates.RDS"))
+
+metabolIndMerged <- merge(wideElicit, metabolInd, by = "bmid_base", all = TRUE)
+saveRDS(metabolIndMerged, file = paste0(BV_dir, "/data/raw_lab_data/elicit/merged/metabolInd.RDS"))
 ```
 
 # VITAL
