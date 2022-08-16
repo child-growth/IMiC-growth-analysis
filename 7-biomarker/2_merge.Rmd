@@ -60,20 +60,63 @@ saveRDS(metabolIndMerged, file = paste0(BV_dir, "/data/raw_lab_data/elicit/merge
 # VITAL
 ```{r, echo=FALSE}
 wideVital <- readRDS("/data/KI/imic/results/wideVital.RDS")
+
 hmo <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/HMO_VITAL.csv")
+hmo <- rename("bmid_base" = "X", hmo)
+
 sapient <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Sapient_VITAL.csv")
+sapient <- rename("bmid_base" = "X", sapient)
+
 bvit <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Allen_Bvit_VITAL.csv")
+bvit <- rename("bmid_base" = "X", bvit) # This one does not have matching ID.
+
 biocrates <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Biocrates_VITAL_NOT_Normalized.csv")
+biocrates <- rename("bmid_base" = "X", biocrates)
+
 biocratesNorm <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Biocrates_VITAL_Normalized_toALL_NS.csv")
+biocratesNorm <- rename("bmid_base" = "X", biocratesNorm)
+
 pbl <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/PBL_VITAL_NOT_Normalized.csv")
+pbl <- rename("bmid_base" = "X", pbl)
+pbl $ bmid_base
+
+# Substring the variable so that we only have the exact ID left.
+
+
 pblNorm <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/PBL_VITAL_Normalized.csv")
+pblNorm <- rename("bmid_base" = "X", pblNorm)
+
+
 metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/MetaboIndicators/Biocrates_VITAL_Normalized_MetaboINDICATOR.csv")
+metabolInd <- rename("bmid_base" = "X", metabolInd)
 ```
 
 ## Merge
 ```{r}
-hmoMerged <- merge(wideElicit, hmo, by = "bmid_base", all = TRUE)
-sapientMerged <- merge(wideElicit, sapient, by = "bmid_base", all = TRUE)
+hmoMerged <- merge(wideVital, hmo, by = "bmid_base", all = TRUE)
+saveRDS(hmoMerged, file = paste0(BV_dir, "/data/raw_lab_data/vital/merged/hmo.RDS"))
+
+sapientMerged <- merge(wideVital, sapient, by = "bmid_base", all = TRUE)
+saveRDS(sapientMerged, file = paste0(BV_dir, "/data/raw_lab_data/vital/merged/sapient.RDS"))
+
+# This one's IDs do not match so we cannot merge.
+# bvitMerged <- merge(wideVital, bvit, by = "bmid_base", all = TRUE)
+# saveRDS(bvitMerged, file = paste0(BV_dir, "/data/raw_lab_data/vital/merged/bvit.RDS"))
+
+biocratesNormMerged <- merge(wideVital, biocratesNorm, by = "bmid_base", all = TRUE)
+saveRDS(biocratesNormMerged, file = paste0(BV_dir, "/data/raw_lab_data/vital/merged/biocratesNorm.RDS"))
+
+biocratesMerged <- merge(wideVital, biocrates, by = "bmid_base", all = TRUE)
+saveRDS(biocratesMerged, file = paste0(BV_dir, "/data/raw_lab_data/vital/merged/biocrates.RDS"))
+
+pblNormMerged <- merge(wideVital, pblNorm, by = "bmid_base", all = TRUE)
+saveRDS(pblNormMerged, file = paste0(BV_dir, "/data/raw_lab_data/vital/merged/pblNorm.RDS"))
+
+pblMerged <- merge(wideVital, pbl, by = "bmid_base", all = TRUE)
+saveRDS(pblMerged, file = paste0(BV_dir, "/data/raw_lab_data/vital/merged/pbl.RDS"))
+
+metabolIndMerged <- merge(wideVital, metabolInd, by = "bmid_base", all = TRUE)
+saveRDS(metabolIndMerged, file = paste0(BV_dir, "/data/raw_lab_data/vital/merged/metabolInd.RDS"))
 ```
 
 
