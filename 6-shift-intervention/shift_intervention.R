@@ -4,10 +4,13 @@
 #   Wide dataset + biomarker data
 # Outputs:
 #   A dataframe of results
+# Author:
+#   Sajia Darwish
 #-------------------------------------------------------------------------------
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 
+library(tidyverse)
 library(data.table)
 library(haldensify)
 library(sl3)
@@ -18,55 +21,50 @@ library(nnls)
 library(dplyr)
 library(MASS)
 
-# Try to merge biomarker with the covariates dataset [DELETE AFTER]-------------
-
-elicitWide <- readRDS("/data/KI/imic/results/wideElicit.RDS")
-bvitE <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Allen_Bvit_ELICIT.csv")
-
-# Remove the first 5 elements of the X column in bvitE
-bvitE $ X = substring(bvitE $ X, 6)
-
-# Check for unique ID's in bvitE
-sum(table(unique(bvitE $ X)))
-
-# Check for similarities between the ID's in elicitWide and bvitE
-intersect(elicitWide $ subjid, bvitE $ X) # Only 6 shared obs. Not a great way to merge.
-setdiff(bvitE $ X, elicitWide $ subjid)
-#-------------------------------------------------------------------------------
-
 ## Load data
-vitalWide <- readRDS("/data/KI/imic/results/wideVital.RDS")
-# Read in comma-separated dataset.
-vitalBio <- read.table("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Allen_Bvit_VITAL.csv",
-                       sep = ",", header = TRUE)
+# vitalWide <- readRDS("/data/KI/imic/results/wideVital.RDS")
+# # Read in comma-separated dataset.
+# vitalBio <- read.table("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/Allen_Bvit_VITAL.csv",
+#                        sep = ",", header = TRUE)
+# 
+# # Since the wide vital dataset and the vital biomarker datasets are not mergable
+# # yet, we randomly select 150 observations from the vital biomarker dataset and 
+# # combine it with the wide data for testing the models.
+# 
+# # Randomly sample 150 observations from the biomarker dataset.
+# rand_df <- vitalBio[sample(nrow(vitalBio), nrow(vitalWide)), ]
+# 
+# # Combine datasets
+# data <- as.data.frame(cbind(vitalWide, rand_df))
 
-# Since the wide vital dataset and the vital biomarker datasets are not mergable
-# yet, we randomly select 150 observations from the vital biomarker dataset and 
-# combine it with the wide data for testing the models.
+hmoE <- readRDS("/data/KI/imic/data/raw_lab_data/elicit/merged/hmo.RDS")
+names(hmoE)
 
-# Randomly sample 150 observations from the biomarker dataset.
-rand_df <- vitalBio[sample(nrow(vitalBio), nrow(vitalWide)), ]
-
-# Combine datasets
-data <- as.data.frame(cbind(vitalWide, rand_df))
+# Get rid of ID columns and baseline measures of outcomes.
+delete <- c("country", "studyid", "siteid", "subjid", "subjido", "studytyp")
+hmoE <- hmoE[, !names(hmoE) %in% delete]
 
 ## Baseline covariates.
-W <- as.data.frame(cbind(data $ nlchild_base, data $ nperson_base, data $ nrooms_base))
+W <- hmoE %>%
+  dplyr::select(ends_with("base")) %>%
+  dplyr::select(!c("bmid_base", "waz_base", "haz_base", "whz_base", "baz_base"))
 
 ## Create treatment based on baseline W.
-A <- c(data $ TPP)
+A <- hmoE %>%
+  dplyr::select(ends_with("ug.mL"))
 
 ## Create outcome as a linear function of A, W + white noise.
-Y <- c(data $ haz_m6)
+Y <- c(hmoE $ haz_m6)
 
 # Use the function
-shiftFunc(covariates = W, treat = A, outcome = Y, shift = 0.05)
+shiftFunc(covariates = W, treat = A[, 1], outcome = Y, shift = 0.05, data = hmoE)
 
 # Run the function over each biomarker
-vitalBio $ X = NULL
-for (i in 1:ncol(vitalBio)) {
-  shiftFunc(covariates = W, treat = vitalBio[, i], outcome = Y, shift = 0.05)
+for (i in 1:ncol(A)) {
+  shiftFunc(covariates = W, treat = A[, i], outcome = Y, shift = 0.05, data = hmoE)
 }
+
+class(A $X2.FL_ug.mL)
 
 
 # FOR FUTURE--------------------------------------------------------------------

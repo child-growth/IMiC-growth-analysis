@@ -8,7 +8,7 @@
 
 # Make a wrapper function-------------------------------------------------------
 
-shiftFunc <- function (covariates, treat, outcome, shift) {
+shiftFunc <- function (covariates, treat, outcome, shift, data) {
   
   # 1. OUTCOME REGRESSION
   
