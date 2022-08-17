@@ -78,7 +78,6 @@ biocratesNorm <- rename("bmid_base" = "X", biocratesNorm)
 
 pbl <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/PBL_VITAL_NOT_Normalized.csv")
 pbl <- rename("bmid_base" = "X", pbl)
-pbl $ bmid_base
 
 # Substring the variable so that we only have the exact ID left.
 # Keep everything before and up to "_P": 
