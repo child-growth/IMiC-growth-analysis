@@ -87,10 +87,18 @@ pbl $ bmid_base <- gsub("_P.*", "", pbl $ bmid_base)
 # Remove all before and up to "_A".
 pbl $ bmid_base <- gsub(".*_A", "", pbl $ bmid_base)
 
-# Add A in front of all strings ending with W
-for (i in 1:nrow(pbl)) {
-    ifelse(endsWith(pbl[i, 1], 'W') == TRUE, paste0("A", pbl[i, 1]), pbl[i, 1])
-}
+# Subset the data to those with ID's ending with W and without.
+withW <- pbl %>%
+  filter(str_detect(bmid_base, "W"))
+
+woW <- pbl %>%
+  filter(!str_detect(bmid_base, "W"))
+
+# Add A in front of all strings ending with W.
+withW $ bmid_base <- paste0("A", withW $ bmid_base)
+
+# Append the rest to the withW dataset.
+pbl <- rbind(withW, woW)
 
 pblNorm <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/PBL_VITAL_Normalized.csv")
 pblNorm <- rename("bmid_base" = "X", pblNorm)
@@ -102,10 +110,18 @@ pblNorm $ bmid_base <- gsub("_P.*", "", pblNorm $ bmid_base)
 # Remove all before and up to "_A".
 pblNorm $ bmid_base <- gsub(".*_A", "", pblNorm $ bmid_base)
 
-# Add A in front of all strings ending with W
-for (i in 1:nrow(pblNorm)) {
-    ifelse(endsWith(pblNorm[i, 1], 'W') == TRUE, paste0("A", pblNorm[i, 1]), pblNorm[i, 1])
-}
+# Subset the data to those with ID's ending with W and without.
+withW <- pblNorm %>%
+  filter(str_detect(bmid_base, "W"))
+
+woW <- pblNorm %>%
+  filter(!str_detect(bmid_base, "W"))
+
+# Add A in front of all strings ending with W.
+withW $ bmid_base <- paste0("A", withW $ bmid_base)
+
+# Append the rest to the withW dataset.
+pblNorm <- rbind(withW, woW)
 
 metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/MetaboIndicators/Biocrates_VITAL_Normalized_MetaboINDICATOR.csv")
 metabolInd <- rename("bmid_base" = "X", metabolInd)
@@ -138,8 +154,6 @@ saveRDS(pblMerged, file = paste0(BV_dir, "/data/raw_lab_data/vital/merged/pbl.RD
 metabolIndMerged <- merge(wideVital, metabolInd, by = "bmid_base", all = TRUE)
 saveRDS(metabolIndMerged, file = paste0(BV_dir, "/data/raw_lab_data/vital/merged/metabolInd.RDS"))
 ```
-
-
 
 
 
