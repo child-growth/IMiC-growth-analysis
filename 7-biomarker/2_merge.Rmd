@@ -1,4 +1,5 @@
 Merge wide and biomarker datasets using the BMID variable for both VITAL and ELICIT.
+Author: Sajia Darwish
 
 ## Load libraries
 ```{r}

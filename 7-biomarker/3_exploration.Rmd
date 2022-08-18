@@ -1,0 +1,65 @@
+---
+title: |
+  | Exploration of Biomarker Data
+author: "Sajia Darwish"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+keep_tex: yes
+theme: bclear
+fontsize: 10pt
+geometry: margin=1in
+header-includes:
+- \usepackage{enumitem}
+- \usepackage{indentfirst}
+- \usepackage[default, scale=1]{raleway}
+- \usepackage[T1]{fontenc}
+- \usepackage{inconsolata}
+always_allow_html: yes
+---
+
+# ELICIT
+```{r, echo=FALSE}
+library(tidyverse)
+detach(package:network)
+library(igraph)
+
+hmo <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/HMO_ELICIT.csv")
+hmo <- rename("bmid" = "X", hmo)
+
+sapient <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Sapient_ELICIT.csv")
+sapient <- rename("bmid_base" = "X", sapient)
+
+bvit <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Allen_Bvit_ELICIT.csv")
+bvit <- rename("bmid_base" = "X", bvit)
+
+biocratesNorm <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Biocrates_ELICIT_Normalized_toALL_NS.csv")
+biocratesNorm <- rename("bmid_base" = "X", biocratesNorm)
+
+biocrates <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Biocrates_ELICIT_NOT_Normalized.csv")
+biocrates <- rename("bmid_base" = "X", biocrates)
+
+metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/MetaboIndicators/Biocrates_ELICIT_Normalized_MetaboINDICATOR.csv")
+metabolInd <- rename("bmid_base" = "X", metabolInd)
+```
+
+# HMOs: network analysis
+```{r, echo=FALSE}
+hmo <- hmo %>%
+  dplyr::select(c("bmid", ends_with("ug.mL"))) %>%
+  dplyr::select(!"SUM_ug.mL") %>%
+  substr()
+```
+
+
+
+
+
+
+
+
