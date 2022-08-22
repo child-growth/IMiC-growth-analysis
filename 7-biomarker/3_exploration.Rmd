@@ -62,12 +62,14 @@ hmo <- hmo %>%
 # Cleanup column names
 colnames(hmo) <- sub("_.*", "", colnames(hmo))
 
-# Version 1: simple network
+# Collapse hmo data into long format
+long <- pivot_longer(hmo, cols = everything())
+
+# Version 1: simplest network
 corMatrix <- cor(hmo, method = "pearson", use = "complete.obs")
 corMatrix %>%
   network_plot()
 
-# Version 2: trying harder
 library("Hmisc")
 corMatrix2 <- rcorr(as.matrix(hmo))
 
@@ -84,6 +86,50 @@ flattenCorrMatrix <- function(cormat, pmat) {
 corMatrix3 <- flattenCorrMatrix(corMatrix2 $ r, corMatrix2 $ P)
 ```
 
+# Network analysis: first try
+```{r}
+# Edge list
+EL <- corMatrix4
+
+EL <- rename(EL, from = row)
+EL <- rename(EL, to = column)
+EL <- rename(EL, weight = cor)
+EL $ weight <- abs(EL $ weight)
+
+# Node list
+NL <- as.data.frame(unique(long $ name))
+
+hmoNetwork <- graph_from_data_frame(d = EL, vertices = NL, directed = FALSE)
+
+V(hmoNetwork)
+E(hmoNetwork)
+
+plot(hmoNetwork, 
+     edge.arrow.size = .5, 
+     vertex.color = "plum", 
+     vertex.label.dist = 2.5)
+
+E(hmoNetwork) $ width <- E(hmoNetwork) $ weight
+
+plot(hmoNetwork, 
+     edge.arrow.size = .7, 
+     vertex.label.dist = 2.5, 
+     edge.curved = .2)#, 
+     #layout = Layout2)
+
+Layout3 <- layout_with_kk(hmoNetwork)
+
+plot(hmoNetwork, 
+     edge.arrow.size = 1, 
+     vertex.label.dist = 2, 
+     layout = Layout3)
+
+```
+
+# Network analysis: 2nd try
+```{r}
+
+```
 
 
 
