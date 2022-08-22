@@ -26,8 +26,13 @@ always_allow_html: yes
 # ELICIT
 ```{r, echo=FALSE}
 library(tidyverse)
-detach(package:network)
+# if (!require("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+#BiocManager::install("BioNetStat")
+library(BioNetStat)
 library(igraph)
+library(corrr)
+install.packages("corrr")
 
 hmo <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/HMO_ELICIT.csv")
 hmo <- rename("bmid" = "X", hmo)
@@ -51,9 +56,32 @@ metabolInd <- rename("bmid_base" = "X", metabolInd)
 # HMOs: network analysis
 ```{r, echo=FALSE}
 hmo <- hmo %>%
-  dplyr::select(c("bmid", ends_with("ug.mL"))) %>%
-  dplyr::select(!"SUM_ug.mL") %>%
-  substr()
+  dplyr::select(ends_with("ug.mL")) %>%
+  dplyr::select(!"SUM_ug.mL")
+
+# Cleanup column names
+colnames(hmo) <- sub("_.*", "", colnames(hmo))
+
+# Version 1: simple network
+corMatrix <- cor(hmo, method = "pearson", use = "complete.obs")
+corMatrix %>%
+  network_plot()
+
+# Version 2: trying harder
+library("Hmisc")
+corMatrix2 <- rcorr(as.matrix(hmo))
+
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+    )
+}
+
+corMatrix3 <- flattenCorrMatrix(corMatrix2 $ r, corMatrix2 $ P)
 ```
 
 
