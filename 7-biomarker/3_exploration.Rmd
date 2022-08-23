@@ -84,6 +84,8 @@ flattenCorrMatrix <- function(cormat, pmat) {
 }
 
 corMatrix3 <- flattenCorrMatrix(corMatrix2 $ r, corMatrix2 $ P)
+corMatrix4 <- corMatrix3 %>%
+  select(-p)
 ```
 
 # Network analysis: first try
@@ -128,6 +130,21 @@ plot(hmoNetwork,
 
 # Network analysis: 2nd try
 ```{r}
+#test <- scale(hmo, center = F, scale = T) # Not useful for biological data.
+# Paper: https://link.springer.com/article/10.1186/1471-2164-7-142
+
+range01 <- function(x, ...){(x - min(x, ...)) / (max(x, ...) - min(x, ...))}
+hmoScaled <- range01(hmo)
+
+distMatrix <- as.matrix(dist(hmoScaled))
+
+## Use correlations between variables "as distance"
+dd <- as.dist((1 - cor(hmoScaled))/2)
+round(1000 * dd) # (prints more nicely)
+plot(hclust(dd)) # to see a dendrogram of clustered variables
+
+# Collapse dist matrix to long formatted data
+
 
 ```
 
