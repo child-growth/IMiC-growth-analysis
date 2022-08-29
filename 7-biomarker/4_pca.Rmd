@@ -1,0 +1,132 @@
+---
+title: |
+  |Principal Component Analysis
+author: "Sajia Darwish"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+keep_tex: yes
+theme: bclear
+fontsize: 10pt
+geometry: margin=1in
+header-includes:
+- \usepackage{enumitem}
+- \usepackage{indentfirst}
+- \usepackage[default, scale=1]{raleway}
+- \usepackage[T1]{fontenc}
+- \usepackage{inconsolata}
+always_allow_html: yes
+---
+
+```{r, echo=FALSE}
+library(tidyverse)
+#install.packages("rlang")
+library(tidymodels)
+library(corrplot)
+library(ggrepel)
+library(tidytext)
+library(dotwhisker) # for coefficient plots
+
+# hmo <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/HMO_ELICIT.csv")
+# hmo <- rename("bmid" = "X", hmo)
+# 
+# sapient <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Sapient_ELICIT.csv")
+# sapient <- rename("bmid_base" = "X", sapient)
+# 
+# bvit <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Allen_Bvit_ELICIT.csv")
+# bvit <- rename("bmid_base" = "X", bvit)
+# 
+biocratesNorm <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Biocrates_ELICIT_Normalized_toALL_NS.csv")
+biocratesNorm <- rename("bmid_base" = "X", biocratesNorm)
+
+# biocrates <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Biocrates_ELICIT_NOT_Normalized.csv")
+# biocrates <- rename("bmid_base" = "X", biocrates)
+# 
+# metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/MetaboIndicators/Biocrates_ELICIT_Normalized_MetaboINDICATOR.csv")
+# metabolInd <- rename("bmid_base" = "X", metabolInd)
+```
+
+# There are a few steps to take before PCA:
+1) Replace < LOD with with the minimum observed value for each variable divided by 2.
+   Note: after this calculation, some values go to infinity. They have been set to 0.
+2) Check missingness in the data: after cleaning = no missingness.
+3) Remove zero variance variables.
+4) Scale and center all variables to ensure that the criterion for finding linear combinations of the predictors is based on how much variation they explain and therefore improve numerical stability.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+data <- biocratesNorm %>%
+  select(-bmid_base)
+
+# Change <LOD to NA.
+for (i in 1:ncol(data)) {
+  data[, i] = ifelse(data[, i] == "< LOD", NA, data[, i])
+}
+
+# Make all variables numeric.
+#str(data)
+data <- as.data.frame(sapply(data, as.numeric))
+
+# Prepare for test beforehand
+#min(data $C5.OH..C3.DC.M., na.rm = T) / 2 #0.040535 #Correct
+
+# Change these values to min/2.
+data <- data %>% 
+  mutate_if(is.numeric, function(x) ifelse(is.na(x), min(x, na.rm = T) / 2, x))
+
+# Change Inf values to 0.
+for (i in 1:ncol(data)) {
+  data[, i] = ifelse(data[, i] == "Inf", 0, data[, i])
+}
+
+# Check for missingness.
+#table(is.na(data))
+
+# Remove columns with no variance.
+data <- data[ - as.numeric(which(apply(data, 2, var) == 0))]
+#str(data)
+
+#data $ bmid_base <- biocratesNorm $ bmid_base
+```
+
+# PCA using the normalized ELICIT targeted metabolomics data
+
+## Inspect scree plots after running PCA
+```{r}
+pca = prcomp(data, center = TRUE, scale = TRUE)
+
+# Variability of each principal component: pr.var
+pr.var <- pca $ sdev ^ 2
+
+# Variance explained by each principal component: pve
+pve <- pr.var / sum(pr.var)
+
+# Plot variance explained for each principal component
+plot(pve, xlab = "Principal Component",
+     ylab = "Proportion of Variance Explained",
+     ylim = c(0, 1), type = "b")
+
+# Let's zoom in a bit - nope, a lot.
+plot(pve, xlab = "Principal Component",
+     ylab = "Proportion of Variance Explained",
+     ylim = c(0, 1), xlim = c(0, 25), type = "b") # 6-10 components = optimal.
+
+# Plot cumulative proportion of variance explained
+plot(cumsum(pve), xlab = "Principal Component",
+     ylab = "Cumulative Proportion of Variance Explained",
+     ylim = c(0, 1), type = "b")
+
+# Let's zoom in by a lot in here as well
+plot(cumsum(pve), xlab = "Principal Component",
+     ylab = "Cumulative Proportion of Variance Explained",
+     ylim = c(0, 1), xlim = c(0, 25), type = "b")
+```
+
+
+
+
+
