@@ -32,7 +32,6 @@ library(tidyverse)
 library(BioNetStat)
 library(igraph)
 library(corrr)
-install.packages("corrr")
 
 hmo <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/HMO_ELICIT.csv")
 hmo <- rename("bmid" = "X", hmo)
@@ -88,7 +87,7 @@ corMatrix4 <- corMatrix3 %>%
   select(-p)
 ```
 
-# Network analysis: first try
+# Network analysis: first try based on correlation
 ```{r}
 # Edge list
 EL <- corMatrix4
@@ -126,9 +125,14 @@ plot(hmoNetwork,
      vertex.label.dist = 2, 
      layout = Layout3)
 
+## Use correlations between variables "as distance"
+dd <- as.dist((1 - cor(hmoScaled)) / 2)
+round(1000 * dd) # (prints more nicely)
+plot(hclust(dd)) # to see a dendrogram of clustered variables
+
 ```
 
-# Network analysis: 2nd try
+# Network analysis: 2nd try based on distance matrix
 ```{r}
 #test <- scale(hmo, center = F, scale = T) # Not useful for biological data.
 # Paper: https://link.springer.com/article/10.1186/1471-2164-7-142
@@ -136,16 +140,26 @@ plot(hmoNetwork,
 range01 <- function(x, ...){(x - min(x, ...)) / (max(x, ...) - min(x, ...))}
 hmoScaled <- range01(hmo)
 
-distMatrix <- as.matrix(dist(hmoScaled))
+# Transpose the dataset so that each row is an HMO
+transpose <- t(hmoScaled)
 
-## Use correlations between variables "as distance"
-dd <- as.dist((1 - cor(hmoScaled))/2)
-round(1000 * dd) # (prints more nicely)
-plot(hclust(dd)) # to see a dendrogram of clustered variables
+distMatrix <- as.matrix(dist(transpose))
 
-# Collapse dist matrix to long formatted data
+g <- graph_from_adjacency_matrix(distMatrix, mode = "undirected")
 
+plot(g, 
+     edge.arrow.size = .5,
+     edge.color = "gray", 
+     vertex.label.color = "darkred", 
+     vertex.color = "#cccccc", 
+     vertex.label.dist = 1,
+     vertex.label.dist = 2)
 
+layout <- layout.circle(g)
+plot(g, layout = layout)
+
+layout <- layout.fruchterman.reingold(g)
+plot(g, layout = layout)
 ```
 
 
