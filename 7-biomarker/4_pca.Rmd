@@ -22,20 +22,20 @@ header-includes:
 - \usepackage{inconsolata}
 always_allow_html: yes
 ---
-```{r setup1, include=FALSE}
+
+```{r, echo=FALSE}
+# remove.packages("rlang")
+# install.packages("rlang")
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 
 library(tidyverse)
-#install.packages("rlang")
 library(tidymodels)
 library(corrplot)
 library(ggrepel)
 library(tidytext)
 library(dotwhisker) # for coefficient plots.
-```
 
-```{r, echo=FALSE}
 # Load ELICIT datasets
 # hmo <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/HMO_ELICIT.csv")
 # hmo <- rename("bmid" = "X", hmo)
