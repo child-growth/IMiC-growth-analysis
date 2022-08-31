@@ -22,8 +22,7 @@ header-includes:
 - \usepackage{inconsolata}
 always_allow_html: yes
 ---
-
-```{r, echo=FALSE}
+```{r setup1, include=FALSE}
 library(tidyverse)
 #install.packages("rlang")
 library(tidymodels)
@@ -31,158 +30,178 @@ library(corrplot)
 library(ggrepel)
 library(tidytext)
 library(dotwhisker) # for coefficient plots
+```
 
+```{r, echo=FALSE}
+# Load ELICIT datasets
 # hmo <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/HMO_ELICIT.csv")
 # hmo <- rename("bmid" = "X", hmo)
-# 
-# sapient <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Sapient_ELICIT.csv")
-# sapient <- rename("bmid_base" = "X", sapient)
 # 
 # bvit <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Allen_Bvit_ELICIT.csv")
 # bvit <- rename("bmid_base" = "X", bvit)
 # 
 biocratesNorm <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Biocrates_ELICIT_Normalized_toALL_NS.csv")
 biocratesNorm <- rename("bmid_base" = "X", biocratesNorm)
-
+#
+sapient <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Sapient_ELICIT.csv")
+sapient <- rename("bmid_base" = "X", sapient)
+#
 # biocrates <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/Biocrates_ELICIT_NOT_Normalized.csv")
 # biocrates <- rename("bmid_base" = "X", biocrates)
 # 
 # metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/MetaboIndicators/Biocrates_ELICIT_Normalized_MetaboINDICATOR.csv")
 # metabolInd <- rename("bmid_base" = "X", metabolInd)
+
+# Load VITAL datasets
+
 ```
 
-# There are a few steps to take before PCA:
-1) Replace < LOD with with the minimum observed value for each variable divided by 2.
+Steps taken before implementing PCA:
+
+1) Replaced < LOD with with the minimum observed value for each variable divided by 2.
    Note: after this calculation, some values go to infinity. They have been set to 0.
-2) Check missingness in the data: after cleaning = no missingness.
-3) Remove zero variance variables.
-4) Scale and center all variables to ensure that the criterion for finding linear combinations of the predictors is based on how much variation they explain and therefore improve numerical stability.
+2) Checked missingness in the data.
+3) Removed zero variance variables.
+4) Scaled and centered all variables to ensure that the criterion for finding linear combinations of the predictors is based on how much variation they explain and therefore improve numerical stability.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-data <- biocratesNorm %>%
+# Make a function to clean the data. Steps 1-3 above.
+cleanFunc <- function(data) {
+  data %>%
   select(-bmid_base)
 
-# Change <LOD to NA.
-for (i in 1:ncol(data)) {
-  data[, i] = ifelse(data[, i] == "< LOD", NA, data[, i])
+  # Change <LOD to NA.
+  for (i in 1:ncol(data)) {
+    data[, i] = ifelse(data[, i] == "< LOD", NA, data[, i])
+  }
+
+  # Make all variables numeric.
+  #str(data)
+  data <- as.data.frame(sapply(data, as.numeric))
+  
+  # Prepare for test beforehand
+  #min(data $C5.OH..C3.DC.M., na.rm = T) / 2 #0.040535 #Correct
+  
+  # Change these values to min/2.
+  data <- data %>% 
+    mutate_if(is.numeric, function(x) ifelse(is.na(x), min(x, na.rm = T) / 2, x))
+  
+  # Change Inf values to 0.
+  for (i in 1:ncol(data)) {
+    data[, i] = ifelse(data[, i] == "Inf", 0, data[, i])
+  }
+  
+  # Check for missingness.
+  table(is.na(data))
+  
+  # Remove columns with no variance.
+  data <- data[ - as.numeric(which(apply(data, 2, var) == 0))]
+  #str(data)
+
+return(data)
 }
 
-# Make all variables numeric.
-#str(data)
-data <- as.data.frame(sapply(data, as.numeric))
+# Make a function to plot the scree plot.
+screePlot <- function(data) {
+  pca = prcomp(data, center = TRUE, scale = TRUE)
 
-# Prepare for test beforehand
-#min(data $C5.OH..C3.DC.M., na.rm = T) / 2 #0.040535 #Correct
-
-# Change these values to min/2.
-data <- data %>% 
-  mutate_if(is.numeric, function(x) ifelse(is.na(x), min(x, na.rm = T) / 2, x))
-
-# Change Inf values to 0.
-for (i in 1:ncol(data)) {
-  data[, i] = ifelse(data[, i] == "Inf", 0, data[, i])
+  # Variability of each principal component: pr.var
+  pr.var <- pca $ sdev ^ 2
+  
+  # Variance explained by each principal component: pve
+  pve <- pr.var / sum(pr.var)
+  
+  # # Plot variance explained for each principal component
+  # plot(pve, xlab = "Principal Component",
+  #      ylab = "Proportion of Variance Explained",
+  #      ylim = c(0, 1), type = "b")
+  
+  # # Plot cumulative proportion of variance explained
+  # plot(cumsum(pve), xlab = "Principal Component",
+  #      ylab = "Cumulative Proportion of Variance Explained",
+  #      ylim = c(0, 1), type = "b")
+  
+  # Let's zoom in a bit - nope, a lot.
+  plot(pve, xlab = "Principal Component",
+       ylab = "Proportion of Variance Explained",
+       ylim = c(0, 1), xlim = c(0, 25), type = "b") # 6-10 components = optimal.
+  
+  # Let's zoom in by a lot in here as well
+  plot(cumsum(pve), xlab = "Principal Component",
+       ylab = "Cumulative Proportion of Variance Explained",
+       ylim = c(0, 1), xlim = c(0, 25), type = "b")
 }
 
-# Check for missingness.
-#table(is.na(data))
+# Make a function to extract data needed for merging.
+prepData <- function(data, numC) {
+  # Create a recipe
+  char_recipe <- recipe(~ ., data = data) %>%
+    # Tell PCA that these are the identification variables and to not use them.
+    #update_role(bmid_base, new_role = "id") %>%
+    # Scale so the range of variables don't affect our analysis.
+    step_normalize(all_predictors()) %>%
+    step_pca(all_predictors(), num_comp = numC) # Useful for juice().
+  
+  # Prep the recipe and take a look at it. 
+  pca_estimates_prep <- prep(char_recipe)
+return(pca_estimates_prep)
+}
 
-# Remove columns with no variance.
-data <- data[ - as.numeric(which(apply(data, 2, var) == 0))]
-#str(data)
-```
+# Make a function to save PCA estimates by importance and value.
+pcaEstimates <- function(pca_estimates_prep) {
+  # Extract pca results: loadings
+  pca_estimates <- tidy(pca_estimates_prep, 2)
+return(pca_estimates)
+}
 
-# PCA using the normalized ELICIT targeted metabolomics data
+# Make a function to save PCA estimates formatted for plotting.
+pcaEstimatesPlot <- function(pcaEstimates, PC, n) {
+  # Get data in shape to plot
+  pca_estimates2 <- pcaEstimates %>%
+    filter(component %in% paste0("PC", PC)) %>%
+    mutate(importance = value * value,
+           component = fct_inorder(component),
+           terms = reorder_within(terms, # order within component.
+                                  by = importance,
+                                  within = component)) %>%
+    # Get the highest 10 contributors by importance for each component
+    group_by(component) %>%
+    slice_max(importance, n = n)
+  return(pca_estimates2)
+}
 
-## Inspect zoomed-in scree plots after running PCA
-```{r, echo=FALSE}
-pca = prcomp(data, center = TRUE, scale = TRUE)
+# Plot top 10 contributors to each component based on importance.
+top10cI <- function(estimates) {
+  estimates %>%
+    ggplot() +
+    geom_col(aes(y = importance, 
+                 x = terms, 
+                 fill = importance < 1/ncol(data))) +
+    geom_hline(yintercept = 1/ncol(data)) +
+    facet_wrap(~ component, 
+               nrow = 2,
+               scales = "free") + 
+    guides(fill = "none") +
+    scale_x_reordered() +
+    xlab("") + ylab("") +
+    coord_flip() +
+    ggtitle("10 top contributors to each component by importance") +
+    theme(axis.text.x = element_blank(),
+          axis.ticks = element_blank())
+}
 
-# Variability of each principal component: pr.var
-pr.var <- pca $ sdev ^ 2
-
-# Variance explained by each principal component: pve
-pve <- pr.var / sum(pr.var)
-
-# # Plot variance explained for each principal component
-# plot(pve, xlab = "Principal Component",
-#      ylab = "Proportion of Variance Explained",
-#      ylim = c(0, 1), type = "b")
-
-# # Plot cumulative proportion of variance explained
-# plot(cumsum(pve), xlab = "Principal Component",
-#      ylab = "Cumulative Proportion of Variance Explained",
-#      ylim = c(0, 1), type = "b")
-
-# Let's zoom in a bit - nope, a lot.
-plot(pve, xlab = "Principal Component",
-     ylab = "Proportion of Variance Explained",
-     ylim = c(0, 1), xlim = c(0, 25), type = "b") # 6-10 components = optimal.
-
-# Let's zoom in by a lot in here as well
-plot(cumsum(pve), xlab = "Principal Component",
-     ylab = "Cumulative Proportion of Variance Explained",
-     ylim = c(0, 1), xlim = c(0, 25), type = "b")
-```
-
-# Examine the PCs
-```{r}
-# Create a recipe
-char_recipe <- recipe(~ ., data = data) %>%
-  # Tell PCA that these are the identification variables and to not use them.
-  #update_role(bmid_base, new_role = "id") %>%
-  # Scale so the range of variables don't affect our analysis.
-  step_normalize(all_predictors()) %>%
-  step_pca(all_predictors(), num_comp = 10) # Useful for juice().
-
-# Prep the recipe and take a look at it. 
-pca_estimates_prep <- prep(char_recipe)
-
-# Extract pca results: loadings
-pca_estimates <- tidy(pca_estimates_prep, 2)
-
-# Get data in shape to plot
-pca_estimates2 <- pca_estimates %>%
-  filter(component %in% paste0("PC", 1:10)) %>%
-  mutate(importance = value * value,
-         component = fct_inorder(component),
-         terms = reorder_within(terms, # order within component.
-                                by = importance,
-                                within = component)) %>%
-  # Get the highest 10 contributors by importance for each component
-  group_by(component) %>%
-  slice_max(importance, n = 10)
-
-# Plot the highest 10 contributors to each component by importance
-pca_estimates2 %>%
+# Plot top 10 contributors based on value.
+top10cV <- function(estimates)
+estimates %>%
   ggplot() +
-  geom_col(aes(y = importance, 
+  geom_col(aes(y = value, 
                x = terms, 
-               fill = importance < 0.002)) + # 1/603 (number of PCA variables)
-  geom_hline(yintercept = 0.002) +
+               fill = importance < 1/ncol(data))) +
+  geom_hline(yintercept = 1/ncol(data)) +
   facet_wrap(~ component, 
              nrow = 2,
              scales = "free") + 
   guides(fill = "none") +
-  scale_x_reordered() +
-  xlab("") + ylab("") +
-  coord_flip() +
-  ggtitle("10 top contributors to each component by importance") +
-  theme(axis.text.x = element_blank(),
-        axis.ticks = element_blank())
-```
-
-```{r}
-# Plot the highest 10 contributors to each component by value to get direction
-pca_estimates2 %>%
-  ggplot() +
-  geom_col(aes(y = value, 
-               x = terms, 
-               fill = importance < 0.002)) +
-  geom_hline(yintercept = 0.002) +
-  facet_wrap(~ component, 
-             nrow = 2,
-             scales = "free") + 
-  guides(fill = FALSE) +
   scale_x_reordered() +
   xlab("") + ylab("") +
   coord_flip() +
@@ -191,18 +210,81 @@ pca_estimates2 %>%
         axis.ticks = element_blank())
 ```
 
-# Merge the PC data with ID's and save dataset.
-```{r}
-dataPC <- juice(pca_estimates_prep)
-bmid_base = biocratesNorm[, 1]
-fullData <- cbind(bmid_base, dataPC)
+Notes about the following results:
+
+1) Number of components for each dataset has been chosen based on their respective scree plots.
+2) Importance has been calculated based on the contribution of a variable to each component. For example, if all variables would contribute equally to each component they would each take up 1/ncol(data). So, any variable that contributes more than 1/ncol(data) to a component can be considered as an important contributor to that component. The vertical line in each plot represents this threshold.
+3) Output data from PCA merged with bmid has been saved to "/data/KI/imic/results/pcaData/".
+
+# ELICIT
+
+## Biocrates Normalizes: targeted metabolomics data
+
+### Scree plot
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+data <- cleanFunc(biocratesNorm)
+screePlot(data)
 ```
 
+```{r, echo=FALSE}
+# Merge the PC data with ID's and save dataset.
+prepData <- prepData(data = data, numC = 10)
+biocratesNormPC <- juice(prepData)
+bmid_base = biocratesNorm[, 1]
+biocratesNormPC <- cbind(bmid_base, biocratesNormPC)
+saveRDS(biocratesNormPC, file = paste0("/data/KI/imic/results/pcaData/elicit/biocratesNormPC.RDS"))
+```
 
+### Run PCA and display sample output
+```{r, echo=FALSE}
+pcaEstimates <- pcaEstimates(pca_estimates_prep = prepData)
+head(pcaEstimates)
+pcaEstimatesPlot <- pcaEstimatesPlot(pcaEstimates = pcaEstimates, PC = 1:10, n = 10)
+```
 
+### Top ten contributors to each component based on importance
+```{r, echo=FALSE}
+top10cI(estimates = pcaEstimatesPlot)
+```
 
+### Top 10 contributors to each component by value to see direction
+```{r, echo=FALSE}
+top10cV(estimates = pcaEstimatesPlot)
+```
 
+## Sapient: untargeted metabolomics data
 
+### Scree plot
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+data <- cleanFunc(sapient)
+screePlot(data)
+```
+
+### Run PCA and display sample output
+```{r, echo=FALSE}
+prepData <- prepData(data = data, numC = 10)
+pcaEstimates <- pcaEstimates(pca_estimates_prep = prepData)
+head(pcaEstimates)
+pcaEstimatesPlot <- pcaEstimatesPlot(pcaEstimates = pcaEstimates, PC = 1:10, n = 10)
+```
+
+### Top ten contributors to each component based on importance
+```{r, echo=FALSE}
+top10cI(estimates = pcaEstimatesPlot)
+```
+
+### Top 10 contributors to each component by value to see direction
+```{r, echo=FALSE}
+top10cV(estimates = pcaEstimatesPlot)
+```
+
+```{r, echo=FALSE}
+# Merge the PC data with ID's and save dataset.
+sapientPC <- juice(prepData)
+bmid_base = sapient[, 1]
+sapientPC <- cbind(bmid_base, sapientPC)
+saveRDS(sapientPC, file = paste0("/data/KI/imic/results/pcaData/elicit/sapientPC.RDS"))
+```
 
 
 
