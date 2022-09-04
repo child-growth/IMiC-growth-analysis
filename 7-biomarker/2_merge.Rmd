@@ -123,6 +123,9 @@ withW $ bmid_base <- paste0("A", withW $ bmid_base)
 # Append the rest to the withW dataset.
 pblNorm <- rbind(withW, woW)
 
+# Save this cleaned dataset
+saveRDS(pblNorm, file = paste0(BV_dir, "/data/raw_lab_data/vital/milk_analytes/pblNormCleaned.RDS"))
+
 metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/MetaboIndicators/Biocrates_VITAL_Normalized_MetaboINDICATOR.csv")
 metabolInd <- rename("bmid_base" = "X", metabolInd)
 ```
