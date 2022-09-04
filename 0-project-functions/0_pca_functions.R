@@ -55,14 +55,15 @@ screePlot <- function(data) {
   #      ylim = c(0, 1), type = "b")
   
   # Let's zoom in a bit - nope, a lot.
-  plot(pve, xlab = "Principal Component",
+  plot <- plot(pve, xlab = "Principal Component",
        ylab = "Proportion of Variance Explained",
        ylim = c(0, 1), xlim = c(0, 25), type = "b") # 6-10 components = optimal.
   
-  # Let's zoom in by a lot in here as well
-  plot(cumsum(pve), xlab = "Principal Component",
-       ylab = "Cumulative Proportion of Variance Explained",
-       ylim = c(0, 1), xlim = c(0, 25), type = "b")
+  # # Let's zoom in by a lot in here as well
+  # plot(cumsum(pve), xlab = "Principal Component",
+  #      ylab = "Cumulative Proportion of Variance Explained",
+  #      ylim = c(0, 1), xlim = c(0, 25), type = "b")
+  return(plot)
 }
 
 # Make a function to extract data needed for merging.
@@ -73,7 +74,7 @@ prepData <- function(data, numC) {
     #update_role(bmid_base, new_role = "id") %>%
     # Scale so the range of variables don't affect our analysis.
     step_normalize(all_predictors()) %>%
-    step_pca(all_predictors(), num_comp = numC) # Useful for juice().
+    step_pca(all_numeric(), num_comp = numC) # Useful for juice().
   
   # Prep the recipe and take a look at it. 
   pca_estimates_prep <- prep(char_recipe)
@@ -104,40 +105,54 @@ pcaEstimatesPlot <- function(pcaEstimates, PC, n) {
 }
 
 # Plot top 10 contributors to each component based on importance.
-top10cI <- function(estimates) {
-  estimates %>%
+top10cI <- function(estimates, data) {
+  num = 1/ncol(data)
+  plot <- estimates %>%
     ggplot() +
     geom_col(aes(y = importance, 
                  x = terms, 
-                 fill = importance < 1/ncol(data))) +
-    geom_hline(yintercept = 1/ncol(data)) +
-    facet_wrap(~ component, 
-               nrow = 2,
-               scales = "free") + 
+                 fill = importance < num)) +
+    geom_hline(yintercept = num) +
+    # facet_wrap(~ component, 
+    #            nrow = 2,
+    #            scales = "free") +
+    facet_grid(~ component, scales = "free") +#, space = 'free') +
     guides(fill = "none") +
     scale_x_reordered() +
     xlab("") + ylab("") +
     coord_flip() +
-    ggtitle("10 top contributors to each component by importance") +
-    theme(axis.text.x = element_blank(),
-          axis.ticks = element_blank())
+    #ggtitle("10 top contributors to each component by importance") +
+    theme(strip.background = element_blank(),
+          axis.text.y = element_text(size = 5),
+          axis.text.x = element_blank(),
+          axis.ticks = element_blank(),
+        strip.text = element_text(size = rel(0.5), margin = margin()),
+        panel.spacing = unit(2, "pt"))
+  return(plot)
 }
 
 # Plot top 10 contributors based on value.
-top10cV <- function(estimates)
+top10cV <- function(estimates, data) {
+  num = 1/ncol(data)
   estimates %>%
   ggplot() +
   geom_col(aes(y = value, 
                x = terms, 
-               fill = importance < 1/ncol(data))) +
-  geom_hline(yintercept = 1/ncol(data)) +
-  facet_wrap(~ component, 
-             nrow = 2,
-             scales = "free") + 
+               fill = importance < num)) +
+  geom_hline(yintercept = num) +
+  # facet_wrap(~ component, 
+  #            nrow = 2,
+  #            scales = "free") + 
+  facet_grid(~ component, scales = "free", space = 'free') +
   guides(fill = "none") +
   scale_x_reordered() +
   xlab("") + ylab("") +
   coord_flip() +
-  ggtitle("10 top contributors to each component by value") +
-  theme(axis.text.x = element_blank(),
-        axis.ticks = element_blank())
+  #ggtitle("10 top contributors to each component by value") +
+    theme(strip.background = element_blank(),
+          axis.text.y = element_text(size = 5),
+          axis.text.x = element_blank(),
+          axis.ticks = element_blank(),
+          strip.text = element_text(size = rel(0.5), margin = margin()),
+          panel.spacing = unit(2, "pt"))
+}
