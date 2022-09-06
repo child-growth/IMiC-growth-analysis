@@ -86,7 +86,7 @@ biocratesNormPC <- cbind(bmid_base, biocratesNormPC)
 
 # Scree plot
 cleanData <- cleanFunc(metabolInd)
-ggsave(screePlot(cleanData), filename = paste0(BV_dir, "/results/pcaData/elicit/metabolIndsPlot.png"))
+ggsave(screePlot(cleanData), filename = paste0(BV_dir, "/results/pcaData/meIndEsPlot.png"))
 
 ### Run PCA and display sample output
 prepData <- prepData(data = cleanData, numC = 8)

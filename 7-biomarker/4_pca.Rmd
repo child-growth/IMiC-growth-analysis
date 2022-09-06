@@ -64,7 +64,7 @@ knitr::include_graphics(paste0(BV_dir,"results/pcaData/elicit/biocratesNormEtop1
 
 ### Scree plot
 ```{r, echo=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-#knitr::include_graphics(paste0(BV_dir,"results/pcaData/elicit/metabolIndsPlot.png"))
+knitr::include_graphics(paste0(BV_dir,"results/pcaData/elicit/meIndEsPlot.png"))
 ```
 
 ### Top 10 contributors: importance
@@ -83,7 +83,7 @@ knitr::include_graphics(paste0(BV_dir,"results/pcaData/elicit/metabolIndtop10cV.
 
 ### Scree plot
 ```{r, echo=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-#knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/biocratesNormVsPlot.png"))
+knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/biocratesNormVsPlot.png"))
 ```
 
 ### Top 10 contributors: importance
@@ -100,7 +100,7 @@ knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/biocratesNormVtop10
 
 ### Scree plot
 ```{r, echo=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-#knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/metabolIndsPlot.png"))
+knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/metabolIndsPlot.png"))
 ```
 
 ### Top 10 contributors: importance
@@ -117,7 +117,7 @@ knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/metabolIndtop10cV.p
 
 ### Scree plot
 ```{r, echo=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-#knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/pblNormVsPlot.png"))
+knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/pblNormVsPlot.png"))
 ```
 
 ### Top 10 contributors: importance
