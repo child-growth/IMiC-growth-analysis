@@ -66,6 +66,23 @@ screePlot <- function(data) {
   return(plot)
 }
 
+# Make a function to plot the scree plot.
+screePlot2 <- function(data) {
+  pca = prcomp(data, center = TRUE, scale = TRUE)
+  
+  # Variability of each principal component: pr.var
+  pr.var <- pca $ sdev ^ 2
+  
+  # Variance explained by each principal component: pve
+  pve <- pr.var / sum(pr.var)
+  
+  # Plot cumulative proportion of variance explained
+  plot <- plot(cumsum(pve), xlab = "Principal Component",
+       ylab = "Cumulative Proportion of Variance Explained",
+       ylim = c(0, 1), xlim = c(0, 50), type = "b")
+  return(plot)
+}
+
 # Make a function to extract data needed for merging.
 prepData <- function(data, numC) {
   # Create a recipe
@@ -109,11 +126,11 @@ top10cI <- function(estimates, data) {
   num = 1/ncol(data)
   plot <- estimates %>%
     ggplot() +
-    geom_col(aes(y = importance, 
+    geom_col(aes(y = importance,
                  x = terms, 
                  fill = importance < num)) +
     geom_hline(yintercept = num) +
-    # facet_wrap(~ component, 
+    # facet_wrap(~ component,
     #            nrow = 2,
     #            scales = "free") +
     facet_grid(~ component, scales = "free") +#, space = 'free') +
@@ -143,7 +160,7 @@ top10cV <- function(estimates, data) {
   # facet_wrap(~ component, 
   #            nrow = 2,
   #            scales = "free") + 
-  facet_grid(~ component, scales = "free", space = 'free') +
+  facet_grid(~ component, scales = "free") +#, space = 'free') +
   guides(fill = "none") +
   scale_x_reordered() +
   xlab("") + ylab("") +

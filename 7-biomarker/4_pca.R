@@ -56,14 +56,15 @@ pblNormV <- readRDS("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/pblNorm
 ## Biocrates Normalizes: targeted metabolomics data-----------------------------
 
 # Scree plot
-cleanData <- cleanFunc(biocratesNormE)
-ggsave(screePlot(cleanData), filename = paste0(BV_dir, "/results/pcaData/elicit/biocratesNormEsPlot.png"))
+cleanData <- cleanFunc(biocratesNormE) # Save plots as 800x500 png.
+#ggsave(screePlot(cleanData), filename = paste0(BV_dir, "/results/pcaData/elicit/biocratesNormEsPlot.png"))
+#ggsave(screePlot2(cleanData), filename = paste0(BV_dir, "/results/pcaData/elicit/biocratesNormEsPlot2.png"))
 
 ### Run PCA and display sample output
-prepData <- prepData(data = cleanData, numC = 10)
+prepData <- prepData(data = cleanData, numC = 30) #num of components to extract.
 pcaLoadings <- pcaEstimates(pca_estimates_prep = prepData)
 head(pcaLoadings)
-pcaEstimatesPlot <- pcaEstimatesPlot(pcaEstimates = pcaLoadings, PC = 1:10, n = 10)
+pcaEstimatesPlot <- pcaEstimatesPlot(pcaEstimates = pcaLoadings, PC = 1:30, n = 10) # n = number of top contributors.
 
 ### Top ten contributors to each component based on importance
 ggsave(top10cI(estimates = pcaEstimatesPlot, data = cleanData), width = 1500,
@@ -86,7 +87,8 @@ biocratesNormPC <- cbind(bmid_base, biocratesNormPC)
 
 # Scree plot
 cleanData <- cleanFunc(metabolInd)
-ggsave(screePlot(cleanData), filename = paste0(BV_dir, "/results/pcaData/meIndEsPlot.png"))
+ggsave(screePlot(cleanData), filename = paste0(BV_dir, "/results/pcaData/elicit/meIndEsPlot.png"))
+ggsave(screePlot2(cleanData), filename = paste0(BV_dir, "/results/pcaData/elicit/meIndEsPlot2.png"))
 
 ### Run PCA and display sample output
 prepData <- prepData(data = cleanData, numC = 8)
@@ -118,6 +120,7 @@ saveRDS(metabolIndPC, file = paste0("/data/KI/imic/results/pcaData/elicit/metabo
 # Scree plot
 cleanData <- cleanFunc(biocratesNormV)
 ggsave(screePlot(cleanData), filename = paste0(BV_dir, "/results/pcaData/vital/biocratesNormVsPlot.png"))
+ggsave(screePlot2(cleanData), filename = paste0(BV_dir, "/results/pcaData/vital/biocratesNormVsPlot2.png"))
 
 ### Run PCA and display sample output
 prepData <- prepData(data = cleanData, numC = 10)
@@ -147,6 +150,7 @@ saveRDS(biocratesNormPC, file = paste0("/data/KI/imic/results/pcaData/vital/bioc
 # Scree plot
 cleanData <- cleanFunc(metabolIndV)
 ggsave(screePlot(cleanData), filename = paste0(BV_dir, "/results/pcaData/vital/metabolIndsPlot.png"))
+ggsave(screePlot2(cleanData), filename = paste0(BV_dir, "/results/pcaData/vital/metabolIndsPlot2.png"))
 
 ### Run PCA and display sample output
 prepData <- prepData(data = cleanData, numC = 8)
@@ -176,6 +180,7 @@ saveRDS(metabolIndPC, file = paste0("/data/KI/imic/results/pcaData/vital/metabol
 # Scree plot
 cleanData <- cleanFunc(pblNormV)
 ggsave(screePlot(cleanData), filename = paste0(BV_dir, "/results/pcaData/vital/pblNormVsPlot.png"))
+ggsave(screePlot2(cleanData), filename = paste0(BV_dir, "/results/pcaData/vital/pblNormVsPlot2.png"))
 
 ### Run PCA and display sample output
 prepData <- prepData(data = cleanData, numC = 8)

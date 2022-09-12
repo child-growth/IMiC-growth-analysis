@@ -30,7 +30,7 @@ library(tidyverse)
 Steps taken before implementing PCA:
 
 1) Replaced < LOD with with the minimum observed value for each variable divided by 2.
-   Note: after this calculation, some values go to infinity. They have been set to 0.
+   Note: after this calculation, some values go to infinity because all observations for some variables were <LOD. They have been set to 0. This doesn't really matter because these variables were later removed due to having zero variance.
 2) Checked missingness in the data.
 3) Removed zero variance variables.
 4) Scaled and centered all variables to ensure that the criterion for finding linear combinations of the predictors is based on how much variation they explain and therefore improve numerical stability.
@@ -45,9 +45,10 @@ Notes about the following results:
 
 ## Biocrates normalized: targeted metabolomics data
 
-### Scree plot
+### Scree plots
 ```{r, echo=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 knitr::include_graphics(paste0(BV_dir,"results/pcaData/elicit/biocratesNormEsPlot.png"))
+knitr::include_graphics(paste0(BV_dir,"results/pcaData/elicit/biocratesNormEsPlot2.png"))
 ```
 
 ### Top 10 contributors to each component based on importance
@@ -62,9 +63,10 @@ knitr::include_graphics(paste0(BV_dir,"results/pcaData/elicit/biocratesNormEtop1
 
 ## Metabolite indicators: sums and ratios
 
-### Scree plot
+### Scree plots
 ```{r, echo=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 knitr::include_graphics(paste0(BV_dir,"results/pcaData/elicit/meIndEsPlot.png"))
+knitr::include_graphics(paste0(BV_dir,"results/pcaData/elicit/meIndEsPlot2.png"))
 ```
 
 ### Top 10 contributors: importance
@@ -81,9 +83,10 @@ knitr::include_graphics(paste0(BV_dir,"results/pcaData/elicit/metabolIndtop10cV.
 
 ## Biocrates normalized: targeted metabolomics data
 
-### Scree plot
+### Scree plots
 ```{r, echo=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/biocratesNormVsPlot.png"))
+knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/biocratesNormVsPlot2.png"))
 ```
 
 ### Top 10 contributors: importance
@@ -98,9 +101,10 @@ knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/biocratesNormVtop10
 
 ## Metabolite indicators: sums and ratios
 
-### Scree plot
+### Scree plots
 ```{r, echo=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/metabolIndsPlot.png"))
+knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/metabolIndsPlot2.png"))
 ```
 
 ### Top 10 contributors: importance
@@ -115,9 +119,10 @@ knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/metabolIndtop10cV.p
 
 ## Proteomics data
 
-### Scree plot
+### Scree plots
 ```{r, echo=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/pblNormVsPlot.png"))
+knitr::include_graphics(paste0(BV_dir,"results/pcaData/vital/pblNormVsPlot2.png"))
 ```
 
 ### Top 10 contributors: importance
