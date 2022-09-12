@@ -61,10 +61,10 @@ cleanData <- cleanFunc(biocratesNormE) # Save plots as 800x500 png.
 #ggsave(screePlot2(cleanData), filename = paste0(BV_dir, "/results/pcaData/elicit/biocratesNormEsPlot2.png"))
 
 ### Run PCA and display sample output
-prepData <- prepData(data = cleanData, numC = 30) #num of components to extract.
+prepData <- prepData(data = cleanData, numC = 10) #num of components to extract.
 pcaLoadings <- pcaEstimates(pca_estimates_prep = prepData)
 head(pcaLoadings)
-pcaEstimatesPlot <- pcaEstimatesPlot(pcaEstimates = pcaLoadings, PC = 1:30, n = 10) # n = number of top contributors.
+pcaEstimatesPlot <- pcaEstimatesPlot(pcaEstimates = pcaLoadings, PC = 1:10, n = 10) # n = number of top contributors.
 
 ### Top ten contributors to each component based on importance
 ggsave(top10cI(estimates = pcaEstimatesPlot, data = cleanData), width = 1500,
