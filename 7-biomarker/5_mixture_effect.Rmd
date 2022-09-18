@@ -1,0 +1,66 @@
+---
+title: |
+  Mixture Effects
+author: "Sajia Darwish"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+keep_tex: yes
+theme: bclear
+fontsize: 10pt
+geometry: margin=1in
+header-includes:
+- \usepackage{enumitem}
+- \usepackage{indentfirst}
+- \usepackage[default, scale=1]{raleway}
+- \usepackage[T1]{fontenc}
+- \usepackage{inconsolata}
+always_allow_html: yes
+
+```{r, setup, include = FALSE}
+# qgcomp <- "https://cran.r-project.org/src/contrib/qgcomp_2.8.6.tar.gz"
+# install.packages(qgcomp, type = "source")
+# 
+# 
+# install.packages("qgcomp")
+# library("qgcomp")
+
+# install.packages("devtools")
+# devtools::install_github("alexpkeil1/qgcomp")
+
+data <- readRDS("/data/KI/imic/data/raw_lab_data/elicit/merged/bvit.RDS")
+```
+
+# Quantile G-computation with covariates
+```{r}
+qgcomp(y~x1+x2+x3, expnms=c("x1", "x2", "x3"), data = qdat)
+
+# Save the names of the mixture variables
+mixVars <- c("B12", "TPP", "TMP", "T", "B1", "Ribo", "FMN", "FAD", "NAM", "NAD",
+"NMN", "NR", "Nufa", "PA", "PL", "PM", "PN", "PLP", "Bio", "TRP", "B2", "B3", "B6")
+
+covars = c("sex_base", "mage_base", "nlchild_base")
+
+
+system.time(qc.fit <- qgcomp.noboot(haz_6m ~ ., data = data[, c(mixVars, 'haz_6m')],
+family = gaussian()))
+
+# View results: scaled coefficients/weights and statistical inference about
+# mixture effect
+qc.fit
+```
+
+
+
+
+
+
+
+
+
+
