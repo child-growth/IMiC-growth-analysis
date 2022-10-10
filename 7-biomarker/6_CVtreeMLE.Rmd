@@ -58,6 +58,9 @@ select(c("Secretor", "Diversity", "Evenness", "X2.FL_nmol.mL",
          "FDSLNH_nmol.mL", "DSLNH_nmol.mL", "SUM_nmol.mL", "Sia_nmol.mL", 
          "Fuc_nmol.mL","sex_base", "mage_base", "nlchild_base", "haz_6m"))
 
+# Scramble outcome variable
+hmo $ haz_6m <- sample(hmo $ haz_6m)
+
 # Remove _nmol.mL
 # Keep everything before and up to ":": 
 names(hmo) <- gsub("_nmol.mL.*", "", names(hmo))
