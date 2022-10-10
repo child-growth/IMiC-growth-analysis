@@ -1,0 +1,158 @@
+---
+title: |
+  CVtreeMLE
+author: "Sajia Darwish"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+keep_tex: yes
+theme: bclear
+fontsize: 10pt
+geometry: margin=1in
+header-includes:
+- \usepackage{enumitem}
+- \usepackage{indentfirst}
+- \usepackage[default, scale=1]{raleway}
+- \usepackage[T1]{fontenc}
+- \usepackage{inconsolata}
+always_allow_html: yes
+---
+
+https://github.com/blind-contours/CVtreeMLE/blob/main/vignettes/intro_CVtreeMLE.Rmd
+
+https://github.com/blind-contours/CVtreeMLE
+
+
+```{r, include=FALSE}
+# library(devtools) # For install_github().
+# remotes::install_github("blind-contours/CVtreeMLE@main")
+# remotes::install_github("tlverse/sl3@devel")
+# install.packages("partykit")
+# install.packages("pre")
+
+library(CVtreeMLE)
+library(sl3)
+library(pre)
+library(partykit)
+library(kableExtra)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+
+# Load data
+data <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmo.RDS")
+
+#dput(names(data))
+
+hmo <- data %>%
+select(c("Secretor", "Diversity", "Evenness", "X2.FL_nmol.mL", 
+         "X3FL_nmol.mL", "DFLac_nmol.mL", "X3.SL_nmol.mL", "X6.SL_nmol.mL", 
+         "LNT_nmol.mL", "LNnT_nmol.mL", "LNFP.I_nmol.mL", "LNFP.II_nmol.mL", 
+         "LNFP.III_nmol.mL", "LSTb_nmol.mL", "LSTc_nmol.mL", "DFLNT_nmol.mL", 
+         "LNH_nmol.mL", "DSLNT_nmol.mL", "FLNH_nmol.mL", "DFLNH_nmol.mL", 
+         "FDSLNH_nmol.mL", "DSLNH_nmol.mL", "SUM_nmol.mL", "Sia_nmol.mL", 
+         "Fuc_nmol.mL","sex_base", "mage_base", "nlchild_base", "haz_6m"))
+
+# Remove _nmol.mL
+# Keep everything before and up to ":": 
+names(hmo) <- gsub("_nmol.mL.*", "", names(hmo))
+
+# Convert sex_base to binary
+hmo $ sex_base = ifelse(hmo $ sex_base == "Male", 0, 1)
+```
+
+# Override a function in the package
+```{r}
+pre_model_t0 <- pre::pre(formula,
+                           data = at,
+                           family = "gaussian",
+                           use.grad = FALSE,
+                           tree.unbiased = TRUE,
+                           removecomplements = TRUE,
+                           removeduplicates = TRUE,
+                           maxdepth = pre::maxdepth_sampler(),
+                           sampfrac = min(1, (11 * sqrt(dim(at)[1]) + 1) /
+                                            dim(at)[1]),
+                           nfolds = 10,
+                           par.final = FALSE,
+                           par.init = FALSE
+)
+
+pre_model_t0 <- edit(pre_model_t0)
+```
+
+# Implement CVtreeMLE
+```{r}
+# Save the names of the mixture variables.
+mixVars <- c("X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT",
+             "LNFP.I", "LNFP.II", "LNFP.III", "LSTb", "LSTc", "DFLNT",
+             "LNH", "DSLNT", "FLNH", "DFLNH", "FDSLNH", "DSLNH", "SUM", "Sia", "Fuc")
+
+covars = c("sex_base", "mage_base", "nlchild_base", "Secretor", "Diversity", "Evenness")
+
+# Delete all NAs.
+hmo <- hmo %>%
+  na.omit()
+
+ptm <- proc.time()
+results <- CVtreeMLE(data = hmo,
+                     w = covars,
+                     a = mixVars,
+                     y = "haz_6m",
+                     n_folds = 5,
+                     seed = 1000,
+                     parallel_cv = TRUE,
+                     parallel_type = "multi_session",
+                     family = "continuous",
+                     num_cores = 2)
+proc.time() - ptm
+```
+
+We can look at the pooled TMLE results for this model. Let’s see if CVtreeMLE identified the current rule in all our folds:
+```{r}
+mixture_results <- results $ `Pooled TMLE Mixture Results`
+mixture_results %>%
+  dplyr::filter(Proportion_Folds == 1.0) %>%
+  kbl(caption = "Mixture Results") %>%
+  kable_classic(full_width = FALSE, html_font = "Cambria")
+```
+
+Above, the estimated mixture ATE for this rule is 5.96 (5.6 - 6.4). The estimated mixture ATE is interpreted as: the average counterfactual mean outcome if all individuals were exposed to the rule shown in Union Rule compared to if all individuals were unexposed is 5.96. That is, those individuals who are exposed to this rule have an outcome that is 5.96 higher compared to those that are not exposed to this rule. The standard error, confidence intervals and p-values are derived from the influence curve of this estimator.
+
+We can also look at the v-fold specific results. This gives the analyst the ability to investigate how stable the estimates and rules are. These results are the same as standard sample splitting techniques and therefore have proper variance estimates and p-values. Below we show the v-fold specific interactions found with fold specific estimates of our ATE target parameter and variance estimates from the fold specific IC.
+```{r}
+mixture_v_results <- results $ `V-Specific Mix Results`
+mixture_v_results $ M1M2M3
+```
+
+In v-fold specific results we also give a pooled estimate. This is different than the pooled TMLE estimate. Here we simply take the weighted average of the fold specific ATEs and the harmonic mean of the variances. This is similar to meta-analysis approaches.
+
+We can plot our v-fold mixture results findings using the plot_mixture_results function. This will return a list of plots with names corresponding to the interactions found.
+
+```{r}
+mixture_plots <- plot_mixture_results(v_intxn_results =
+                                      results $ `V-Specific Mix Results`,
+                                      hjust = 1.05)
+mixture_plots $ M1M2M3
+```
+
+This plot shows the ATE specific for each fold and for the weighted-mean results over the fold with corresponding pooled variance. The rule is the union rule which includes all observations that were indicated by the fold specific rules.
+
+CVtreeMLE also data-adaptively identifies thresholds in the marginal space. These around found here:
+```{r}
+marginal_results <- results $ `Pooled TMLE Marginal Results`
+marginal_results %>%
+  dplyr::filter(`Proportion in Fold` == 1.0) %>%
+  kbl(caption = "Marginal Results") %>%
+  kable_classic(full_width = FALSE, html_font = "Cambria")
+```
+
+
+
+
+
