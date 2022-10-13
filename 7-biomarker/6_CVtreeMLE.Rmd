@@ -4,12 +4,12 @@ title: |
 author: "Sajia Darwish"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output:
-  html_document:
-    toc: yes
-    toc_depth: 4
   pdf_document:
     toc: yes
     toc_depth: '4'
+  html_document:
+    toc: yes
+    toc_depth: 4
 keep_tex: yes
 theme: bclear
 fontsize: 10pt
@@ -28,7 +28,7 @@ https://github.com/blind-contours/CVtreeMLE/blob/main/vignettes/intro_CVtreeMLE.
 https://github.com/blind-contours/CVtreeMLE
 
 
-```{r, include=FALSE}
+```{r message=FALSE, warning=FALSE, include=FALSE}
 # library(devtools) # For install_github().
 # remotes::install_github("blind-contours/CVtreeMLE@main")
 # remotes::install_github("tlverse/sl3@devel")
@@ -67,40 +67,22 @@ names(hmo) <- gsub("_nmol.mL.*", "", names(hmo))
 
 # Convert sex_base to binary
 hmo $ sex_base = ifelse(hmo $ sex_base == "Male", 0, 1)
-```
-
-# Override a function in the package
-```{r}
-pre_model_t0 <- pre::pre(formula,
-                           data = at,
-                           family = "gaussian",
-                           use.grad = FALSE,
-                           tree.unbiased = TRUE,
-                           removecomplements = TRUE,
-                           removeduplicates = TRUE,
-                           maxdepth = pre::maxdepth_sampler(),
-                           sampfrac = min(1, (11 * sqrt(dim(at)[1]) + 1) /
-                                            dim(at)[1]),
-                           nfolds = 10,
-                           par.final = FALSE,
-                           par.init = FALSE
-)
-
-pre_model_t0 <- edit(pre_model_t0)
-```
-
-# Implement CVtreeMLE
-```{r}
-# Save the names of the mixture variables.
-mixVars <- c("X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT",
-             "LNFP.I", "LNFP.II", "LNFP.III", "LSTb", "LSTc", "DFLNT",
-             "LNH", "DSLNT", "FLNH", "DFLNH", "FDSLNH", "DSLNH", "SUM", "Sia", "Fuc")
-
-covars = c("sex_base", "mage_base", "nlchild_base", "Secretor", "Diversity", "Evenness")
 
 # Delete all NAs.
 hmo <- hmo %>%
   na.omit()
+```
+
+# Implement CVtreeMLE: text from the package description
+```{r}
+# Save the names of the mixture variables.
+mixVars <- c("X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT",
+             "LNFP.I", "LNFP.II", "LNFP.III", "LSTb", "LSTc", "DFLNT",
+             "LNH", "DSLNT", "FLNH", "DFLNH", "FDSLNH", "DSLNH", "SUM", 
+             "Sia", "Fuc")
+
+covars = c("sex_base", "mage_base", "nlchild_base", "Secretor", "Diversity", 
+           "Evenness")
 
 ptm <- proc.time()
 results <- CVtreeMLE(data = hmo,
@@ -119,18 +101,20 @@ proc.time() - ptm
 We can look at the pooled TMLE results for this model. Let’s see if CVtreeMLE identified the current rule in all our folds:
 ```{r}
 mixture_results <- results $ `Pooled TMLE Mixture Results`
+#write.csv(mixture_results, file = "/data/imic/results/CVtreeMLE.csv")
+
 mixture_results %>%
-  dplyr::filter(Proportion_Folds == 1.0) %>%
+  dplyr::filter(Proportion_Folds == 0.4) %>%
   kbl(caption = "Mixture Results") %>%
   kable_classic(full_width = FALSE, html_font = "Cambria")
 ```
 
-Above, the estimated mixture ATE for this rule is 5.96 (5.6 - 6.4). The estimated mixture ATE is interpreted as: the average counterfactual mean outcome if all individuals were exposed to the rule shown in Union Rule compared to if all individuals were unexposed is 5.96. That is, those individuals who are exposed to this rule have an outcome that is 5.96 higher compared to those that are not exposed to this rule. The standard error, confidence intervals and p-values are derived from the influence curve of this estimator.
+The estimated mixture ATE is interpreted as: the average counterfactual mean outcome if all individuals were exposed to the rule shown in Union Rule compared to if all individuals were unexposed is 5.96. That is, those individuals who are exposed to this rule have an outcome that is 5.96 higher compared to those that are not exposed to this rule. The standard error, confidence intervals and p-values are derived from the influence curve of this estimator.
 
 We can also look at the v-fold specific results. This gives the analyst the ability to investigate how stable the estimates and rules are. These results are the same as standard sample splitting techniques and therefore have proper variance estimates and p-values. Below we show the v-fold specific interactions found with fold specific estimates of our ATE target parameter and variance estimates from the fold specific IC.
 ```{r}
 mixture_v_results <- results $ `V-Specific Mix Results`
-mixture_v_results $ M1M2M3
+mixture_v_results
 ```
 
 In v-fold specific results we also give a pooled estimate. This is different than the pooled TMLE estimate. Here we simply take the weighted average of the fold specific ATEs and the harmonic mean of the variances. This is similar to meta-analysis approaches.
@@ -141,7 +125,7 @@ We can plot our v-fold mixture results findings using the plot_mixture_results f
 mixture_plots <- plot_mixture_results(v_intxn_results =
                                       results $ `V-Specific Mix Results`,
                                       hjust = 1.05)
-mixture_plots $ M1M2M3
+mixture_plots
 ```
 
 This plot shows the ATE specific for each fold and for the weighted-mean results over the fold with corresponding pooled variance. The rule is the union rule which includes all observations that were indicated by the fold specific rules.
@@ -150,7 +134,7 @@ CVtreeMLE also data-adaptively identifies thresholds in the marginal space. Thes
 ```{r}
 marginal_results <- results $ `Pooled TMLE Marginal Results`
 marginal_results %>%
-  dplyr::filter(`Proportion in Fold` == 1.0) %>%
+  dplyr::filter(`Proportion in Fold` == 0.2) %>%
   kbl(caption = "Marginal Results") %>%
   kable_classic(full_width = FALSE, html_font = "Cambria")
 ```
