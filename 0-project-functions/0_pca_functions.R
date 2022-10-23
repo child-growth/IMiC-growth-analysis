@@ -1,7 +1,7 @@
 # Make a function to clean the data.
 cleanFunc <- function(data) {
-  data %>%
-    select(-bmid_base)
+  # data %>%
+  #   select(-bmid_base)
   
   # Change <LOD to NA.
   for (i in 1:ncol(data)) {
