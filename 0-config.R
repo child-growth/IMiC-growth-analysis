@@ -65,6 +65,7 @@ source(paste0(project_functions_dir, "/0_descriptive_epi_wast_functions.R"))
 source(paste0(project_functions_dir, "/0_risk_factor_functions.R"))
 source(paste0(project_functions_dir, "/0_shift_intervention_functions.R"))
 source(paste0(project_functions_dir, "/0_pca_functions.R"))
+source(paste0(project_functions_dir, "/0_preprocessing_functions.R"))
 
 
 # Set theme
