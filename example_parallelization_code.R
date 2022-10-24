@@ -98,9 +98,6 @@ Y = "haz_6m"
 tmleFunc(W = W, A = A[1], Y = Y, data = data)
 
 
-
-
-
 # TO DO-------------------------------------------------------------------------
 # Make a for loop to run over each A.
 res_df <- NULL
