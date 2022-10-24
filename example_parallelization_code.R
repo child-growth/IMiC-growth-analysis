@@ -24,11 +24,6 @@ registerDoParallel(cores=50)
 library(Rsolnp)
 library(dplyr)
 
-# Load data
-data <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
-#dput(names((data)))
-head(data)
-
 # Write a TMLE function
 
 #write a wrapper function called tmle_wrapper_function (or something more clever) 
@@ -40,55 +35,6 @@ head(data)
 
 # Make it work outside a function
 
-# Set parameters for tmleFunc
-W = c("Secretor", "Diversity", "Evenness")
-A = c("X2.FL")
-Y = "haz_6m"
-
-#discretize A
-data[[A]] <- factor(ifelse(data[[A]] > mean(data[[A]]), 1, 0))
-median(data[[A]])
-mean(data[[A]])
-
-# Define the variable roles
-node_list <- list(W = W, A = A, Y = Y)
-
-# Process data
-processed <- process_missing(data, node_list)
-data <- processed $ data
-node_list <- processed $ node_list
-
-#tmle spec
-ate_spec <- tmle_ATE(
-  treatment_level = "1",
-  control_level = "0")
-
-# choose base learners
-lrnr_mean <- make_learner(Lrnr_mean)
-lrnr_rf <- make_learner(Lrnr_ranger)
-
-# define metalearners appropriate to data types
-ls_metalearner <- make_learner(Lrnr_nnls)
-mn_metalearner <- make_learner(
-  Lrnr_solnp, metalearner_linear_multinomial,
-  loss_loglik_multinomial
-)
-sl_Y <- Lrnr_sl$new(
-  learners = list(lrnr_mean, lrnr_rf),
-  metalearner = ls_metalearner
-)
-sl_A <- Lrnr_sl$new(
-  learners = list(lrnr_mean, lrnr_rf),
-  metalearner = mn_metalearner
-)
-learner_list <- list(A = sl_A, Y = sl_Y)
-
-
-# Fit the TMLE
-tmle_fit <- tmle3(ate_spec, data, node_list, learner_list)
-
-
-#---------------------------------------------------
 tmleFunc <- function(W, A, Y, data) {
   
   #process data
@@ -101,16 +47,11 @@ tmleFunc <- function(W, A, Y, data) {
   #complete case for Y and A
   data <- data[complete.cases(data), ]
   
-  #discretize A
+  # discretize A
   data[[A]] <- factor(ifelse(data[[A]] > median(data[[A]]), 1, 0))
   
   # Define the variable roles
-  node_list <- list(W = W, A = A, Y = Y)
-  
-  # # Process data - another version
-  # processed <- process_missing(data, node_list)
-  # data <- processed $ data
-  # node_list <- processed $ node_list
+  node_list <- list(W = d_W, A = A, Y = Y)
   
   #tmle spec
   ate_spec <- tmle_ATE(
@@ -144,6 +85,11 @@ tmleFunc <- function(W, A, Y, data) {
   # Extract estimates
   return(tmle_fit $ summary)
 }
+
+# Load data
+data <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
+#dput(names((data)))
+head(data)
 
 # Set parameters for tmleFunc
 W = c("Secretor", "Diversity", "Evenness")
@@ -184,4 +130,5 @@ res_df <- foreach(i = 1:length(Avar), .combine = 'bind_rows', .errorhandling = '
 
 
 #After running the for loop for all exposures, then apply P-value correction:|
+
 

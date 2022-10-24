@@ -1,0 +1,138 @@
+---
+title: |
+  TMLE
+author: "Sajia Darwish"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+keep_tex: yes
+theme: bclear
+fontsize: 10pt
+geometry: margin=1in
+header-includes:
+- \usepackage{enumitem}
+- \usepackage{indentfirst}
+- \usepackage[default, scale=1]{raleway}
+- \usepackage[T1]{fontenc}
+- \usepackage{inconsolata}
+always_allow_html: yes
+---
+
+```{r, include=FALSE}
+rm(list=ls())
+source(paste0(here::here(), "/0-config.R"))
+library(tidyverse)
+library(sl3)
+library(tmle3)
+library(tidyverse)
+library(foreach)
+library(parallel)
+library(doParallel)
+registerDoParallel(cores=50)
+library(Rsolnp)
+library(dplyr)
+```
+
+```{r, include=FALSE}
+# Load data
+data <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
+#dput(names((data)))
+#head(data)
+
+# Set parameters for tmleFunc
+W = c("Secretor", "Diversity", "Evenness")
+A = c("X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT", "LNFP.I",
+      "LNFP.II", "LNFP.III", "LSTb", "LSTc", "DFLNT", "LNH", "DSLNT", "FLNH",
+      "DFLNH", "FDSLNH", "DSLNH", "SUM", "Sia", "Fuc")
+Y = "haz_6m"
+```
+
+```{r, include=FALSE}
+# Make a TMLE function
+tmleFunc <- function(W, A, Y, data) {
+  # Define the variable roles
+  node_list <- list(W = W, A = A, Y = Y)
+
+  processed <- process_missing(data, node_list)
+  data2 <- processed $ data # Remember that now data is data2 now.
+  node_list <- processed $ node_list
+
+  # Dichotomize A
+  for (i in 1:nrow(data2)) {
+    data2[[A]][i] <- ifelse(data2[[A]][i] > median(data2[[A]]), 1, 0)
+  }
+
+  ate_spec <- tmle_ATE(treatment_level = 1, control_level = 0)
+
+  # choose base learners
+  lrnr_glm <- make_learner(Lrnr_glm)
+  lrnr_mean <- make_learner(Lrnr_mean)
+
+  # define metalearners appropriate to data types
+  # non-negative least squares regression for continuous outcomes
+  ls_metalearner <- make_learner(Lrnr_nnls)
+
+  # mn_metalearner <- make_learner(Lrnr_solnp, metalearner_linear_multinomial,
+  #                                loss_loglik_multinomial)
+
+  # Plot Y to get a sense of distribution
+
+  #hist(data2[[Y]])
+
+  sl_Y <- Lrnr_sl $ new(learners = list(lrnr_mean, lrnr_glm),
+                      metalearner = ls_metalearner)
+
+  # Plot A to get a sense of distribution
+  #hist(data[[A]]) # Actual A
+  #hist(data2[[A]]) # Dichotomized A
+
+  sl_A <- Lrnr_sl $ new(learners = list(lrnr_mean, lrnr_glm),
+                      metalearner = ls_metalearner)#mn_metalearner)
+
+  learner_list <- list(A = sl_A, Y = sl_Y)
+
+  tmle_fit <- tmle3(ate_spec, data2, node_list, learner_list)
+  print(tmle_fit)
+}
+```
+
+```{r, echo=FALSE}
+# Run the function through a for loop
+resultTable <- data.frame(A = rep(1:22),
+                          Y = rep(1:22),
+                          init_est = rep(1:22),
+                          tmle_est = rep(1:22),
+                          se = rep(1:22),
+                          lower = rep(1:22),
+                          upper = rep(1:22))
+  
+for (i in 1:length(A)) {
+  for (j in 1:7) {
+    tmleResult <- tmleFunc(W, A[i], Y, data)
+    resultTable[j, 1] = A
+    resultTable[j, 2] = Y
+    summary <- tmleResult $ summary
+    resultTable[j, 3] = summary $ init_est
+    resultTable[j, 4] = summary $ tmle_est
+    resultTable[j, 5] = summary $ se
+    resultTable[j, 6] = summary $ lower
+    resultTable[j, 7] = summary $ upper
+  }
+}
+```
+
+
+
+
+
+
+
+
+
+
+
