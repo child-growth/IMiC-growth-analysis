@@ -13,6 +13,7 @@
 #remotes::install_github("tlverse/tmle3")
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
+library(tidyverse)
 library(sl3)
 library(tmle3)
 library(tidyverse)
@@ -21,10 +22,12 @@ library(parallel)
 library(doParallel)
 registerDoParallel(cores=50)
 library(Rsolnp)
+library(dplyr)
 
 # Load data
 data <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
 #dput(names((data)))
+head(data)
 
 # Write a TMLE function
 
@@ -35,24 +38,79 @@ data <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS"
 #Need res to be a row of a dataframe with all information we'd want out of a tmle analysis.
 #The name of Y and A, the ATE, 95% CI, pvalue, size of the dataset
 
+# Make it work outside a function
 
+# Set parameters for tmleFunc
+W = c("Secretor", "Diversity", "Evenness")
+A = c("X2.FL")
+Y = "haz_6m"
+
+#discretize A
+data[[A]] <- factor(ifelse(data[[A]] > mean(data[[A]]), 1, 0))
+median(data[[A]])
+mean(data[[A]])
+
+# Define the variable roles
+node_list <- list(W = W, A = A, Y = Y)
+
+# Process data
+processed <- process_missing(data, node_list)
+data <- processed $ data
+node_list <- processed $ node_list
+
+#tmle spec
+ate_spec <- tmle_ATE(
+  treatment_level = "1",
+  control_level = "0")
+
+# choose base learners
+lrnr_mean <- make_learner(Lrnr_mean)
+lrnr_rf <- make_learner(Lrnr_ranger)
+
+# define metalearners appropriate to data types
+ls_metalearner <- make_learner(Lrnr_nnls)
+mn_metalearner <- make_learner(
+  Lrnr_solnp, metalearner_linear_multinomial,
+  loss_loglik_multinomial
+)
+sl_Y <- Lrnr_sl$new(
+  learners = list(lrnr_mean, lrnr_rf),
+  metalearner = ls_metalearner
+)
+sl_A <- Lrnr_sl$new(
+  learners = list(lrnr_mean, lrnr_rf),
+  metalearner = mn_metalearner
+)
+learner_list <- list(A = sl_A, Y = sl_Y)
+
+
+# Fit the TMLE
+tmle_fit <- tmle3(ate_spec, data, node_list, learner_list)
+
+
+#---------------------------------------------------
 tmleFunc <- function(W, A, Y, data) {
   
   #process data
   d_W <- data %>% select(all_of(W))
-  d_YA <- data %>% select(all_of(Y),all_of(A))
-  
+  d_YA <- data %>% select(all_of(Y), all_of(A))
+
   #impute W and add missingness indicator
-  d_W<-impute_missing_values(d_W)$data
+  d_W <- impute_missing_values(W) $ data
   data <- cbind(d_YA,d_W)
   #complete case for Y and A
-  data <- data[complete.cases(data),]
+  data <- data[complete.cases(data), ]
   
   #discretize A
-  data[[A]] <- factor(ifelse(data[[A]]>median(data[[A]]),1,0))
+  data[[A]] <- factor(ifelse(data[[A]] > median(data[[A]]), 1, 0))
   
   # Define the variable roles
-  node_list <- list(W = colnames(d_W), A = A, Y = Y)
+  node_list <- list(W = W, A = A, Y = Y)
+  
+  # # Process data - another version
+  # processed <- process_missing(data, node_list)
+  # data <- processed $ data
+  # node_list <- processed $ node_list
   
   #tmle spec
   ate_spec <- tmle_ATE(
