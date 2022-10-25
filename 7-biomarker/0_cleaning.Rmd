@@ -1,0 +1,51 @@
+---
+title: |
+  Cleaning biomarker datasets
+author: "Sajia Darwish"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+---
+
+```{r}
+# Make a cleaning function
+cleanFunc <- function(data) {
+  # data %>%
+  #   select(-bmid_base)
+  
+  # Change <LOD to NA.
+  for (i in 1:ncol(data)) {
+    data[, i] = ifelse(data[, i] == "< LOD", NA, data[, i])
+  }
+  
+  # Make all variables numeric.
+  #str(data)
+  #data <- as.data.frame(sapply(data, as.numeric))
+  
+  # Prepare for test beforehand
+  #min(data $C5.OH..C3.DC.M., na.rm = T) / 2 #0.040535 #Correct
+  
+  # Change these values to min/2.
+  data <- data %>% 
+    mutate_if(is.numeric, function(x) ifelse(is.na(x), min(x, na.rm = T) / 2, x))
+  
+  # Change Inf values to 0.
+  for (i in 1:ncol(data)) {
+    data[, i] = ifelse(data[, i] == "Inf", 0, data[, i])
+  }
+  
+  # Check for missingness.
+  table(is.na(data))
+  
+  # Remove columns with no variance.
+  #data <- data[ - as.numeric(which(apply(data, 2, var) == 0))]
+  #str(data)
+  
+  return(data)
+}
+```
+
+```{r}
+bioc <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocratesNorm.RDS")
+bioc <- cleanFunc(bioc)
+saveRDS(bioc, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS"))
+```
+
