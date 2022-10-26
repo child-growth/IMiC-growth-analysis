@@ -172,7 +172,6 @@ for (i in 1:length(A)) {
   resultTable[i, 7] = summary $ upper
 }
 
-A
 # Save dataset
 #write.csv(resultTable, file = "biocElicitTMLE.csv")
 ```
