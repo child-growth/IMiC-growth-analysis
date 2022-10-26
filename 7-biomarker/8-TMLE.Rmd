@@ -147,6 +147,7 @@ A = bioc %>%
             "cough_r_0to6m", "cough_r_6to18m", "diarr_r_0to6m", "diarr_r_6to18m", 
             "mhgb_18m", "muaccm_18m", "muaz_18m", "agedays_18m.1", "bfdu_r_0to18m", 
             "anti_r_0to18m"))
+A=colnames(A)
 Y = "haz_6m"
 
 # Make a dataframe to save results in
@@ -160,7 +161,7 @@ resultTable <- data.frame(A = rep(1:length(A)),
 
 # Run the function through a for loop
 for (i in 1:length(A)) {
-  tmleResult <- tmleFunc(W, A[i], Y, data)
+  tmleResult <- tmleFunc(W, A[i], Y, data=bioc)
   resultTable[i, 1] = A[i]
   resultTable[i, 2] = Y
   summary <- tmleResult $ summary
