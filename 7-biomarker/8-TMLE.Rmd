@@ -20,22 +20,8 @@ library(Rsolnp)
 library(dplyr)
 ```
 
+# Make a TMLE function and a table function
 ```{r, include=FALSE}
-# Load data
-data <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
-#dput(names((data)))
-#head(data)
-
-# Set parameters for tmleFunc
-W = c("Secretor", "Diversity", "Evenness")
-A = c("X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT", "LNFP.I",
-      "LNFP.II", "LNFP.III", "LSTb", "LSTc", "DFLNT", "LNH", "DSLNT", "FLNH",
-      "DFLNH", "FDSLNH", "DSLNH", "SUM", "Sia", "Fuc")
-Y = "haz_6m"
-```
-
-```{r, include=FALSE}
-# Make a TMLE function
 tmleFunc <- function(W, A, Y, data) {
   # Define the variable roles
   node_list <- list(W = W, A = A, Y = Y)
@@ -80,10 +66,10 @@ tmleFunc <- function(W, A, Y, data) {
   tmle_fit <- tmle3(ate_spec, data2, node_list, learner_list)
   print(tmle_fit)
 }
-```
 
-```{r, echo=FALSE}
-# Make a dataframe to save results in
+# Make a for loop function
+tableFunc <- function (A, W, Y, data) {
+  # Make a dataframe to save results in
 resultTable <- data.frame(A = rep(1:length(A)),
                           Y = rep(1:length(A)),
                           init_est = rep(1:length(A)),
@@ -94,22 +80,41 @@ resultTable <- data.frame(A = rep(1:length(A)),
 
 # Run the function through a for loop 
 for (i in 1:length(A)) {
-  tmleResult <- tmleFunc(W, A[i], Y, data)
-  resultTable[i, 1] = A[i]
-  resultTable[i, 2] = Y
-  summary <- tmleResult $ summary
-  resultTable[i, 3] = summary $ init_est
-  resultTable[i, 4] = summary $ tmle_est
-  resultTable[i, 5] = summary $ se
-  resultTable[i, 6] = summary $ lower
-  resultTable[i, 7] = summary $ upper
+    tmleResult <- tmleFunc(W, A[i], Y, data)
+    resultTable[i, 1] = A[i]
+    resultTable[i, 2] = Y
+    summary <- tmleResult $ summary
+    resultTable[i, 3] = summary $ init_est
+    resultTable[i, 4] = summary $ tmle_est
+    resultTable[i, 5] = summary $ se
+    resultTable[i, 6] = summary $ lower
+    resultTable[i, 7] = summary $ upper
+  }
+  return(resultTable)
 }
-
-# Save dataset
-#write.csv(resultTable, file = "hmoElicitTMLE.csv")
 ```
 
-# Biocrates normalized
+# HMO ELICIT
+```{r, include=FALSE}
+# Load data
+hmo <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
+#dput(names((data)))
+#head(data)
+
+# Set parameters for tmleFunc
+W = c("Secretor", "Diversity", "Evenness")
+A = c("X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT", "LNFP.I",
+      "LNFP.II", "LNFP.III", "LSTb", "LSTc", "DFLNT", "LNH", "DSLNT", "FLNH",
+      "DFLNH", "FDSLNH", "DSLNH", "SUM", "Sia", "Fuc")
+Y = "haz_6m"
+
+tableHmo <- tableFunc(A, W, Y, data)
+
+# Save dataset
+#write.csv(tableHmo, file = "hmoElicitTMLE.csv")
+```
+
+# Biocrates normalized ELICIT
 ```{r}
 # Load data
 bioc <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS")
@@ -150,6 +155,7 @@ A = bioc %>%
 A=colnames(A)
 Y = "haz_6m"
 
+<<<<<<< HEAD
 # Make a dataframe to save results in
 resultTable <- data.frame(A = rep(1:length(A)),
                           Y = rep(1:length(A)),
@@ -171,9 +177,12 @@ for (i in 1:length(A)) {
   resultTable[i, 6] = summary $ lower
   resultTable[i, 7] = summary $ upper
 }
+=======
+tableBioc <- tableFunc(A, W, Y, bioc)
+>>>>>>> 3d68b05 (Finalizing tmle set up.)
 
 # Save dataset
-#write.csv(resultTable, file = "biocElicitTMLE.csv")
+#write.csv(tableBioc, file = "biocElicitTMLE.csv")
 ```
 
 
