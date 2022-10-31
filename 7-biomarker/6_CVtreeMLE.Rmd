@@ -3,24 +3,6 @@ title: |
   CVtreeMLE
 author: "Sajia Darwish"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
-output:
-  html_document:
-    toc: yes
-    toc_depth: 4
-  pdf_document:
-    toc: yes
-    toc_depth: '4'
-keep_tex: yes
-theme: bclear
-fontsize: 10pt
-geometry: margin=1in
-header-includes:
-- \usepackage{enumitem}
-- \usepackage{indentfirst}
-- \usepackage[default, scale=1]{raleway}
-- \usepackage[T1]{fontenc}
-- \usepackage{inconsolata}
-always_allow_html: yes
 ---
 
 https://github.com/blind-contours/CVtreeMLE/blob/main/vignettes/intro_CVtreeMLE.Rmd
@@ -32,6 +14,7 @@ https://github.com/blind-contours/CVtreeMLE
 # remotes::install_github("tlverse/sl3@devel")
 # install.packages("partykit")
 # install.packages("pre")
+# install.packages("namespace")
 
 library(CVtreeMLE)
 library(sl3)
@@ -41,6 +24,8 @@ library(kableExtra)
 library(ggplot2)
 library(tidyverse)
 library(dplyr)
+library(namespace)
+
 
 # Load data
 data <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmo.RDS")
