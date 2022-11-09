@@ -43,6 +43,7 @@ cleanFunc <- function(data) {
 }
 ```
 
+# Biocrates ELICIT
 ```{r}
 library(naniar)
 
@@ -70,8 +71,6 @@ newData <- newData[, -which(colMeans(is.na(newData)) > 0.001)]
 
 saveRDS(newData, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS"))
 ```
-
-
 
 
 
