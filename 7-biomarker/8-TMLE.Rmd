@@ -68,8 +68,8 @@ tmleFunc <- function(W, A, Y, data) {
 }
 
 # Set number of cores
-ncores <- detectCores() - 1L
-registerDoParallel(ncores)
+#ncores <- detectCores() - 1L
+registerDoParallel(cores = 50)
 
 # Make a for loop function
 tableFunc <- function (A, W, Y, data) {
@@ -96,17 +96,18 @@ resultTable <- data.frame(A = rep(1:length(A)),
 #     resultTable[i, 7] = summary $ upper
 # }
 
-foreach (i = 1:length(A)) %dopar%
+
+foreach (i = 1:length(A), .combine = 'bind_rows', .errorhandling = 'remove') %dopar%
   {
-    tmleResult <- tmleFunc(W, A[i], Y, data)
-    resultTable[i, 1] = A[i]
-    resultTable[i, 2] = Y
-    summary <- tmleResult $ summary
-    resultTable[i, 3] = summary $ init_est
-    resultTable[i, 4] = summary $ tmle_est
-    resultTable[i, 5] = summary $ se
-    resultTable[i, 6] = summary $ lower
-    resultTable[i, 7] = summary $ upper
+    resultTable <- tmleFunc(W, A[i], Y, data)
+    # resultTable[i, 1] = A[i]
+    # resultTable[i, 2] = Y
+    # summary <- tmleResult $ summary
+    # resultTable[i, 3] = summary $ init_est
+    # resultTable[i, 4] = summary $ tmle_est
+    # resultTable[i, 5] = summary $ se
+    # resultTable[i, 6] = summary $ lower
+    # resultTable[i, 7] = summary $ upper
   }
   return(resultTable)
 }

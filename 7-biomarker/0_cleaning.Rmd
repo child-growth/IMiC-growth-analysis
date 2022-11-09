@@ -69,6 +69,9 @@ gg_miss_var(newData, show_pct = T)
 
 newData <- newData[, -which(colMeans(is.na(newData)) > 0.001)]
 
+# Keep anything less than ~20% LOD and compute values.
+# Impute the below LOD values?
+
 saveRDS(newData, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS"))
 ```
 
