@@ -15,7 +15,7 @@ library(tidyverse)
 library(foreach)
 library(parallel)
 library(doParallel)
-registerDoParallel(cores=50)
+#registerDoParallel(cores=50)
 library(Rsolnp)
 library(dplyr)
 ```
@@ -67,11 +67,16 @@ tmleFunc <- function(W, A, Y, data) {
   print(tmle_fit)
 }
 
+# Set number of cores
+ncores <- detectCores() - 1L
+registerDoParallel(ncores)
+
 # Make a for loop function
 tableFunc <- function (A, W, Y, data) {
   # Make a dataframe to save results in
 resultTable <- data.frame(A = rep(1:length(A)),
                           Y = rep(1:length(A)),
+                          #n = nrow(data),
                           init_est = rep(1:length(A)),
                           tmle_est = rep(1:length(A)),
                           se = rep(1:length(A)),
@@ -79,7 +84,20 @@ resultTable <- data.frame(A = rep(1:length(A)),
                           upper = rep(1:length(A)))
 
 # Run the function through a for loop 
-for (i in 1:length(A)) {
+# for (i in 1:length(A)) {
+#     tmleResult <- tmleFunc(W, A[i], Y, data)
+#     resultTable[i, 1] = A[i]
+#     resultTable[i, 2] = Y
+#     summary <- tmleResult $ summary
+#     resultTable[i, 3] = summary $ init_est
+#     resultTable[i, 4] = summary $ tmle_est
+#     resultTable[i, 5] = summary $ se
+#     resultTable[i, 6] = summary $ lower
+#     resultTable[i, 7] = summary $ upper
+# }
+
+foreach (i = 1:length(A)) %dopar%
+  {
     tmleResult <- tmleFunc(W, A[i], Y, data)
     resultTable[i, 1] = A[i]
     resultTable[i, 2] = Y
@@ -108,7 +126,7 @@ A = c("X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT", "LNFP.I",
       "DFLNH", "FDSLNH", "DSLNH", "SUM", "Sia", "Fuc")
 Y = "haz_6m"
 
-tableHmo <- tableFunc(A, W, Y, data)
+tableHmo <- tableFunc(A, W, Y, hmo)
 
 # Save dataset
 #write.csv(tableHmo, file = "hmoElicitTMLE.csv")
@@ -118,7 +136,8 @@ tableHmo <- tableFunc(A, W, Y, data)
 ```{r}
 # Load data
 bioc <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS")
-#dput(names((bioc)))
+head(bioc)
+dput(names((bioc)))
 #head(data)
 
 # Convert sex_base to binary.
@@ -129,57 +148,28 @@ bioc <- bioc %>%
 # Set parameters for tmleFunc
 W = c("sex_base", "mage_base")
 A = bioc %>%
-  select(!c("bmid_base", "country", "studyid", "siteid", "subjid", "subjido", 
-            "studytyp", "arm_base", "brthyr_base", "brthweek_base", "sex_base",                       
-            "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
-            "meducyrs_base", "h2osrcp_base", "cookplac_base", "inctot_base", 
-            "inctotu_base", "epochn_base", "epoch_base", "mhtcm_base", "mwtkg_base", 
-            "mbmi_base", "pregout_base", "dlvloc_base", "dvseason_base", "mage_base",
-            "wtkg_base", "lencm_base", "bmi_base", "hcircm_base", "waz_base", 
-            "haz_base", "whz_base", "baz_base", "agedays_base", "feeding_base", 
-            "dur_bf_base", "dur_ebf_base", "bmcol_fl_1m", "bmcol_fl_5m", 
-            "agedays_1m", "agedays_5m", "lencm_3m", "lencm_6m", "lencm_9m", 
+  select(!c("bmid_base", "country", "studyid", "subjid", "subjido", "arm_base", 
+            "sex_base", "brthyr_base", "brthweek_base", "mage_base", "parity_base", 
+            "nlchild_base", "nperson_base", "nrooms_base", "meducyrs_base", 
+            "h2osrcp_base", "cookplac_base", "inctot_base", "inctotu_base", 
+            "epoch_base", "mhtcm_base", "mwtkg_base", "mbmi_base", "dlvloc_base", 
+            "dvseason_base", "wtkg_base", "lencm_base", "bmi_base", "hcircm_base", 
+            "waz_base", "haz_base", "whz_base", "baz_base", "agedays_base", 
+            "dur_bf_base", "dur_ebf_base", "lencm_3m", "lencm_6m", "lencm_9m", 
             "lencm_12m", "lencm_15m", "lencm_18m", "bmi_3m", "bmi_6m", "bmi_9m", 
             "bmi_12m", "bmi_15m", "bmi_18m", "hcircm_3m", "hcircm_6m", "hcircm_9m", 
             "hcircm_12m", "hcircm_15m", "hcircm_18m", "waz_3m", "waz_6m", 
-            "waz_9m", "waz_12m", "waz_15m", "waz_18m", "haz_3m", "haz_6m",
+            "waz_9m", "waz_12m", "waz_15m", "waz_18m", "haz_3m", "haz_6m", 
             "haz_9m", "haz_12m", "haz_15m", "haz_18m", "whz_3m", "whz_6m", 
             "whz_9m", "whz_12m", "whz_15m", "whz_18m", "baz_3m", "baz_6m", 
-            "baz_9m", "baz_12m", "baz_15m", "baz_18m", "agedays_3m", "agedays_6m", 
-            "agedays_9m", "agedays_12m", "agedays_15m", "agedays_18m", "visit_r_fl_0to6m", 
-            "visit_r_fl_6to18m", "dur_r_0to6m", "dur_r_6to18m", "bfedfl_r_0to6m", 
-            "exbfed_r_0to6m", "exbfdu_r_0to6m", "fever_r_0to6m", "fever_r_6to18m", 
-            "cough_r_0to6m", "cough_r_6to18m", "diarr_r_0to6m", "diarr_r_6to18m", 
-            "mhgb_18m", "muaccm_18m", "muaz_18m", "agedays_18m.1", "bfdu_r_0to18m", 
-            "anti_r_0to18m"))
-A=colnames(A)
+            "baz_9m", "baz_12m", "baz_15m", "baz_18m", "exbfdu_r_0to6m", 
+            "fever_r_0to6m", "fever_r_6to18m", "cough_r_0to6m", "cough_r_6to18m", 
+            "diarr_r_0to6m", "diarr_r_6to18m", "mhgb_18m", "muaccm_18m", 
+            "muaz_18m", "bfdu_r_0to18m", "anti_r_0to18m"))
+A = colnames(A)
 Y = "haz_6m"
 
-<<<<<<< HEAD
-# Make a dataframe to save results in
-resultTable <- data.frame(A = rep(1:length(A)),
-                          Y = rep(1:length(A)),
-                          init_est = rep(1:length(A)),
-                          tmle_est = rep(1:length(A)),
-                          se = rep(1:length(A)),
-                          lower = rep(1:length(A)),
-                          upper = rep(1:length(A)))
-
-# Run the function through a for loop
-for (i in 1:length(A)) {
-  tmleResult <- tmleFunc(W, A[i], Y, data=bioc)
-  resultTable[i, 1] = A[i]
-  resultTable[i, 2] = Y
-  summary <- tmleResult $ summary
-  resultTable[i, 3] = summary $ init_est
-  resultTable[i, 4] = summary $ tmle_est
-  resultTable[i, 5] = summary $ se
-  resultTable[i, 6] = summary $ lower
-  resultTable[i, 7] = summary $ upper
-}
-=======
 tableBioc <- tableFunc(A, W, Y, bioc)
->>>>>>> 3d68b05 (Finalizing tmle set up.)
 
 # Save dataset
 #write.csv(tableBioc, file = "biocElicitTMLE.csv")

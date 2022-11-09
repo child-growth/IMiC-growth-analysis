@@ -44,8 +44,60 @@ cleanFunc <- function(data) {
 ```
 
 ```{r}
+library(naniar)
+
 bioc <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocratesNorm.RDS")
-bioc <- cleanFunc(bioc)
-saveRDS(bioc, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS"))
+#biocClean <- cleanFunc(bioc)
+
+# Filter out obs without Y
+bioc <- bioc %>%
+  filter(!is.na(haz_6m))
+
+biocClean <- cleanFunc(bioc)
+
+# Look at columns with NA
+biocClean <- data.frame(biocClean)
+percentMissing <- gg_miss_var(biocClean, show_pct = T)
+
+# Delete columns with 100% NA
+newData <- biocClean[, -which(colMeans(is.na(biocClean)) == 1)]
+gg_miss_var(newData, show_pct = T)
+
+newData <- newData[ - as.numeric(which(apply(newData, 2, var) == 0))]
+gg_miss_var(newData, show_pct = T)
+
+newData <- newData[, -which(colMeans(is.na(newData)) > 0.001)]
+
+saveRDS(newData, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS"))
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
