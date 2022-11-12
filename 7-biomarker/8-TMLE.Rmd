@@ -137,11 +137,6 @@ bioc <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean
 # head(bioc)
 # dput(names((bioc)))
 
-# Convert sex_base to binary.
-bioc $ sex_base = ifelse(bioc $ sex_base == "Male", 0, 1)
-bioc <- bioc %>%
-  filter(!is.na(haz_6m))
-
 # Set parameters for tmleFunc
 W = c("sex_base", "mage_base")
 A = bioc %>%
@@ -171,22 +166,6 @@ tableBioc <- tableFunc(A, W, Y, bioc)
 # Save dataset
 write.csv(tableBioc, file = "/data/imic/results/tmle/biocElicitTMLE.csv")
 ```
-
-# bvit
-```{r}
-
-```
-
-# MetabolInd
-```{r}
-
-```
-
-# Sapient
-```{r}
-
-```
-
 
 
 

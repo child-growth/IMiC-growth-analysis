@@ -56,6 +56,9 @@ bioc <- bioc %>%
 
 biocClean <- cleanFunc(bioc)
 
+# Convert sex_base to binary.
+biocClean $ sex_base = ifelse(biocClean $ sex_base == "Male", 0, 1)
+
 # Look at columns with NA
 biocClean <- data.frame(biocClean)
 percentMissing <- gg_miss_var(biocClean, show_pct = T)
