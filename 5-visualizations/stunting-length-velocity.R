@@ -105,7 +105,7 @@ velplot <- function (data) {
 
     scale_linetype_manual("msmt_type", values = c("pct_25" = 2,
                                                   "pct_50" = 1),
-                          labels = c("25th percentile", "50th percentile")) +
+                          labels = c( "50th percentile","25th percentile")) +
     
     # IMic pooled lines
     geom_line(aes(y = length_cm, group = msmt_type, color = linecol),

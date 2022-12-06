@@ -13,6 +13,9 @@ rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 library(table1)
 
+
+temp <- read.table("/data/KI/imic/data/raw_lab_data/vital/VITAL_Biocrates_QC_list.csv", sep = ",", header = TRUE)
+
 child <- read.table("/data/KI/imic/data/raw_lab_data/Allen_Bvit_CHILD.csv",
                     sep = ",", header = TRUE)
 

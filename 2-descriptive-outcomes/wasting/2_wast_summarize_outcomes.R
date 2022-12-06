@@ -18,11 +18,19 @@ load(paste0(ghapdata_dir, "Wasting_inc_data.RData"))
 length(unique(paste0(d$studyid,d$country)))
 d %>% ungroup() %>% distinct(studyid, country) %>% summarise(N=n())
 
-table(df $ country)
+table(d $ country)
 
 # Filter to include only Elicit
-d <- d %>%
+df <- d %>%
   filter(country == "TANZANIA, UNITED REPUBLIC OF")
+table(df$agedays)
+
+df <- d %>%
+  filter(country == "PAKISTAN")
+table(df$agedays)
+
+
+
 
 #Overall absolute counts
 df <- d %>% filter(agedays < 19 * 30.4167) %>% 
