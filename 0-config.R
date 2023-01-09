@@ -8,6 +8,8 @@
 kiPath <- c("/data/KI/R/x86_64-pc-linux-gnu-library/4.0/" , .libPaths())
 .libPaths(kiPath)
 
+library(tidyverse)
+
 #suppress grouping messages
 options(dplyr.summarise.inform=F) 
 
