@@ -53,7 +53,7 @@ outliers_df <- outliers_df[!(outliers_df$id %in% no_outliers_df$id),]
 nrow(outliers_df %>% distinct(id))
 outliers_df<- outliers_df %>% group_by(id) %>% summarise(N=n()) 
 prop.table(table(outliers_df$N))
-outliers_df %>%  ungroup() %>% summarise(mean(N), median(N))
+outliers_df %>%  ungroup() %>% summarise(mean(N, na.rm=T), median(N, na.rm=T))
 
 
 dropped <- nchild_cc - nrow(no_outliers_df %>% distinct(studyid, subjid))
@@ -65,6 +65,8 @@ dropped/nchild_cc * 100
 # drop unrealistic measures depending on 
 # anthropometry measure
 #--------------------------------------------
+
+d <- d %>% filter(!is.na(haz)|!is.na(waz)|!is.na(whz))
 
 stunt <- d %>% filter(haz >= -6 & haz <=6, !is.na(haz)) %>%
   subset(., select = - c(whz, waz, muaz)) %>%

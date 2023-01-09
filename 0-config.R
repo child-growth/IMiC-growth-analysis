@@ -13,11 +13,11 @@ library(tidyverse)
 #suppress grouping messages
 options(dplyr.summarise.inform=F) 
 
-# library(tidyverse)
-# library(metafor)
-# library(here)
-# library(data.table)
-# library(ggthemes)
+library(tidyverse)
+library(metafor)
+library(here)
+library(data.table)
+library(ggthemes)
 
 # Define directories
 # results that can be pushed to github:
