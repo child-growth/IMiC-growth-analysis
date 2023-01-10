@@ -26,8 +26,37 @@
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 
-vital <- read.csv("/home/andrew.mertens/data/imic/ELICIT_IMiC_analysis.csv")
-elicit <- read.csv("/home/andrew.mertens/data/imic/VITAL_Lactation_IMiC_analysis.csv")
+elicit <- read.csv("/data/imic/data/harmonized_datasets/ELICIT_IMiC_analysis.csv")
+vital <- read.csv("/data/imic/data/harmonized_datasets/VITAL_IMiC_analysis.csv")
+
+#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+# Esther work here:
+# Merge in date and location info
+#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+# elicit_raw_anthro <- readxl::read_excel("/data/imic/data/raw_field_data/elicit_raw/ELICIT anthro measurements for IMiC 1-2022.xlsx")
+# head(elicit_raw_anthro)
+
+# elicit_raw_bm <- read.csv("/data/imic/data/raw_field_data/elicit_raw/ELICIT breastmilk collection data 4-2022.csv")
+# head(elicit_raw_bm)
+
+#This one seems to have all the data needed, including date of birth ("dob") and child age. I think the DDF-FINAL-IMiC file is the metadata file
+elicit_raw <- readxl::read_excel("/data/imic/data/raw_field_data/elicit_raw/ELICIT meta-data IMiC 4-2021.xlsx")
+head(elicit_raw)
+
+
+# #To do: subset to just the needed variables and merge with the main data with the ID variable and the sample date
+# elicit_raw <- elicit_raw %>% select(XXXXX)
+# elicit <- left_join(elicit, elicit_raw_bm, by=c("XXXXX"))
+
+#Check that each anthro observation has a calendar date associated with it
+# head(elicit)
+
+#look at metadata documentation and files here: /data/imic/data/raw_field_data/elicit_raw/
+# to repeat the same process for elicit
+
+#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
 
 head(vital)
 head(elicit)
