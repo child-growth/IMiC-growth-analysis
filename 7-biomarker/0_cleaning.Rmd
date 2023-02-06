@@ -46,6 +46,7 @@ cleanFunc <- function(data) {
 # Biocrates ELICIT
 ```{r}
 library(naniar)
+library(tidyverse)
 
 bioc <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocratesNorm.RDS")
 #biocClean <- cleanFunc(bioc)
@@ -152,12 +153,90 @@ newData <- newData[, -which(colMeans(is.na(newData)) > 0.001)]
 saveRDS(newData, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS"))
 ```
 
+# HMO VITAL
+```{r}
+hmo <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/hmo.RDS")
+#biocClean <- cleanFunc(bioc)
+names(hmo)
 
+# Filter out obs without Y
+hmo <- hmo %>%
+  filter(!is.na(haz_m6))
 
+hmoClean <- cleanFunc(hmo)
 
+# Convert sex_base to binary.
+hmoClean $ sex_base = ifelse(hmoClean $ sex_base == "Male", 0, 1)
 
+# Look at columns with NA
+hmoClean <- data.frame(hmoClean)
+percentMissing <- gg_miss_var(hmoClean, show_pct = T)
 
+saveRDS(hmoClean, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/hmoClean.RDS"))
+```
 
+# Biocrates VITAL
+```{r}
+bioc <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/biocratesNorm.RDS")
+#biocClean <- cleanFunc(bioc)
+
+# Filter out obs without Y
+bioc <- bioc %>%
+  filter(!is.na(haz_m6))
+
+biocClean <- cleanFunc(bioc)
+
+# Convert sex_base to binary.
+biocClean $ sex_base = ifelse(biocClean $ sex_base == "Male", 0, 1)
+
+# Look at columns with NA
+biocClean <- data.frame(biocClean)
+percentMissing <- gg_miss_var(biocClean, show_pct = T)
+
+saveRDS(biocClean, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/biocNormClean.RDS"))
+```
+
+# Pbl VITAL
+```{r}
+# Load data
+pbl <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/pblNorm.RDS")
+
+# Filter out obs without Y
+pbl <- pbl %>%
+  filter(!is.na(haz_m6))
+
+pblClean <- cleanFunc(pbl)
+
+# Convert sex_base to binary.
+pblClean $ sex_base = ifelse(pblClean $ sex_base == "Male", 0, 1)
+
+# Look at columns with NA
+pblClean <- data.frame(pblClean)
+percentMissing <- gg_miss_var(pblClean, show_pct = T)
+
+saveRDS(pblClean, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/pblClean.RDS"))
+```
+
+# Metabolomics VITAL
+```{r}
+# Load data
+metabol <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/metabolInd.RDS")
+
+# Filter out obs without Y
+metabol <- metabol %>%
+  filter(!is.na(haz_m6))
+
+metabolClean <- cleanFunc(metabol)
+
+# Convert sex_base to binary.
+metabolClean $ sex_base = ifelse(metabolClean $ sex_base == "Male", 0, 1)
+
+# Look at columns with NA
+metabolClean <- data.frame(metabolClean)
+percentMissing <- gg_miss_var(metabolClean, show_pct = T)
+
+saveRDS(metabolClean, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/metabolClean.RDS"))
+```
 
 
 

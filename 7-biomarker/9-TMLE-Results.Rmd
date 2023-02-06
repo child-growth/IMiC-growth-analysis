@@ -12,7 +12,7 @@ output:
     toc_depth: 4
 keep_tex: yes
 theme: bclear
-fontsize: 10pt
+fontsize: 12pt
 geometry: margin=1in
 header-includes:
 - \usepackage{enumitem}
@@ -38,7 +38,7 @@ bvit <- read.csv("/data/imic/results/tmle/BvitElicitTMLE.csv")
 metabol <- read.csv("/data/imic/results/tmle/MetabolElicitTMLE.csv")
 ```
 
-# ELICIT
+# ELICIT (N = 199)
 
 ## HMO
 ```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
@@ -72,7 +72,36 @@ metabol %>%
     theme_classic()
 ```
 
+# VITAL (N = 147)
+```{r, include=FALSE}
+hmo <- read.csv("/data/imic/results/tmle/hmoVitalTMLE.csv")
+bioc <- read.csv("/data/imic/results/tmle/biocVitalTMLE.csv")
+metabol <- read.csv("/data/imic/results/tmle/MetabolVitalTMLE.csv")
+```
 
+## HMO
+```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
+hmo %>%
+    ggplot(aes(x =tmle_est)) +
+    geom_histogram(binwidth = 0.1, fill="#69b3a2", color="#e9ecef", alpha = 0.9) +
+    theme_classic()
+```
+
+## Biocrates
+```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
+bioc %>%
+    ggplot(aes(x =tmle_est)) +
+    geom_histogram(binwidth = 0.1, fill="#69b3a2", color="#e9ecef", alpha = 0.9) +
+    theme_classic()
+```
+
+## Metabolomcis
+```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
+metabol %>%
+    ggplot(aes(x =tmle_est)) +
+    geom_histogram(binwidth = 0.1, fill="#69b3a2", color="#e9ecef", alpha = 0.9) +
+    theme_classic()
+```
 
 
 
