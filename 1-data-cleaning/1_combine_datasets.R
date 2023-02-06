@@ -22,9 +22,9 @@
 # Click clone
 
 
-
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
+library(lubridate)
 
 elicit <- read.csv("/data/imic/data/harmonized_datasets/ELICIT_IMiC_analysis.csv")
 vital <- read.csv("/data/imic/data/harmonized_datasets/VITAL_IMiC_analysis.csv")
@@ -34,29 +34,68 @@ vital <- read.csv("/data/imic/data/harmonized_datasets/VITAL_IMiC_analysis.csv")
 # Merge in date and location info
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-# elicit_raw_anthro <- readxl::read_excel("/data/imic/data/raw_field_data/elicit_raw/ELICIT anthro measurements for IMiC 1-2022.xlsx")
-# head(elicit_raw_anthro)
+elicit_raw_anthro <- readxl::read_excel("/data/imic/data/raw_field_data/elicit_raw/ELICIT anthro measurements for IMiC 1-2022.xlsx")
+head(elicit_raw_anthro)
 
-# elicit_raw_bm <- read.csv("/data/imic/data/raw_field_data/elicit_raw/ELICIT breastmilk collection data 4-2022.csv")
-# head(elicit_raw_bm)
+elicit_raw_bm <- read.csv("/data/imic/data/raw_field_data/elicit_raw/ELICIT breastmilk collection data 4-2022.csv")
+head(elicit_raw_bm)
 
 #This one seems to have all the data needed, including date of birth ("dob") and child age. I think the DDF-FINAL-IMiC file is the metadata file
 elicit_raw <- readxl::read_excel("/data/imic/data/raw_field_data/elicit_raw/ELICIT meta-data IMiC 4-2021.xlsx")
-head(elicit_raw)
+colnames(elicit_raw)
 
+#Calculate LAZ & WAZ dates 
+lazprefix <- "agedays_laz"
+wazprefix <- "agedays_waz"
 
-# #To do: subset to just the needed variables and merge with the main data with the ID variable and the sample date
-# elicit_raw <- elicit_raw %>% select(XXXXX)
-# elicit <- left_join(elicit, elicit_raw_bm, by=c("XXXXX"))
+samplelaz <- "sampledate_laz"
+samplewaz <- "sampledate_waz"
 
-#Check that each anthro observation has a calendar date associated with it
-# head(elicit)
+rounds <- c("0","3","6","9","12","15")
+for (val in rounds){
+  
+laz_string <- paste(lazprefix, val, sep="_") 
+waz_string <- paste(wazprefix, val, sep="_") 
+sample_laz_string <- paste(samplelaz, val, sep="_")
+sample_waz_string <- paste(samplewaz, val, sep="_")
 
-#look at metadata documentation and files here: /data/imic/data/raw_field_data/elicit_raw/
-# to repeat the same process for elicit
+elicit_raw[sample_laz_string] <- ymd(elicit_raw$dob) + days(as.numeric(unlist(elicit_raw[laz_string])))
+elicit_raw[sample_waz_string] <- ymd(elicit_raw$dob) + days(as.numeric(unlist(elicit_raw[waz_string])))
+}
+
+# # #To do: subset to just the needed variables and merge with the main data with the ID variable and the sample date
+elicit_raw <- elicit_raw %>% select(pid, dob, agedays_laz_0, sampledate_laz_0, agedays_laz_3, sampledate_laz_3, agedays_laz_6, sampledate_laz_6, agedays_laz_9, sampledate_laz_9, agedays_laz_12, sampledate_laz_12, agedays_laz_15, sampledate_laz_15, agedays_waz_0, sampledate_waz_0, agedays_waz_3, sampledate_waz_3, agedays_waz_6, sampledate_waz_6, agedays_waz_9, sampledate_waz_9, agedays_waz_12, sampledate_waz_12, agedays_waz_15, sampledate_waz_15)
+elicit_raw_bm <- elicit_raw_bm %>% select(pid, bmc_date_collected)
+elicit_combined <- left_join(elicit_raw, elicit_raw_bm, by=c("pid"))
+
+colnames(elicit_combined)
+elicit_combined
+
+#Convert to longform dataset
+lazpivot1 <- elicit_combined %>% 
+  select(pid,agedays_laz_0, agedays_laz_3, agedays_laz_6, agedays_laz_9, agedays_laz_12, agedays_laz_15) %>%
+  pivot_longer(
+    cols = starts_with("agedays_laz"),
+    names_to = "Sampling Round (LAZ)",
+    names_prefix = "agedays_laz_",
+    values_to = "Age (days)",
+    values_drop_na = TRUE
+  )
+
+lazpivot2 <- elicit_combined %>%
+  select(pid,sampledate_laz_0, sampledate_laz_3, sampledate_laz_6, sampledate_laz_9, sampledate_laz_12, sampledate_laz_15) %>%
+  pivot_longer(
+    cols = starts_with("sampledate_laz"),
+    names_to = "Sampling Round (LAZ)",
+    names_prefix = "sampledate_laz_",
+    values_to = "Sampling Date",
+    values_drop_na = TRUE
+  )
+
+lazmerged <- merge(lazpivot1,lazpivot2, by=c("pid", "Sampling Round (LAZ)"))
+lazmerged
 
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
 
 head(vital)
 head(elicit)
@@ -89,8 +128,6 @@ table(d$visit[d$studyid=="VITAL-Lactation"])
 # were too rare to include as exposures (to avoid memory allocation issues)
 # d <- readRDS(paste0(BV_dir,"mock_imic_data.RDS"))
 # colnames(d) <- tolower(colnames(d))
-
-
 
 
 
