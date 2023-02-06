@@ -117,12 +117,22 @@ hmo <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
 #dput(names((data)))
 #head(data)
 
+# Get mean and variance of the outcome
+hist(hmo $ haz_6m)
+mean <- mean(hmo $ haz_6m)
+sd <- sd(hmo $ haz_6m)
+
+# Generate new data from this distribution
+hmo $ haz_6m_simulated <- rnorm(n = 199, mean = mean, sd = sd)
+hmo $ haz_6m_simulated <- as.numeric(format(round(hmo $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+
 # Set parameters for tmleFunc
 W = c("Secretor", "Diversity", "Evenness")
 A = c("X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT", "LNFP.I",
       "LNFP.II", "LNFP.III", "LSTb", "LSTc", "DFLNT", "LNH", "DSLNT", "FLNH",
       "DFLNH", "FDSLNH", "DSLNH", "SUM", "Sia", "Fuc")
-Y = "haz_6m"
+Y = "haz_6m_simulated"
 
 tableHmo <- tableFunc(A, W, Y, hmo)
 
@@ -136,6 +146,16 @@ write.csv(tableHmo, file = "/data/imic/results/tmle/hmoElicitTMLE.csv")
 bioc <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS")
 # head(bioc)
 # dput(names((bioc)))
+
+# Get mean and variance of the outcome
+hist(bioc $ haz_6m)
+mean <- mean(bioc $ haz_6m)
+sd <- sd(bioc $ haz_6m)
+
+# Generate new data from this distribution
+bioc $ haz_6m_simulated <- rnorm(n = 199, mean = mean, sd = sd)
+bioc $ haz_6m_simulated <- as.numeric(format(round(hmo $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
 
 # Set parameters for tmleFunc
 W = c("sex_base", "mage_base")
@@ -157,15 +177,142 @@ A = bioc %>%
             "baz_9m", "baz_12m", "baz_15m", "baz_18m", "exbfdu_r_0to6m", 
             "fever_r_0to6m", "fever_r_6to18m", "cough_r_0to6m", "cough_r_6to18m", 
             "diarr_r_0to6m", "diarr_r_6to18m", "mhgb_18m", "muaccm_18m", 
-            "muaz_18m", "bfdu_r_0to18m", "anti_r_0to18m"))
+            "muaz_18m", "bfdu_r_0to18m", "anti_r_0to18m", "haz_6m_simulated"))
 A = colnames(A)
-Y = "haz_6m"
+Y = "haz_6m_simulated"
 
 tableBioc <- tableFunc(A, W, Y, bioc)
 
 # Save dataset
 write.csv(tableBioc, file = "/data/imic/results/tmle/biocElicitTMLE.csv")
 ```
+
+# Bvitamin bvit.RDS
+```{r}
+# Load data
+bvit <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/bvitClean.RDS")
+
+# Get mean and variance of the outcome
+hist(bvit $ haz_6m)
+mean <- mean(bvit $ haz_6m)
+sd <- sd(bvit $ haz_6m)
+
+# Generate new data from this distribution
+bvit $ haz_6m_simulated <- rnorm(n = 199, mean = mean, sd = sd)
+bvit $ haz_6m_simulated <- as.numeric(format(round(bvit $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+#dput(names((bvit)))
+
+# Set parameters for tmleFunc
+W = c("sex_base", "mage_base")
+A = bvit %>%
+  select(!c("bmid_base", "country", "studyid", "siteid", "subjid", "subjido", 
+            "studytyp", "arm_base", "sex_base", "brthyr_base", "brthweek_base", 
+            "mage_base", "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
+            "meducyrs_base", "h2osrcp_base", "cookplac_base", "inctot_base", 
+            "inctotu_base", "epochn_base", "epoch_base", "mhtcm_base", "mwtkg_base", 
+            "mbmi_base", "pregout_base", "dlvloc_base", "dvseason_base", 
+            "wtkg_base", "lencm_base", "bmi_base", "hcircm_base", "waz_base", 
+            "haz_base", "whz_base", "baz_base", "agedays_base", "feeding_base", 
+            "dur_bf_base", "dur_ebf_base", "bmcol_fl_1m", "bmcol_fl_5m", 
+            "agedays_1m", "agedays_5m", "lencm_3m", "lencm_6m", "lencm_9m", 
+            "lencm_12m", "lencm_15m", "lencm_18m", "bmi_3m", "bmi_6m", "bmi_9m", 
+            "bmi_12m", "bmi_15m", "bmi_18m", "hcircm_3m", "hcircm_6m", "hcircm_9m", 
+            "hcircm_12m", "hcircm_15m", "hcircm_18m", "waz_3m", "waz_6m", 
+            "waz_9m", "waz_12m", "waz_15m", "waz_18m", "haz_3m", "haz_6m", 
+            "haz_9m", "haz_12m", "haz_15m", "haz_18m", "whz_3m", "whz_6m", 
+            "whz_9m", "whz_12m", "whz_15m", "whz_18m", "baz_3m", "baz_6m", 
+            "baz_9m", "baz_12m", "baz_15m", "baz_18m", "agedays_3m", "agedays_6m", 
+            "agedays_9m", "agedays_12m", "agedays_15m", "agedays_18m", "visit_r_fl_0to6m", 
+            "visit_r_fl_6to18m", "dur_r_0to6m", "dur_r_6to18m", "bfedfl_r_0to6m", 
+            "exbfed_r_0to6m", "exbfdu_r_0to6m", "fever_r_0to6m", "fever_r_6to18m", 
+            "cough_r_0to6m", "cough_r_6to18m", "diarr_r_0to6m", "diarr_r_6to18m", 
+            "mhgb_18m", "muaccm_18m", "muaz_18m", "agedays_18m.1", "bfdu_r_0to18m", 
+            "anti_r_0to18m", "haz_6m_simulated"))
+A = colnames(A)
+Y = "haz_6m_simulated"
+
+tableBvit <- tableFunc(A, W, Y, bvit)
+
+# Save dataset
+write.csv(tableBvit, file = "/data/imic/results/tmle/BvitElicitTMLE.csv")
+```
+
+# MetabolInd.RDS
+```{r}
+# Load data
+metabol <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/metabolClean.RDS")
+
+# Get mean and variance of the outcome
+hist(metabol $ haz_6m)
+mean <- mean(metabol $ haz_6m)
+sd <- sd(metabol $ haz_6m)
+
+# Generate new data from this distribution
+metabol $ haz_6m_simulated <- rnorm(n = 199, mean = mean, sd = sd)
+metabol $ haz_6m_simulated <- as.numeric(format(round(metabol $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+dput(names((metabol)))
+
+# Set parameters for tmleFunc
+W = c("sex_base", "mage_base")
+A = metabol %>%
+  select(!c("bmid_base", "country", "studyid", "siteid", "subjid", "subjido", 
+            "studytyp", "arm_base", "sex_base", "brthyr_base", "brthweek_base", 
+            "mage_base", "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
+            "meducyrs_base", "h2osrcp_base", "cookplac_base", "inctot_base", 
+            "inctotu_base", "epochn_base", "epoch_base", "mhtcm_base", "mwtkg_base", 
+            "mbmi_base", "pregout_base", "dlvloc_base", "dvseason_base", 
+            "wtkg_base", "lencm_base", "bmi_base", "hcircm_base", "waz_base", 
+            "haz_base", "whz_base", "baz_base", "agedays_base", "feeding_base", 
+            "dur_bf_base", "dur_ebf_base", "bmcol_fl_1m", "bmcol_fl_5m", 
+            "agedays_1m", "agedays_5m", "lencm_3m", "lencm_6m", "lencm_9m", 
+            "lencm_12m", "lencm_15m", "lencm_18m", "bmi_3m", "bmi_6m", "bmi_9m", 
+            "bmi_12m", "bmi_15m", "bmi_18m", "hcircm_3m", "hcircm_6m", "hcircm_9m", 
+            "hcircm_12m", "hcircm_15m", "hcircm_18m", "waz_3m", "waz_6m", 
+            "waz_9m", "waz_12m", "waz_15m", "waz_18m", "haz_3m", "haz_6m", 
+            "haz_9m", "haz_12m", "haz_15m", "haz_18m", "whz_3m", "whz_6m", 
+            "whz_9m", "whz_12m", "whz_15m", "whz_18m", "baz_3m", "baz_6m", 
+            "baz_9m", "baz_12m", "baz_15m", "baz_18m", "agedays_3m", "agedays_6m", 
+            "agedays_9m", "agedays_12m", "agedays_15m", "agedays_18m", "visit_r_fl_0to6m", 
+            "visit_r_fl_6to18m", "dur_r_0to6m", "dur_r_6to18m", "bfedfl_r_0to6m", 
+            "exbfed_r_0to6m", "exbfdu_r_0to6m", "fever_r_0to6m", "fever_r_6to18m", 
+            "cough_r_0to6m", "cough_r_6to18m", "diarr_r_0to6m", "diarr_r_6to18m", 
+            "mhgb_18m", "muaccm_18m", "muaz_18m", "agedays_18m.1", "bfdu_r_0to18m", 
+            "anti_r_0to18m","haz_6m_simulated"))
+A = colnames(A)
+Y = "haz_6m_simulated"
+
+tableMetabol <- tableFunc(A, W, Y, metabol)
+
+# Save dataset
+write.csv(tableMetabol, file = "/data/imic/results/tmle/MetabolElicitTMLE.csv")
+```
+
+# Sapient.RDS
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

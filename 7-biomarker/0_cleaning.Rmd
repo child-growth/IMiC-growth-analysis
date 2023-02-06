@@ -78,7 +78,47 @@ newData <- newData[, -which(colMeans(is.na(newData)) > 0.001)]
 saveRDS(newData, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS"))
 ```
 
+# Bvitamins ELICIT
+```{r}
+# Load data
+bvit <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/bvit.RDS")
 
+# Filter out obs without Y
+bvit <- bvit %>%
+  filter(!is.na(haz_6m))
+
+bvitClean <- cleanFunc(bvit)
+
+# Convert sex_base to binary.
+bvitClean $ sex_base = ifelse(bvitClean $ sex_base == "Male", 0, 1)
+
+# Look at columns with NA
+bvitClean <- data.frame(bvitClean)
+percentMissing <- gg_miss_var(bvitClean, show_pct = T)
+
+saveRDS(bvitClean, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/bvitClean.RDS"))
+```
+
+# Metabolomics ELICIT
+```{r}
+# Load data
+metabol <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/metabolInd.RDS")
+
+# Filter out obs without Y
+metabol <- metabol %>%
+  filter(!is.na(haz_6m))
+
+metabolClean <- cleanFunc(metabol)
+
+# Convert sex_base to binary.
+metabolClean $ sex_base = ifelse(metabolClean $ sex_base == "Male", 0, 1)
+
+# Look at columns with NA
+metabolClean <- data.frame(metabolClean)
+percentMissing <- gg_miss_var(metabolClean, show_pct = T)
+
+saveRDS(metabolClean, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/metabolClean.RDS"))
+```
 
 
 
