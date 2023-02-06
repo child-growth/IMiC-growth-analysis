@@ -120,8 +120,37 @@ percentMissing <- gg_miss_var(metabolClean, show_pct = T)
 saveRDS(metabolClean, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/metabolClean.RDS"))
 ```
 
+# Sapient ELICIT
+```{r}
+sapient <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/sapient.RDS")
 
+# Filter out obs without Y
+sapient <- sapient %>%
+  filter(!is.na(haz_6m))
 
+sapientClean <- cleanFunc(sapient)
+
+# Convert sex_base to binary.
+sapientClean $ sex_base = ifelse(sapientClean $ sex_base == "Male", 0, 1)
+
+# Look at columns with NA
+sapientClean <- data.frame(sapientClean)
+percentMissing <- gg_miss_var(sapientClean, show_pct = T)
+
+# Delete columns with 100% NA
+newData <- sapientClean[, -which(colMeans(is.na(sapientClean)) == 1)]
+gg_miss_var(newData, show_pct = T)
+
+newData <- newData[ - as.numeric(which(apply(newData, 2, var) == 0))]
+gg_miss_var(newData, show_pct = T)
+
+newData <- newData[, -which(colMeans(is.na(newData)) > 0.001)]
+
+# Keep anything less than ~20% LOD and compute values.
+# Impute the below LOD values?
+
+saveRDS(newData, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS"))
+```
 
 
 

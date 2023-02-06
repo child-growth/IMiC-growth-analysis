@@ -187,7 +187,7 @@ tableBioc <- tableFunc(A, W, Y, bioc)
 write.csv(tableBioc, file = "/data/imic/results/tmle/biocElicitTMLE.csv")
 ```
 
-# Bvitamin bvit.RDS
+# Bvitamin ELICIT
 ```{r}
 # Load data
 bvit <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/bvitClean.RDS")
@@ -238,7 +238,7 @@ tableBvit <- tableFunc(A, W, Y, bvit)
 write.csv(tableBvit, file = "/data/imic/results/tmle/BvitElicitTMLE.csv")
 ```
 
-# MetabolInd.RDS
+# Metabolomic Indicators ELICIT
 ```{r}
 # Load data
 metabol <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/metabolClean.RDS")
@@ -252,7 +252,7 @@ sd <- sd(metabol $ haz_6m)
 metabol $ haz_6m_simulated <- rnorm(n = 199, mean = mean, sd = sd)
 metabol $ haz_6m_simulated <- as.numeric(format(round(metabol $ haz_6m_simulated, 2), 
                                             nsmall = 2))
-dput(names((metabol)))
+#dput(names((metabol)))
 
 # Set parameters for tmleFunc
 W = c("sex_base", "mage_base")
@@ -289,10 +289,7 @@ tableMetabol <- tableFunc(A, W, Y, metabol)
 write.csv(tableMetabol, file = "/data/imic/results/tmle/MetabolElicitTMLE.csv")
 ```
 
-# Sapient.RDS
-```{r}
 
-```
 
 
 

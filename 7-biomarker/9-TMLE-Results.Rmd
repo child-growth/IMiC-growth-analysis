@@ -1,0 +1,91 @@
+---
+title: |
+  TMLE Results
+author: "Sajia Darwish"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+  html_document:
+    toc: yes
+    toc_depth: 4
+keep_tex: yes
+theme: bclear
+fontsize: 10pt
+geometry: margin=1in
+header-includes:
+- \usepackage{enumitem}
+- \usepackage{indentfirst}
+- \usepackage[default, scale=1]{raleway}
+- \usepackage[T1]{fontenc}
+- \usepackage{inconsolata}
+always_allow_html: yes
+---
+
+# Overview
+
+- Implemented TMLE over each group of biomarkers separately for each study, controlling for only a couple of baseline covariates for simplicity (sex and mother's age for most).
+- The following graphs show TMLE estimates for each group of biomarkers to understand how they are associated with the outcome (haz_6m).
+- The outcome for these analyses were simualted from the distrubutions of the actual outcomes.
+
+```{r, include=FALSE}
+library(tidyverse)
+
+hmo <- read.csv("/data/imic/results/tmle/hmoElicitTMLE.csv")
+bioc <- read.csv("/data/imic/results/tmle/biocElicitTMLE.csv")
+bvit <- read.csv("/data/imic/results/tmle/BvitElicitTMLE.csv")
+metabol <- read.csv("/data/imic/results/tmle/MetabolElicitTMLE.csv")
+```
+
+# ELICIT
+
+## HMO
+```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
+hmo %>%
+    ggplot(aes(x =tmle_est)) +
+    geom_histogram(binwidth = 0.1, fill="#69b3a2", color="#e9ecef", alpha = 0.9) +
+    theme_classic()
+```
+
+## Biocrates
+```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
+bioc %>%
+    ggplot(aes(x =tmle_est)) +
+    geom_histogram(binwidth = 0.1, fill="#69b3a2", color="#e9ecef", alpha = 0.9) +
+    theme_classic()
+```
+
+## B-vitamins
+```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
+bvit %>%
+    ggplot(aes(x =tmle_est)) +
+    geom_histogram(binwidth = 0.1, fill="#69b3a2", color="#e9ecef", alpha = 0.9) +
+    theme_classic()
+```
+
+## Metabolomcis
+```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
+metabol %>%
+    ggplot(aes(x =tmle_est)) +
+    geom_histogram(binwidth = 0.1, fill="#69b3a2", color="#e9ecef", alpha = 0.9) +
+    theme_classic()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
