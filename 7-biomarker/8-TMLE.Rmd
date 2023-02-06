@@ -154,7 +154,7 @@ sd <- sd(bioc $ haz_6m)
 
 # Generate new data from this distribution
 bioc $ haz_6m_simulated <- rnorm(n = 199, mean = mean, sd = sd)
-bioc $ haz_6m_simulated <- as.numeric(format(round(hmo $ haz_6m_simulated, 2), 
+bioc $ haz_6m_simulated <- as.numeric(format(round(bioc $ haz_6m_simulated, 2), 
                                             nsmall = 2))
 
 # Set parameters for tmleFunc

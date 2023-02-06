@@ -40,7 +40,7 @@ metabol <- read.csv("/data/imic/results/tmle/MetabolElicitTMLE.csv")
 
 # ELICIT (N = 199)
 
-## HMO
+## HMO (22 features)
 ```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
 hmo %>%
     ggplot(aes(x =tmle_est)) +
@@ -48,7 +48,7 @@ hmo %>%
     theme_classic()
 ```
 
-## Biocrates
+## Biocrates (329 features)
 ```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
 bioc %>%
     ggplot(aes(x =tmle_est)) +
@@ -56,7 +56,7 @@ bioc %>%
     theme_classic()
 ```
 
-## B-vitamins
+## B-vitamins (23 features)
 ```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
 bvit %>%
     ggplot(aes(x =tmle_est)) +
@@ -64,7 +64,7 @@ bvit %>%
     theme_classic()
 ```
 
-## Metabolomcis
+## Metabolomcis (111 features)
 ```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
 metabol %>%
     ggplot(aes(x =tmle_est)) +
@@ -79,7 +79,7 @@ bioc <- read.csv("/data/imic/results/tmle/biocVitalTMLE.csv")
 metabol <- read.csv("/data/imic/results/tmle/MetabolVitalTMLE.csv")
 ```
 
-## HMO
+## HMO (22 features)
 ```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
 hmo %>%
     ggplot(aes(x =tmle_est)) +
@@ -87,7 +87,7 @@ hmo %>%
     theme_classic()
 ```
 
-## Biocrates
+## Biocrates (630 features)
 ```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
 bioc %>%
     ggplot(aes(x =tmle_est)) +
@@ -95,7 +95,7 @@ bioc %>%
     theme_classic()
 ```
 
-## Metabolomcis
+## Metabolomcis (111 features)
 ```{r, echo=FALSE, fig.show="hold", out.width="75%", fig.align = 'center'}
 metabol %>%
     ggplot(aes(x =tmle_est)) +
