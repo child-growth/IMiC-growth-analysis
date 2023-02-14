@@ -20,8 +20,98 @@ library(Rsolnp)
 library(dplyr)
 ```
 
-# Make a TMLE function and a table function
+# Make a TMLE function and a table function: without added learners
 ```{r, include=FALSE}
+# tmleFunc <- function(W, A, Y, data) {
+#   # Define the variable roles
+#   node_list <- list(W = W, A = A, Y = Y)
+# 
+#   processed <- process_missing(data, node_list)
+#   data2 <- processed $ data # Remember that now data is data2 now.
+#   node_list <- processed $ node_list
+# 
+#   # Dichotomize A
+#   for (i in 1:nrow(data2)) {
+#     data2[[A]][i] <- ifelse(data2[[A]][i] > median(data2[[A]]), 1, 0)
+#   }
+# 
+#   ate_spec <- tmle_ATE(treatment_level = 1, control_level = 0)
+# 
+#   # Choose base learners
+#   lrnr_glm <- make_learner(Lrnr_glm)
+#   lrnr_mean <- make_learner(Lrnr_mean)
+# 
+#   # Define metalearners appropriate to data types
+#   # non-negative least squares regression for continuous outcomes
+#   ls_metalearner <- make_learner(Lrnr_nnls)
+# 
+#   # mn_metalearner <- make_learner(Lrnr_solnp, metalearner_linear_multinomial,
+#   #                                loss_loglik_multinomial)
+# 
+#   # Plot Y to get a sense of distribution
+#   #hist(data2[[Y]])
+# 
+#   sl_Y <- Lrnr_sl $ new(learners = list(lrnr_mean, lrnr_glm),
+#                       metalearner = ls_metalearner)
+# 
+#   # Plot A to get a sense of distribution
+#   #hist(data[[A]]) # Actual A
+#   #hist(data2[[A]]) # Dichotomized A
+# 
+#   sl_A <- Lrnr_sl $ new(learners = list(lrnr_mean, lrnr_glm),
+#                       metalearner = ls_metalearner)#mn_metalearner)
+# 
+#   learner_list <- list(A = sl_A, Y = sl_Y)
+# 
+#   tmle_fit <- tmle3(ate_spec, data2, node_list, learner_list)
+#   print(tmle_fit)
+# }
+# 
+# # # Make a for loop function
+# tableFunc <- function (A, W, Y, data) {
+# #   # Make a dataframe to save results in
+# # resultTable <- data.frame(A = rep(1:length(A)),
+# #                           Y = rep(1:length(A)),
+# #                           #n = nrow(data),
+# #                           init_est = rep(1:length(A)),
+# #                           tmle_est = rep(1:length(A)),
+# #                           se = rep(1:length(A)),
+# #                           lower = rep(1:length(A)),
+# #                           upper = rep(1:length(A)))
+# 
+# # Run the function through a for loop 
+# # for (i in 1:length(A)) {
+# #     tmleResult <- tmleFunc(W, A[i], Y, data)
+# #     resultTable[i, 1] = A[i]
+# #     resultTable[i, 2] = Y
+# #     summary <- tmleResult $ summary
+# #     resultTable[i, 3] = summary $ init_est
+# #     resultTable[i, 4] = summary $ tmle_est
+# #     resultTable[i, 5] = summary $ se
+# #     resultTable[i, 6] = summary $ lower
+# #     resultTable[i, 7] = summary $ upper
+# # }
+# 
+# # Parallelize:
+# int.start.time <- Sys.time()
+# resultTable  <- foreach(i = 1:length(A), .combine = 'bind_rows',
+#                         .errorhandling = 'remove') %dopar% {
+#   tmleResult <- tmleFunc(W, A[i], Y, data)
+#   resultTable <- tmleResult $ summary
+#   resultTable $ A <- A[i]
+#   resultTable $ Y <- Y
+#   return(resultTable)
+#   }
+# 
+# int.end.time <- Sys.time()
+# difftime(int.end.time, int.start.time, units = "mins")
+# 
+# return(resultTable)
+# }
+```
+
+# Function with added learners
+```{r}
 tmleFunc <- function(W, A, Y, data) {
   # Define the variable roles
   node_list <- list(W = W, A = A, Y = Y)
@@ -37,9 +127,40 @@ tmleFunc <- function(W, A, Y, data) {
 
   ate_spec <- tmle_ATE(treatment_level = 1, control_level = 0)
 
-  # Choose base learners
-  lrnr_glm <- make_learner(Lrnr_glm)
-  lrnr_mean <- make_learner(Lrnr_mean)
+  lrnr_glmnet <- Lrnr_glmnet$new()
+  random_forest <- Lrnr_randomForest$new()
+  glm_fast <- Lrnr_glm_fast$new()
+  nnls_lrnr <- Lrnr_nnls$new()
+  
+  xgboost_lrnr <- Lrnr_xgboost$new()
+  ranger_lrnr <- Lrnr_ranger$new()
+  gbm_lrnr <- Lrnr_gbm$new()
+  earth_lrnr <- Lrnr_earth$new()
+  dbarts_lrnr <- Lrnr_dbarts$new()
+  hal_lrnr <- Lrnr_hal9001$new()
+  gam_lrnr <- Lrnr_gam$new()
+  polyspline<-Lrnr_polspline$new()
+  
+  screen_cor <- Lrnr_pkg_SuperLearner_screener$new("screen.corP")
+  screen_glmnet <- Lrnr_pkg_SuperLearner_screener$new("screen.glmnet")
+  screen_corRank <- Lrnr_screener_corRank$new(rank=3)
+  
+  cor_glm <- make_learner(Pipeline, screen_cor, glm_fast)
+  cor_spline <- make_learner(Pipeline, screen_cor, polyspline)
+  screened_hal <- make_learner(Pipeline, screen_glmnet, hal_lrnr)
+  
+  stack <- make_learner(
+    Stack,
+    lrnr_mean,
+    glm_fast,
+    cor_glm,
+    lrnr_glmnet,
+    ranger_lrnr,
+    xgboost_lrnr,
+    gam_lrnr,
+    cor_spline,
+    screened_hal
+  )
 
   # Define metalearners appropriate to data types
   # non-negative least squares regression for continuous outcomes
@@ -51,14 +172,14 @@ tmleFunc <- function(W, A, Y, data) {
   # Plot Y to get a sense of distribution
   #hist(data2[[Y]])
 
-  sl_Y <- Lrnr_sl $ new(learners = list(lrnr_mean, lrnr_glm),
+  sl_Y <- Lrnr_sl $ new(learners = stack,
                       metalearner = ls_metalearner)
 
   # Plot A to get a sense of distribution
   #hist(data[[A]]) # Actual A
   #hist(data2[[A]]) # Dichotomized A
 
-  sl_A <- Lrnr_sl $ new(learners = list(lrnr_mean, lrnr_glm),
+  sl_A <- Lrnr_sl $ new(learners = stack,
                       metalearner = ls_metalearner)#mn_metalearner)
 
   learner_list <- list(A = sl_A, Y = sl_Y)
@@ -69,29 +190,6 @@ tmleFunc <- function(W, A, Y, data) {
 
 # # Make a for loop function
 tableFunc <- function (A, W, Y, data) {
-#   # Make a dataframe to save results in
-# resultTable <- data.frame(A = rep(1:length(A)),
-#                           Y = rep(1:length(A)),
-#                           #n = nrow(data),
-#                           init_est = rep(1:length(A)),
-#                           tmle_est = rep(1:length(A)),
-#                           se = rep(1:length(A)),
-#                           lower = rep(1:length(A)),
-#                           upper = rep(1:length(A)))
-
-# Run the function through a for loop 
-# for (i in 1:length(A)) {
-#     tmleResult <- tmleFunc(W, A[i], Y, data)
-#     resultTable[i, 1] = A[i]
-#     resultTable[i, 2] = Y
-#     summary <- tmleResult $ summary
-#     resultTable[i, 3] = summary $ init_est
-#     resultTable[i, 4] = summary $ tmle_est
-#     resultTable[i, 5] = summary $ se
-#     resultTable[i, 6] = summary $ lower
-#     resultTable[i, 7] = summary $ upper
-# }
-
 # Parallelize:
 int.start.time <- Sys.time()
 resultTable  <- foreach(i = 1:length(A), .combine = 'bind_rows',
@@ -137,7 +235,7 @@ Y = "haz_6m_simulated"
 tableHmo <- tableFunc(A, W, Y, hmo)
 
 # Save dataset
-write.csv(tableHmo, file = "/data/imic/results/tmle/hmoElicitTMLE.csv")
+#write.csv(tableHmo, file = "/data/imic/results/tmle/hmoElicitTMLE.csv")
 ```
 
 # Biocrates normalized ELICIT
@@ -184,7 +282,7 @@ Y = "haz_6m_simulated"
 tableBioc <- tableFunc(A, W, Y, bioc)
 
 # Save dataset
-write.csv(tableBioc, file = "/data/imic/results/tmle/biocElicitTMLE.csv")
+#write.csv(tableBioc, file = "/data/imic/results/tmle/biocElicitTMLE.csv")
 ```
 
 # Bvitamin ELICIT
@@ -235,7 +333,7 @@ Y = "haz_6m_simulated"
 tableBvit <- tableFunc(A, W, Y, bvit)
 
 # Save dataset
-write.csv(tableBvit, file = "/data/imic/results/tmle/BvitElicitTMLE.csv")
+#write.csv(tableBvit, file = "/data/imic/results/tmle/BvitElicitTMLE.csv")
 ```
 
 # Metabolomic Indicators ELICIT
@@ -286,7 +384,7 @@ Y = "haz_6m_simulated"
 tableMetabol <- tableFunc(A, W, Y, metabol)
 
 # Save dataset
-write.csv(tableMetabol, file = "/data/imic/results/tmle/MetabolElicitTMLE.csv")
+#write.csv(tableMetabol, file = "/data/imic/results/tmle/MetabolElicitTMLE.csv")
 ```
 
 # HMO VITAL
@@ -319,7 +417,7 @@ Y = "haz_6m_simulated"
 tableHmo <- tableFunc(A, W, Y, hmo)
 
 # Save dataset
-write.csv(tableHmo, file = "/data/imic/results/tmle/hmoVitalTMLE.csv")
+#write.csv(tableHmo, file = "/data/imic/results/tmle/hmoVitalTMLE.csv")
 ```
 
 # Biocrates normalized VITAL
@@ -409,7 +507,7 @@ Y = "haz_6m_simulated"
 tableBioc <- tableFunc(A, W, Y, bioc)
 
 # Save dataset
-write.csv(tableBioc, file = "/data/imic/results/tmle/biocVitalTMLE.csv")
+#write.csv(tableBioc, file = "/data/imic/results/tmle/biocVitalTMLE.csv")
 ```
 
 # Metabolomic Indicators VITAL
@@ -500,7 +598,7 @@ Y = "haz_6m_simulated"
 tableMetabol <- tableFunc(A, W, Y, metabol)
 
 # Save dataset
-write.csv(tableMetabol, file = "/data/imic/results/tmle/MetabolVitalTMLE.csv")
+#write.csv(tableMetabol, file = "/data/imic/results/tmle/MetabolVitalTMLE.csv")
 ```
 
 

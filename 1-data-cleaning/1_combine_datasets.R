@@ -96,6 +96,7 @@ lazpivot2 <- elicit_raw %>%
     values_drop_na = TRUE
   )
 
+<<<<<<< HEAD
 #Final elicit_raw longform data
 lazmerged <- full_join(lazpivot1,lazpivot2, by=c("pid","dob","VISIT")) %>% 
   rename(SUBJIDO = pid) 
@@ -121,6 +122,22 @@ vital_raw <- vital_raw %>%
   select(studyid, dov )
 
 
+=======
+dim(lazpivot1)
+dim(distinct(lazpivot1))
+dim(lazpivot2)
+dim(distinct(lazpivot2))
+lazmerged <- merge(lazpivot1,lazpivot2, by=c("pid", "Sampling Round (LAZ)"))
+lazmerged
+dim(lazmerged)
+
+
+#-------------------------------------------------------------------
+# misame raw data
+#-------------------------------------------------------------------
+misame_raw <- haven::read_sas("/data/imic/data/raw_field_data/misame_raw/misame3_imic.sas7bdat")
+
+>>>>>>> 05fe0bebd4c24b8ce5305cb7d44c646064e2166b
 
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
