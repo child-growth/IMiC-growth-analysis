@@ -92,8 +92,20 @@ lazpivot2 <- elicit_combined %>%
     values_drop_na = TRUE
   )
 
+dim(lazpivot1)
+dim(distinct(lazpivot1))
+dim(lazpivot2)
+dim(distinct(lazpivot2))
 lazmerged <- merge(lazpivot1,lazpivot2, by=c("pid", "Sampling Round (LAZ)"))
 lazmerged
+dim(lazmerged)
+
+
+#-------------------------------------------------------------------
+# misame raw data
+#-------------------------------------------------------------------
+misame_raw <- haven::read_sas("/data/imic/data/raw_field_data/misame_raw/misame3_imic.sas7bdat")
+
 
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
