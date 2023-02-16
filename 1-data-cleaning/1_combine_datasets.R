@@ -7,8 +7,6 @@
 # Author: Andrew Mertens (amertens@berkeley.edu)
 #-----------------------------------------------------------------------------------------
 
-
-
 # Instructions for downloading FINAL dataset
 
 # Go to [insert git location]
@@ -21,7 +19,6 @@
 # Add U:/data/FINAL/ to the destination path (make sure FINAL folder is empty)
 # Click clone
 
-
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 library(lubridate)
@@ -33,6 +30,8 @@ vital <- read.csv("/data/imic/data/harmonized_datasets/VITAL_IMiC_analysis.csv")
 # Esther work here:
 # Merge in date and location info
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+# ELICIT RAW DATA
 
 elicit_raw_anthro <- readxl::read_excel("/data/imic/data/raw_field_data/elicit_raw/ELICIT anthro measurements for IMiC 1-2022.xlsx")
 head(elicit_raw_anthro)
@@ -65,33 +64,65 @@ elicit_raw[sample_waz_string] <- ymd(elicit_raw$dob) + days(as.numeric(unlist(el
 
 # # #To do: subset to just the needed variables and merge with the main data with the ID variable and the sample date
 elicit_raw <- elicit_raw %>% select(pid, dob, agedays_laz_0, sampledate_laz_0, agedays_laz_3, sampledate_laz_3, agedays_laz_6, sampledate_laz_6, agedays_laz_9, sampledate_laz_9, agedays_laz_12, sampledate_laz_12, agedays_laz_15, sampledate_laz_15, agedays_waz_0, sampledate_waz_0, agedays_waz_3, sampledate_waz_3, agedays_waz_6, sampledate_waz_6, agedays_waz_9, sampledate_waz_9, agedays_waz_12, sampledate_waz_12, agedays_waz_15, sampledate_waz_15)
-elicit_raw_bm <- elicit_raw_bm %>% select(pid, bmc_date_collected)
-elicit_combined <- left_join(elicit_raw, elicit_raw_bm, by=c("pid"))
+elicit_raw_bm <- elicit_raw_bm %>% 
+  select(pid, bmc_date_collected) 
 
-colnames(elicit_combined)
-elicit_combined
+#Convert BM dataset to include visit round (1 month & 5 months)
+elicit_bm <- elicit_raw_bm %>%
+  mutate(VISIT = rep(c("1 Month Visit", "5 Months Visit"), times = 200)) %>%
+  rename(BMC_Collection_Date = bmc_date_collected) %>% 
+  rename(SUBJIDO = pid) 
+
+#anthro 0,3,6,9,12,15
 
 #Convert to longform dataset
-lazpivot1 <- elicit_combined %>% 
-  select(pid,agedays_laz_0, agedays_laz_3, agedays_laz_6, agedays_laz_9, agedays_laz_12, agedays_laz_15) %>%
+lazpivot1 <- elicit_raw %>% 
+  select(pid,dob,agedays_laz_0, agedays_laz_3, agedays_laz_6, agedays_laz_9, agedays_laz_12, agedays_laz_15) %>%
   pivot_longer(
     cols = starts_with("agedays_laz"),
-    names_to = "Sampling Round (LAZ)",
+    names_to = "VISIT",
     names_prefix = "agedays_laz_",
     values_to = "Age (days)",
     values_drop_na = TRUE
   )
 
-lazpivot2 <- elicit_combined %>%
-  select(pid,sampledate_laz_0, sampledate_laz_3, sampledate_laz_6, sampledate_laz_9, sampledate_laz_12, sampledate_laz_15) %>%
+lazpivot2 <- elicit_raw %>%
+  select(pid,dob, sampledate_laz_0, sampledate_laz_3, sampledate_laz_6, sampledate_laz_9, sampledate_laz_12, sampledate_laz_15) %>%
   pivot_longer(
     cols = starts_with("sampledate_laz"),
-    names_to = "Sampling Round (LAZ)",
+    names_to = "VISIT",
     names_prefix = "sampledate_laz_",
-    values_to = "Sampling Date",
+    values_to = "Anthro Date", #name sampling date to anthro dates
     values_drop_na = TRUE
   )
 
+<<<<<<< HEAD
+#Final elicit_raw longform data
+lazmerged <- full_join(lazpivot1,lazpivot2, by=c("pid","dob","VISIT")) %>% 
+  rename(SUBJIDO = pid) 
+
+lazmerged <- lazmerged %>% mutate(VISIT = ifelse(VISIT == "0", "Enrolment Visit", 
+                                   ifelse(VISIT == "3", "3 Months Visit",
+                                          ifelse(VISIT == "6", "6 Months Visit",
+                                                 ifelse(VISIT == "9", "9 Months Visit",
+                                                        ifelse(VISIT == "12", "12 Months Visit",
+                                                               ifelse(VISIT == "15", "15 Months Visit", VISIT)))))))
+
+#Merge in with harmonized data set
+elicit <- left_join(elicit, elicit_bm, by = "SUBJIDO", "VISIT")
+
+# VITAL RAW DATA
+
+#This one seems to have all the data needed, including date of visit, dob, and anthropometry metrics
+vital_raw <- read.csv("/data/imic/data/raw_field_data/vital_raw/ZSCORE_FOR_EACH_VISIT.csv")
+colnames(vital_raw)
+#include date of visit & date of birth
+#To do: subset to just the needed variables and merge with the main data with the ID variable and the sample date
+vital_raw <- vital_raw %>%
+  select(studyid, dov )
+
+
+=======
 dim(lazpivot1)
 dim(distinct(lazpivot1))
 dim(lazpivot2)
@@ -106,8 +137,10 @@ dim(lazmerged)
 #-------------------------------------------------------------------
 misame_raw <- haven::read_sas("/data/imic/data/raw_field_data/misame_raw/misame3_imic.sas7bdat")
 
+>>>>>>> 05fe0bebd4c24b8ce5305cb7d44c646064e2166b
 
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
 
 head(vital)
 head(elicit)
