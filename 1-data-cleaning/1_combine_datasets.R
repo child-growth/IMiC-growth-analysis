@@ -96,7 +96,7 @@ lazpivot2 <- elicit_raw %>%
     values_drop_na = TRUE
   )
 
-<<<<<<< HEAD
+
 #Final elicit_raw longform data
 lazmerged <- full_join(lazpivot1,lazpivot2, by=c("pid","dob","VISIT")) %>% 
   rename(SUBJIDO = pid) 
@@ -109,7 +109,15 @@ lazmerged <- lazmerged %>% mutate(VISIT = ifelse(VISIT == "0", "Enrolment Visit"
                                                                ifelse(VISIT == "15", "15 Months Visit", VISIT)))))))
 
 #Merge in with harmonized data set
-elicit <- left_join(elicit, elicit_bm, by = "SUBJIDO", "VISIT")
+dim(elicit)
+dim(elicit_bm)
+unique(elicit$VISIT)
+unique(elicit_bm$VISIT)
+#elicit <- left_join(elicit, elicit_bm, by = "SUBJIDO", "VISIT")
+elicit <- left_join(elicit, elicit_bm, by = c("SUBJIDO", "VISIT"))
+dim(elicit)
+table(!is.na(elicit$BMC_Collection_Date))
+
 
 # VITAL RAW DATA
 
@@ -122,7 +130,6 @@ vital_raw <- vital_raw %>%
   select(studyid, dov )
 
 
-=======
 dim(lazpivot1)
 dim(distinct(lazpivot1))
 dim(lazpivot2)
@@ -137,7 +144,6 @@ dim(lazmerged)
 #-------------------------------------------------------------------
 misame_raw <- haven::read_sas("/data/imic/data/raw_field_data/misame_raw/misame3_imic.sas7bdat")
 
->>>>>>> 05fe0bebd4c24b8ce5305cb7d44c646064e2166b
 
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
