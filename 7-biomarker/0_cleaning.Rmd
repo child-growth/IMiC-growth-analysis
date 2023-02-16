@@ -6,6 +6,9 @@ date: "`r format(Sys.time(), '%Y-%m-%d')`"
 ---
 
 ```{r}
+library(naniar)
+library(tidyverse)
+
 # Make a cleaning function
 cleanFunc <- function(data) {
   # data %>%
@@ -43,11 +46,27 @@ cleanFunc <- function(data) {
 }
 ```
 
+# HMO ELICIT
+```{r}
+hmo <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmo.RDS")
+
+# Filter out obs without Y
+hmo <- hmo %>%
+  filter(!is.na(haz_6m))
+
+hmoClean <- cleanFunc(hmo)
+
+# Convert sex_base to binary.
+hmoClean $ sex_base = ifelse(hmoClean $ sex_base == "Male", 0, 1)
+
+# Look at columns with NA
+hmoClean <- data.frame(hmoClean)
+
+saveRDS(hmoClean, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS"))
+```
+
 # Biocrates ELICIT
 ```{r}
-library(naniar)
-library(tidyverse)
-
 bioc <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocratesNorm.RDS")
 #biocClean <- cleanFunc(bioc)
 

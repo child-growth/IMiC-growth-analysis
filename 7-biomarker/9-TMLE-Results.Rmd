@@ -51,14 +51,17 @@ hmo %>%
 # Volcano plot
 ```{r}
 # Calculate p-value
-hmo $ z = hmo $ tmle_est / hmo $ se
-hmo $ pvalue = exp((-0.717 * hmo $ z) - (0.416 * (hmo $ z^2)))
+bioc $ z_base = bioc $ tmle_est_base / bioc $ se_base
+bioc $ pvalue_base = exp((-0.717 * bioc $ z_base) - (0.416 * (bioc $ z_base^2)))
 
-# Calculate log 2 fold change [TO DO: get unadjusted estimates]
-# Name this variable log2FoldChange
+bioc $ z_6 = bioc $ tmle_est_6 / bioc $ se_6
+bioc $ pvalue_6 = exp((-0.717 * bioc $ z_6) - (0.416 * (bioc $ z_6^2)))
+
+# Calculate log 2 fold change for baseline vs 6 months: (B - A)/A
+bioc $ log2FoldChange <- log2(bioc $ tmle_est_6 - bioc $ tmle_est_base) / bioc $ tmle_est_base
 
 # Convert directly in the aes()
-p <- ggplot(data = hmo, aes(x = tmle_est, y = log10(pvalue))) + geom_point() +
+p <- ggplot(data = bioc, aes(x = log2FoldChange, y = log10(pvalue_base))) + geom_point() +
   theme_minimal()
 
 # Add vertical lines for log2FoldChange thresholds, and one horizontal line for 
@@ -70,14 +73,14 @@ p2 <- p + geom_vline(xintercept = c(-0.6, 0.6), col = "red") +
 # Add a column to the data frame to specify if they are UP- or DOWN- (log2FoldChange respectively positive or negative)
 
 # add a column of NAs
-hmo $ state <- "NO"
+bioc $ state <- "NO"
 # if log2Foldchange > 0.6 and pvalue < 0.05, set as "UP" 
-hmo $ state[hmo $ log2FoldChange > 0.6 & hmo $ pvalue < 0.05] <- "UP"
+bioc $ state[bioc $ log2FoldChange > 0.6 & bioc $ pvalue_base < 0.05] <- "UP"
 # if log2Foldchange < -0.6 and pvalue < 0.05, set as "DOWN"
-hmo $ state[hmo $ log2FoldChange < -0.6 & hmo $ pvalue < 0.05] <- "DOWN"
+bioc $ state[bioc $ log2FoldChange < -0.6 & bioc $ pvalue_base < 0.05] <- "DOWN"
 
 # Re-plot but this time color the points with "state"
-p <- ggplot(data = hmo, aes(x = log2FoldChange, y = -log10(pvalue), 
+p <- ggplot(data = bioc, aes(x = log2FoldChange, y = -log10(pvalue_base), 
                           col = state)) + geom_point() + theme_minimal()
 
 # Add lines as before...
@@ -91,12 +94,13 @@ p3 <- p2 + scale_colour_manual(values = mycolors)
 
 # Now write down the names of variables beside the points
 # Create a new column "delabel" to de, that will contain the name of genes differentially expressed (NA in case they are not)
-hmo $ delabel <- NA
-hmo $ delabel[hmo $ status != "NO"] <- hmo $ gene_symbol[hmo $ status != "NO"]
+bioc $ delabel <- NA
+bioc $ delabel[bioc $ status != "NO"] <- bioc $ gene_symbol[bioc $ status != "NO"]
 
-ggplot(data = hmo, aes(x = log2FoldChange, y = -log10(pvalue), col = status, 
+ggplot(data = bioc, aes(x = log2FoldChange, y = -log10(pvalue_base), col = bioc $ status, 
                        label = delabel)) + 
-  geom_point() + theme_minimal() + geom_text_repel() + 
+  geom_point() + theme_minimal() + 
+  #geom_text_repel() + 
   scale_color_manual(values = c("blue", "black", "red")) +
   geom_vline(xintercept = c(-0.6, 0.6), col = "red") +
   geom_hline(yintercept = -log10(0.05), col = "red")
