@@ -118,6 +118,7 @@ return(resultTable)
 #   gam_lrnr <- Lrnr_gam$new()
 #   polyspline<-Lrnr_polspline$new()
 #   
+# 
 #   screen_cor <- Lrnr_pkg_SuperLearner_screener$new("screen.corP")
 #   screen_glmnet <- Lrnr_pkg_SuperLearner_screener$new("screen.glmnet")
 #   screen_corRank <- Lrnr_screener_corRank$new(rank=3)
@@ -127,7 +128,7 @@ return(resultTable)
 #   screened_hal <- make_learner(Pipeline, screen_glmnet, hal_lrnr)
 #   
 #   stack <- make_learner(
-#     #Stack,
+#     Stack,
 #     lrnr_mean,
 #     glm_fast,
 #     cor_glm,
