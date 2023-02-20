@@ -1,0 +1,96 @@
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(sl3)
+library(kableExtra)
+library(knitr)
+library(skimr)
+library(tidyverse)
+library(data.table)
+library(sl3)
+library(SuperLearner)
+library(origami)
+library(hal9001)
+```
+
+```{r message=FALSE, warning=FALSE}
+# Load data
+hmo <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
+#dput(names((hmo)))
+#head(data)
+
+# Get mean and variance of the outcome
+hist(hmo $ haz_6m)
+mean <- mean(hmo $ haz_6m)
+sd <- sd(hmo $ haz_6m)
+
+# Generate new data from this distribution
+hmo $ haz_6m_simulated <- rnorm(n = nrow(hmo), mean = mean, sd = sd)
+hmo $ haz_6m_simulated <- as.numeric(format(round(hmo $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+
+covars = c("X2.FL_nmol.mL", "X3FL_nmol.mL", "DFLac_nmol.mL", "X3.SL_nmol.mL",
+       "X6.SL_nmol.mL", "LNT_nmol.mL", "LNnT_nmol.mL", "LNFP.I_nmol.mL", 
+       "LNFP.II_nmol.mL", "LNFP.III_nmol.mL", "LSTb_nmol.mL", "LSTc_nmol.mL",
+       "DFLNT_nmol.mL", "LNH_nmol.mL", "DSLNT_nmol.mL", "FLNH_nmol.mL", 
+       "DFLNH_nmol.mL", "FDSLNH_nmol.mL", "DSLNH_nmol.mL", "SUM_nmol.mL", 
+       "Sia_nmol.mL", "Fuc_nmol.mL")
+outcome = "haz_6m_simulated"
+
+# create the sl3 task
+hmo_task <- make_sl3_Task(
+  data = hmo,
+  covariates = covars,
+  outcome = outcome
+)
+
+#hmo_task
+#dput(sl3_list_learners(c("continuous")))
+
+lrnr_glm <- make_learner(Lrnr_glm)
+lrnr_mean <- make_learner(Lrnr_mean)
+lrnr_glmnet <- make_learner(Lrnr_glmnet)
+lrnr_xgboost <- make_learner(Lrnr_xgboost)
+lrnr_ranger100 <- make_learner(Lrnr_ranger, num.trees = 100)
+lrnr_hal_simple <- make_learner(Lrnr_hal9001, degrees = 1, n_folds = 2)
+lrnr_gam <- Lrnr_pkg_SuperLearner$new("SL.gam")
+lrnr_bayesglm <- Lrnr_pkg_SuperLearner$new("SL.bayesglm")
+
+stack <- make_learner(
+  Stack,
+  lrnr_glm, lrnr_mean, lrnr_glmnet, lrnr_xgboost, 
+  lrnr_ranger100, lrnr_hal_simple,
+  lrnr_gam, lrnr_bayesglm
+)
+
+metalearner <- make_learner(Lrnr_nnls)
+
+sl <- make_learner(Lrnr_sl,
+  learners = stack,
+  metalearner = metalearner
+)
+
+sl_fit <- sl$train(hmo_task)
+sl_preds <- sl_fit$predict()
+sl_fit$print()
+```
+
+```{r}
+hmo <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
+dput(names(hmo))
+
+# Collapse hmo data into long format
+id <- c("subjid", "haz_6m")
+
+longHmo <- hmo %>%
+  select(c(id,
+           "X2.FL_nmol.mL", "X3FL_nmol.mL", "DFLac_nmol.mL", "X3.SL_nmol.mL",
+           "X6.SL_nmol.mL", "LNT_nmol.mL", "LNnT_nmol.mL", "LNFP.I_nmol.mL", 
+           "LNFP.II_nmol.mL", "LNFP.III_nmol.mL", "LSTb_nmol.mL", "LSTc_nmol.mL",
+           "DFLNT_nmol.mL", "LNH_nmol.mL", "DSLNT_nmol.mL", "FLNH_nmol.mL", "DFLNH_nmol.mL", 
+           "FDSLNH_nmol.mL", "DSLNH_nmol.mL", "SUM_nmol.mL", "Sia_nmol.mL", "Fuc_nmol.mL")) %>%
+  pivot_longer(!id,
+              names_to = "biomarker",
+              values_to = "value")
+```
+

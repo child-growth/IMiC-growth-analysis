@@ -230,9 +230,12 @@ hmo $ haz_6m_simulated <- as.numeric(format(round(hmo $ haz_6m_simulated, 2),
 
 # Set parameters for tmleFunc
 W = c("Secretor", "Diversity", "Evenness")
-A1 = c("X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT", "LNFP.I",
-      "LNFP.II", "LNFP.III", "LSTb", "LSTc", "DFLNT", "LNH", "DSLNT", "FLNH",
-      "DFLNH", "FDSLNH", "DSLNH", "SUM", "Sia", "Fuc")
+A1 = c("X2.FL_nmol.mL", "X3FL_nmol.mL", "DFLac_nmol.mL", "X3.SL_nmol.mL",
+       "X6.SL_nmol.mL", "LNT_nmol.mL", "LNnT_nmol.mL", "LNFP.I_nmol.mL", 
+       "LNFP.II_nmol.mL", "LNFP.III_nmol.mL", "LSTb_nmol.mL", "LSTc_nmol.mL",
+       "DFLNT_nmol.mL", "LNH_nmol.mL", "DSLNT_nmol.mL", "FLNH_nmol.mL", 
+       "DFLNH_nmol.mL", "FDSLNH_nmol.mL", "DSLNH_nmol.mL", "SUM_nmol.mL", 
+       "Sia_nmol.mL", "Fuc_nmol.mL")
 Y1 = "haz_base"
 Y2 = "haz_6m_simulated"
 
@@ -241,8 +244,6 @@ tableHmo2 <- tableFunc(A, W, Y2, hmo)
 
 # Save dataset
 #write.csv(tableHmo, file = "/data/imic/results/tmle/hmoElicitTMLE.csv")
-
-
 ```
 
 # Biocrates normalized ELICIT
