@@ -186,47 +186,12 @@ return(resultTable)
 # }
 ```
 
-```{r}
-simulateY <- function(data) {
-  mean1 <- mean(data $ haz_base)
-  sd1 <- sd(data $ haz_base)
-
-  # Generate new data from this distribution
-  data $ y1Simulated <- rnorm(n = nrow(data), mean = mean1, sd = sd1)
-  data $ y1Simulated <- as.numeric(format(round(y1Simulated, 2), nsmall = 2))
-  
-  mean2 <- mean(data $ haz_6m)
-  sd2 <- sd(data $ haz_6m)
-
-  # Generate new data from this distribution
-  y2Simulated <- rnorm(n = nrow(data), mean = mean2, sd = sd2)
-  y2Simulated <- as.numeric(format(round(y2Simulated, 2), nsmall = 2))
-  
-  return(data)
-}
-
-hmo $ y1Simulated <- NA
-hmo $ y2Simulated <- NA
-simulateY(hmo)
-hmo[haz_base]
-```
-
 # HMO ELICIT
 ```{r, include=FALSE}
 # Load data
 hmo <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
-dput(names((hmo)))
+#dput(names((hmo)))
 #head(data)
-
-# Get mean and variance of the outcome
-hist(hmo $ haz_6m)
-mean <- mean(hmo $ haz_6m)
-sd <- sd(hmo $ haz_6m)
-
-# Generate new data from this distribution
-hmo $ haz_6m_simulated <- rnorm(n = nrow(hmo), mean = mean, sd = sd)
-hmo $ haz_6m_simulated <- as.numeric(format(round(hmo $ haz_6m_simulated, 2), 
-                                            nsmall = 2))
 
 # Set parameters for tmleFunc
 W = c("Secretor", "Diversity", "Evenness")
@@ -252,16 +217,6 @@ tableHmo2 <- tableFunc(A, W, Y2, hmo)
 bioc <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS")
 # head(bioc)
 # dput(names((bioc)))
-
-# Get mean and variance of the outcome
-hist(bioc $ haz_6m)
-mean <- mean(bioc $ haz_6m)
-sd <- sd(bioc $ haz_6m)
-
-# Generate new data from this distribution
-bioc $ haz_6m_simulated <- rnorm(n = 199, mean = mean, sd = sd)
-bioc $ haz_6m_simulated <- as.numeric(format(round(bioc $ haz_6m_simulated, 2), 
-                                            nsmall = 2))
 
 # Set parameters for tmleFunc
 W = c("sex_base", "mage_base")
@@ -339,16 +294,6 @@ write.csv(tableBioc, file = "/data/imic/results/tmle/biocElicitTMLE.csv")
 ```{r}
 # Load data
 bvit <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/bvitClean.RDS")
-
-# Get mean and variance of the outcome
-hist(bvit $ haz_6m)
-mean <- mean(bvit $ haz_6m)
-sd <- sd(bvit $ haz_6m)
-
-# Generate new data from this distribution
-bvit $ haz_6m_simulated <- rnorm(n = 199, mean = mean, sd = sd)
-bvit $ haz_6m_simulated <- as.numeric(format(round(bvit $ haz_6m_simulated, 2), 
-                                            nsmall = 2))
 #dput(names((bvit)))
 
 # Set parameters for tmleFunc
@@ -391,15 +336,6 @@ tableBvit <- tableFunc(A, W, Y, bvit)
 # Load data
 metabol <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/metabolClean.RDS")
 
-# Get mean and variance of the outcome
-hist(metabol $ haz_6m)
-mean <- mean(metabol $ haz_6m)
-sd <- sd(metabol $ haz_6m)
-
-# Generate new data from this distribution
-metabol $ haz_6m_simulated <- rnorm(n = 199, mean = mean, sd = sd)
-metabol $ haz_6m_simulated <- as.numeric(format(round(metabol $ haz_6m_simulated, 2), 
-                                            nsmall = 2))
 #dput(names((metabol)))
 
 # Set parameters for tmleFunc
@@ -444,16 +380,6 @@ hmo <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/hmoClean.RDS")
 #dput(names((hmo)))
 #head(data)
 
-# Get mean and variance of the outcome
-hist(hmo $ haz_m6)
-mean <- mean(hmo $ haz_m6)
-sd <- sd(hmo $ haz_m6)
-
-# Generate new data from this distribution
-hmo $ haz_6m_simulated <- rnorm(n = 147, mean = mean, sd = sd)
-hmo $ haz_6m_simulated <- as.numeric(format(round(hmo $ haz_6m_simulated, 2), 
-                                            nsmall = 2))
-
 # Set parameters for tmleFunc
 W = c("Secretor", "Diversity", "Evenness")
 A = c("X2.FL_nmol.mL", "X3FL_nmol.mL", "DFLac_nmol.mL", 
@@ -475,17 +401,7 @@ tableHmo <- tableFunc(A, W, Y, hmo)
 # Load data
 bioc <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/biocNormClean.RDS")
 # head(bioc)
-dput(names((bioc)))
-
-# Get mean and variance of the outcome
-hist(bioc $ haz_m6)
-mean <- mean(bioc $ haz_m6)
-sd <- sd(bioc $ haz_m6)
-
-# Generate new data from this distribution
-bioc $ haz_6m_simulated <- rnorm(n = 147, mean = mean, sd = sd)
-bioc $ haz_6m_simulated <- as.numeric(format(round(bioc $ haz_6m_simulated, 2), 
-                                            nsmall = 2))
+#dput(names((bioc)))
 
 # Set parameters for tmleFunc
 W = c("sex_base", "mage_base")
@@ -565,15 +481,6 @@ tableBioc <- tableFunc(A, W, Y, bioc)
 # Load data
 metabol <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/metabolClean.RDS")
 
-# Get mean and variance of the outcome
-hist(metabol $ haz_m6)
-mean <- mean(metabol $ haz_m6)
-sd <- sd(metabol $ haz_m6)
-
-# Generate new data from this distribution
-metabol $ haz_6m_simulated <- rnorm(n = 147, mean = mean, sd = sd)
-metabol $ haz_6m_simulated <- as.numeric(format(round(metabol $ haz_6m_simulated, 2), 
-                                            nsmall = 2))
 dput(names((metabol)))
 
 # Set parameters for tmleFunc
