@@ -35,7 +35,7 @@ slModelFunc <- function(data, covars, outcome) {
   lrnr_mean <- make_learner(Lrnr_mean)
   lrnr_glmtree <- make_learner(Lrnr_glmtree)
   lrnr_ranger100 <- make_learner(Lrnr_ranger, num.trees = 100)
-  lrnr_gam <- Lrnr_pkg_SuperLearner$new("SL.gam")
+  lrnr_gam <- Lrnr_pkg_SuperLearner $ new("SL.gam")
   lrnr_bayesglm <- Lrnr_pkg_SuperLearner$new("SL.bayesglm")
   lrn_ridge <- Lrnr_glmnet $ new(alpha = 0)
   lrn_lasso <- Lrnr_glmnet $ new(alpha = 1)
@@ -64,14 +64,7 @@ slModelFunc <- function(data, covars, outcome) {
     metalearner = metalearner
   )
   
-  start_time <- proc.time() # start time
-  
-  set.seed(4197)
-  
-  sl_fit <- sl$train(task)
-  
-  runtime_sl_fit <- proc.time() - start_time # end time - start time = run time
-  runtime_sl_fit
+  sl_fit <- sl $ train(task)
   
   sl_preds <- sl_fit $ predict()
   results <- sl_fit $ print()
@@ -95,7 +88,11 @@ covars = c("X2.FL_nmol.mL", "X3FL_nmol.mL", "DFLac_nmol.mL", "X3.SL_nmol.mL",
        "Sia_nmol.mL", "Fuc_nmol.mL")
 outcome = "haz_6m_simulated"
 
-resultHmo <- slModelFunc(hmo, covars = covars, outcome = outcome)
+set.seed(4197)
+start_time <- proc.time() # start time
+slModelFunc(hmo, covars = covars, outcome = outcome)
+runtime_sl_fit <- proc.time() - start_time # end time - start time = run time
+runtime_sl_fit
 ```
 
 ```{r}
@@ -204,8 +201,4 @@ outcome = "haz_6m_simulated"
 slModelFunc(bioc, covars = covars, outcome = outcome)
 ```
 
-# Data in the long format
-```{r}
-
-```
 
