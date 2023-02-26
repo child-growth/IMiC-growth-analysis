@@ -52,6 +52,8 @@ wide <- wide %>%
         "lencm_base", "bmi_base", "waz_base", "haz_base", "whz_base", 
         "baz_base", "agedays_base", "dur_bf_base", "dur_ebf_base"))
 
+write.csv(wide, "/data/imic/data/raw_lab_data/elicit/merged_elicit/wideDataset.csv")
+
 # Define the predictor
 predictor <- "haz_6m"
 
@@ -78,10 +80,13 @@ for (i in 2:length(wide)) {
 # Print the results
 print(results)
 
-results <- results[order(results$pvalue, decreasing=FALSE),]
+# Sort results
+results <- results[order(results$pvalue, decreasing=FALSE), ]
+
+# Remove first name column
 
 # Save
-write.csv(results, file = "/data/imic/results/unadjustedElicit.csv")
+#write.csv(results, file = "/data/imic/results/unadjustedElicit.csv")
 ```
 
 

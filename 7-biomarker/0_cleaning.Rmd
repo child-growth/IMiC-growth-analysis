@@ -174,12 +174,21 @@ sapient <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/sapient.RD
 sapient <- sapient %>%
   filter(!is.na(haz_6m))
 
-sapientClean <- cleanFunc(sapient)
+sapient[sapient == "< LOD"] <- NA
+
+library(data.table)
+setDT(sapient)
+sapient[, lapply(.SD, function(x) ifelse(is.na(x), min(x, na.rm = T) / 2, x)), .SDcols = is.numeric]
+
+# Change Inf values to 0.
+sapient[sapient == Inf] <- 0
+
+#sapientClean <- cleanFunc(sapient)
 
 # Convert sex_base to binary.
-sapientClean $ sex_base = ifelse(sapientClean $ sex_base == "Male", 0, 1)
+sapient $ sex_base = ifelse(sapient $ sex_base == "Male", 0, 1)
 
-saveRDS(sapientClean, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/sapientClean.RDS"))
+saveRDS(sapient, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/sapientClean.RDS"))
 ```
 
 # HMO VITAL
@@ -461,45 +470,45 @@ longMetabol <- metabol %>%
               names_to = "biomarker",
               values_to = "value")
 
-# sapient <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/sapientClean.RDS")
-# 
-# A = sapient %>%
-#   select(!c("bmid_base", "country", "studyid", "siteid", "subjid", "subjido", 
-#             "studytyp", "arm_base", "sex_base", "brthyr_base", "brthweek_base", 
-#             "mage_base", "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
-#             "meducyrs_base", "h2osrcp_base", "cookplac_base", "inctot_base", 
-#             "inctotu_base", "epochn_base", "epoch_base", "mhtcm_base", "mwtkg_base", 
-#             "mbmi_base", "pregout_base", "dlvloc_base", "dvseason_base", 
-#             "wtkg_base", "lencm_base", "bmi_base", "hcircm_base", "waz_base", 
-#             "haz_base", "whz_base", "baz_base", "agedays_base", "feeding_base", 
-#             "dur_bf_base", "dur_ebf_base", "bmcol_fl_1m", "bmcol_fl_5m", 
-#             "agedays_1m", "agedays_5m", "lencm_3m", "lencm_6m", "lencm_9m", 
-#             "lencm_12m", "lencm_15m", "lencm_18m", "bmi_3m", "bmi_6m", "bmi_9m", 
-#             "bmi_12m", "bmi_15m", "bmi_18m", "hcircm_3m", "hcircm_6m", "hcircm_9m", 
-#             "hcircm_12m", "hcircm_15m", "hcircm_18m", "waz_3m", "waz_6m", 
-#             "waz_9m", "waz_12m", "waz_15m", "waz_18m", "haz_3m", 
-#             "haz_9m", "haz_12m", "haz_15m", "haz_18m", "whz_3m", "whz_6m", 
-#             "whz_9m", "whz_12m", "whz_15m", "whz_18m", "baz_3m", "baz_6m", 
-#             "baz_9m", "baz_12m", "baz_15m", "baz_18m", "agedays_3m", "agedays_6m", 
-#             "agedays_9m", "agedays_12m", "agedays_15m", "agedays_18m", "visit_r_fl_0to6m", 
-#             "visit_r_fl_6to18m", "dur_r_0to6m", "dur_r_6to18m", "bfedfl_r_0to6m", 
-#             "exbfed_r_0to6m", "exbfdu_r_0to6m", "fever_r_0to6m", "fever_r_6to18m", 
-#             "cough_r_0to6m", "cough_r_6to18m", "diarr_r_0to6m", "diarr_r_6to18m", 
-#             "mhgb_18m", "muaccm_18m", "muaz_18m", "agedays_18m.1", "bfdu_r_0to18m", 
-#             "anti_r_0to18m"))
-# A = colnames(A)
-# 
-# longSapient <- sapient %>%
-#   select(c(id, A)) %>%
-#   pivot_longer(!id,
-#               names_to = "biomarker",
-#               values_to = "value")
+sapient <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/sapientClean.RDS")
+
+A = sapient %>%
+  select(!c("bmid_base", "country", "studyid", "siteid", "subjid", "subjido",
+            "studytyp", "arm_base", "sex_base", "brthyr_base", "brthweek_base",
+            "mage_base", "parity_base", "nlchild_base", "nperson_base", "nrooms_base",
+            "meducyrs_base", "h2osrcp_base", "cookplac_base", "inctot_base",
+            "inctotu_base", "epochn_base", "epoch_base", "mhtcm_base", "mwtkg_base",
+            "mbmi_base", "pregout_base", "dlvloc_base", "dvseason_base",
+            "wtkg_base", "lencm_base", "bmi_base", "hcircm_base", "waz_base",
+            "haz_base", "whz_base", "baz_base", "agedays_base", "feeding_base",
+            "dur_bf_base", "dur_ebf_base", "bmcol_fl_1m", "bmcol_fl_5m",
+            "agedays_1m", "agedays_5m", "lencm_3m", "lencm_6m", "lencm_9m",
+            "lencm_12m", "lencm_15m", "lencm_18m", "bmi_3m", "bmi_6m", "bmi_9m",
+            "bmi_12m", "bmi_15m", "bmi_18m", "hcircm_3m", "hcircm_6m", "hcircm_9m",
+            "hcircm_12m", "hcircm_15m", "hcircm_18m", "waz_3m", "waz_6m",
+            "waz_9m", "waz_12m", "waz_15m", "waz_18m", "haz_3m",
+            "haz_9m", "haz_12m", "haz_15m", "haz_18m", "whz_3m", "whz_6m",
+            "whz_9m", "whz_12m", "whz_15m", "whz_18m", "baz_3m", "baz_6m",
+            "baz_9m", "baz_12m", "baz_15m", "baz_18m", "agedays_3m", "agedays_6m",
+            "agedays_9m", "agedays_12m", "agedays_15m", "agedays_18m", "visit_r_fl_0to6m",
+            "visit_r_fl_6to18m", "dur_r_0to6m", "dur_r_6to18m", "bfedfl_r_0to6m",
+            "exbfed_r_0to6m", "exbfdu_r_0to6m", "fever_r_0to6m", "fever_r_6to18m",
+            "cough_r_0to6m", "cough_r_6to18m", "diarr_r_0to6m", "diarr_r_6to18m",
+            "mhgb_18m", "muaccm_18m", "muaz_18m", "agedays_18m.1", "bfdu_r_0to18m",
+            "anti_r_0to18m"))
+A = colnames(A)
+
+longSapient <- sapient %>%
+  select(c(id, A)) %>%
+  pivot_longer(!id,
+              names_to = "biomarker",
+              values_to = "value")
 
 # Combine all datasets
 LongDataset <- rbind(longBioc, longBvit)
 LongDataset <- rbind(LongDataset, longHmo)
 LongDataset <- rbind(LongDataset, longMetabol)
-#LongDataset <- rbind(LongDataset, longSapient)
+LongDataset <- rbind(LongDataset, longSapient)
 
 # Save dataset
 write.csv(LongDataset, file = "/data/imic/data/raw_lab_data/elicit/merged_elicit/longDataset.csv")
