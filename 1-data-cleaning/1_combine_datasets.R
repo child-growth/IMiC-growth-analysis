@@ -158,7 +158,7 @@ dfull <- bind_rows(vital, elicit)
 colnames(dfull) <- tolower(colnames(dfull))
 
 #Save full dataset
-saveRDS(dfull, "/data/KI/imic/data/combined_raw_data.rds")
+saveRDS(dfull, "/data/imic/data/combined_raw_data.rds")
 
 
 #Subset to rows with growth measures
@@ -187,6 +187,7 @@ table(d$visit[d$studyid=="VITAL-Lactation"])
 #Check measurement frequency
 meas_freq_tab <- d %>% filter(!is.na(waz)|!is.na(haz)) %>% group_by(studyid, country, subjid) %>% mutate(lagage=agedays-lag(agedays)) %>% group_by(studyid) %>% summarize(mn=mean(lagage,na.rm=T), md=median(lagage,na.rm=T))
 meas_freq_tab
+
 
 
 

@@ -10,9 +10,10 @@ source(paste0(here::here(), "/0-config.R"))
 d <- readRDS(paste0(ghapdata_dir, "FINAL_only_included_studies.rds"))
 #d <- readRDS(paste0(ghapdata_dir, "ki-manuscript-dataset.rds"))
 dim(d)
-
+head(d)
 
 unique(d$studyid)
+table(d$arm)
 
 unique(paste0(d$studyid,"-",d$country))
 length(unique(paste0(d$studyid,d$country,d$subjid)))
