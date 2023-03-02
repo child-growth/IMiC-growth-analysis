@@ -127,11 +127,23 @@ table(!is.na(elicit$BMC_Collection_Date))
 
 elicit <- left_join(elicit,lazmerged, by = c("SUBJIDO", "VISIT"))
 
+#make single date variable
+elicit$date <- elicit$`Anthro Date`
+elicit$date[is.na(elicit$date)] <- elicit$BMC_Collection_Date[is.na(elicit$date)]
+table(is.na(elicit$date))
+
+
 # VITAL RAW DATA
 
 #This one seems to have all the data needed, including date of visit, dob, and anthropometry metrics
 vital_raw <- read.csv("/data/imic/data/raw_field_data/vital_raw/ZSCORE_FOR_EACH_VISIT.csv")
 colnames(vital_raw)
+
+
+unique(vital$SUBJID)
+unique(vital$SUBJIDO)
+unique(vital_raw$vno)
+
 #include date of visit & date of birth
 #To do: subset to just the needed variables and merge with the main data with the ID variable and the sample date
 vital_raw <- vital_raw %>%
@@ -140,6 +152,7 @@ vital_raw <- vital_raw %>%
 #Merge in with harmonized data set
 vitalmerged <- inner_join(vital_raw, vital)
 vitalmerged
+
 
 #-------------------------------------------------------------------
 # misame raw data
