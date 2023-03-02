@@ -139,10 +139,17 @@ table(is.na(elicit$date))
 vital_raw <- read.csv("/data/imic/data/raw_field_data/vital_raw/ZSCORE_FOR_EACH_VISIT.csv")
 colnames(vital_raw)
 
+dob <- read.csv("/data/imic/data/raw_field_data/vital_raw/DOB.csv")
+unique(dob$ID)
+unique(dob$SUBJID)
+unique(dob$SUBJIDO)
+baseline_anthro <- read.csv("/data/imic/data/raw_field_data/vital_raw/CRF3C_BANTHRO.csv")
+
+
 
 unique(vital$SUBJID)
 unique(vital$SUBJIDO)
-unique(vital_raw$vno)
+unique(vital_raw$studyid)
 
 #include date of visit & date of birth
 #To do: subset to just the needed variables and merge with the main data with the ID variable and the sample date
