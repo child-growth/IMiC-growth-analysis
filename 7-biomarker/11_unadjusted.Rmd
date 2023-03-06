@@ -3,24 +3,6 @@ title: |
   Unadjusted Analyses
 author: "Sajia Darwish"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
-output:
-  pdf_document:
-    toc: yes
-    toc_depth: '4'
-  html_document:
-    toc: yes
-    toc_depth: 4
-keep_tex: yes
-theme: bclear
-fontsize: 12pt
-geometry: margin=1in
-header-includes:
-- \usepackage{enumitem}
-- \usepackage{indentfirst}
-- \usepackage[default, scale=1]{raleway}
-- \usepackage[T1]{fontenc}
-- \usepackage{inconsolata}
-always_allow_html: yes
 ---
 
 # Unadjusted analyses: Elicit
@@ -30,131 +12,124 @@ library(broom)
 
 data <- read.csv("/data/imic/data/raw_lab_data/elicit/merged_elicit/longDataset.csv")
 
-table(is.na(data$value))
-
-df <- data %>% select(haz_6m, biomarker, value) %>% filter(complete.cases(.)) %>% droplevels()
-summary(df$haz_6m)
-summary(df$value)
-
-#Group data by biomarker and then apply linear regression, predicting the growth from the biomarker
-res <- df %>% 
-  group_nest(biomarker ) %>% 
-  mutate(fit = map(data, ~ lm(haz_6m ~ value, data = .)),
-         results = map(fit, tidy)) %>% 
-  unnest(results) %>%
-  filter(term!="(Intercept)") #drop intercept term and just keep the coefficient on the biomarker concentration
-
-# Sort results
-res <- res[order(res$p.value, decreasing=FALSE), ]
-
-# Adjusted p-value
-res $ hochberg <- p.adjust(res $ p.value, method = "hochberg", n = length(res $ p.value))
-
-res <- res %>%
-  select(c("biomarker", "estimate", "std.error", "statistic", "p.value", "hochberg"))
+df <- data %>% 
+  select(haz_6m, biomarker, value) %>%
+  filter(complete.cases(.)) %>%
+  droplevels()
 
 # With a log-transformed outcome: Elicit
-#We may want to use a log-transformed outcome as it seems to have a more normal distribution
-df$value[df$value==0] <- df$value[df$value==0] + 0.01 
-df$log_value <- log(df$value)
-summary(df$log_value)
+df $ value[df $ value == 0] <- df $ value[df $ value == 0] + 0.01 
+df $ log_value <- log(df $ value)
+summary(df $ log_value)
 
-#Group data by biomarker and then apply linear regression, predicting the growth from the biomarker
-res2 <- df %>% 
+# Group data by biomarker and then apply linear regression, predicting the growth from the biomarker
+res <- df %>% 
   group_nest(biomarker ) %>% 
   mutate(fit = map(data, ~ lm(haz_6m ~ log_value, data = .)),
          results = map(fit, tidy)) %>%
   unnest(results) %>%
-  filter(term!="(Intercept)") #drop intercept term and just keep the coefficient on the biomarker concentration
+  filter(term != "(Intercept)") #drop intercept term and just keep the coefficient on the biomarker concentration
 
 # Sort results
-res2 <- res2[order(res2$p.value, decreasing=FALSE), ]
+res <- res[order(res $ p.value, decreasing = FALSE), ]
 
 # Adjusted p-value
-res2 $ hochberg <- p.adjust(res2 $ p.value, method = "hochberg", n = length(res2 $ p.value))
+res $ BH <- p.adjust(res $ p.value, method = "BH", n = length(res $ p.value))
 
 #dput(names(res2))
 
-res2 <- res2 %>%
-  select(c("biomarker", "estimate", "std.error", "statistic", "p.value", "hochberg"))
+res <- res %>%
+  select(c("biomarker", "estimate", "std.error", "statistic", "p.value", "BH"))
 
-# Add _log for all column names
-colnames(res2) <- paste(colnames(res2),"log",sep="_")
-colnames(res2)[1] <- "biomarker"
-
-# Merge the datasets by biomarker
-res3 <- merge(res, res2, by = "biomarker", all = TRUE)
-
-res3 <- res3[order(res3$p.value, decreasing=FALSE), ]
-
-#write.csv(res3, file = "/data/imic/results/unadjustedElicit.csv")
+write.csv(res, file = "/data/imic/results/unadjustedElicit.csv")
 ```
 
 # Vital
 ```{r}
 data <- read.csv("/data/imic/data/raw_lab_data/vital/merged_vital/longDataset.csv")
 
-table(is.na(data$value))
+df <- data %>% 
+  select(haz_m6, biomarker, value) %>%
+  filter(complete.cases(.)) %>%
+  droplevels()
 
-df <- data %>% select(haz_m6, biomarker, value) %>% filter(complete.cases(.)) %>% droplevels()
-summary(df$haz_m6)
-summary(df$value)
+# With a log-transformed outcome: Elicit
+df $ value[df $ value == 0] <- df $ value[df $ value == 0] + 0.01 
+df $ log_value <- log(df $ value)
+summary(df $ log_value)
 
 #Group data by biomarker and then apply linear regression, predicting the growth from the biomarker
 res <- df %>% 
   group_nest(biomarker ) %>% 
-  mutate(fit = map(data, ~ lm(haz_m6 ~ value, data = .)),
-         results = map(fit, tidy)) %>% 
-  unnest(results) %>%
-  filter(term!="(Intercept)") #drop intercept term and just keep the coefficient on the biomarker concentration
-
-# Sort results
-res <- res[order(res$p.value, decreasing=FALSE), ]
-
-# Adjusted p-value
-res $ hochberg <- p.adjust(res $ p.value, method = "hochberg", n = length(res $ p.value))
-
-res <- res %>%
-  select(c("biomarker", "estimate", "std.error", "statistic", "p.value", "hochberg"))
-
-# With a log-transformed outcome: Elicit
-#We may want to use a log-transformed outcome as it seems to have a more normal distribution
-df$value[df$value==0] <- df$value[df$value==0] + 0.01 
-df$log_value <- log(df$value)
-summary(df$log_value)
-
-#Group data by biomarker and then apply linear regression, predicting the growth from the biomarker
-res2 <- df %>% 
-  group_nest(biomarker ) %>% 
   mutate(fit = map(data, ~ lm(haz_m6 ~ log_value, data = .)),
          results = map(fit, tidy)) %>%
   unnest(results) %>%
-  filter(term!="(Intercept)") #drop intercept term and just keep the coefficient on the biomarker concentration
+  filter(term != "(Intercept)") #drop intercept term and just keep the coefficient on the biomarker concentration
 
 # Sort results
-res2 <- res2[order(res2$p.value, decreasing=FALSE), ]
+res <- res[order(res $ p.value, decreasing = FALSE), ]
 
 # Adjusted p-value
-res2 $ hochberg <- p.adjust(res2 $ p.value, method = "hochberg", n = length(res2 $ p.value))
+res $ BH <- p.adjust(res $ p.value, method = "BH", n = length(res $ p.value))
 
 #dput(names(res2))
 
-res2 <- res2 %>%
-  select(c("biomarker", "estimate", "std.error", "statistic", "p.value", "hochberg"))
+res <- res %>%
+  select(c("biomarker", "estimate", "std.error", "statistic", "p.value", "BH"))
 
-# Add _log for all column names
-colnames(res2) <- paste(colnames(res2),"log",sep="_")
-colnames(res2)[1] <- "biomarker"
-
-# Merge the datasets by biomarker
-res3 <- merge(res, res2, by = "biomarker", all = TRUE)
-
-res3 <- res3[order(res3$p.value, decreasing=FALSE), ]
-
-write.csv(res3, file = "/data/imic/results/unadjustedVital.csv")
+write.csv(res, file = "/data/imic/results/unadjustedVital.csv")
 ```
 
+# Limma
+```{r}
+library(limma)
+library(tidyverse)
+library(EnhancedVolcano)
 
+data <- read.csv("/data/imic/data/raw_lab_data/elicit/merged_elicit/wideDataset.csv")
+
+## Make design matrix that will be fed into limma - Must be nxp.
+data $ haz_6mBinary <- ifelse(data $ haz_6m > median(data $ haz_6m), 1, 0)
+
+data <- data[1:199, ]
+
+design <- model.matrix(~ 0 + data $ haz_6m, data = data)
+
+# Make matrix of log-transformed biomarkers (rows are the observations)
+biomarkerMatrix <- data %>%
+  select(!c(X, haz_6m, haz_6mBinary)) %>%
+  as.matrix()
+
+# Take the log
+biomarkerLogMatrix <- log(biomarkerMatrix)
+
+# Transpose the matrix to be able to fit linear model
+biomarkerLogMatrix <- t(biomarkerLogMatrix)
+
+## Does the limmat fit - experHS is a matrix of n (subject) rows and p (biomarker) columns.
+fit <- lmFit(biomarkerLogMatrix, design)
+
+## Derives the empirical Bayes SE's for more robust inference
+ebayes <- eBayes(fit)
+
+# Number of biomarkers (p)
+nprobes = dim(biomarkerLogMatrix)[1]
+
+## Creates a result table where you draw the parameter estimate from each of the fits - does FDR adjustment.
+tt1 = topTable(ebayes, adjust.method = "fdr",
+             number = nprobes, genelist = rownames(biomarkerLogMatrix))
+
+# Make a volcano plot
+EnhancedVolcano(ebayes,
+    lab = rownames(ebayes),
+    x = 'coefficients',
+    y = 'p.value',
+    xlim = c(-5, 5),
+    pCutoff = 10e-16,
+    pointSize = 1.0,
+    FCcutoff = 0.5,
+    labSize = 4)
+```
 
 
 

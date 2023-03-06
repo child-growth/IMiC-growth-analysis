@@ -3,24 +3,6 @@ title: |
   TMLE Results
 author: "Sajia Darwish"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
-output:
-  pdf_document:
-    toc: yes
-    toc_depth: '4'
-  html_document:
-    toc: yes
-    toc_depth: 4
-keep_tex: yes
-theme: bclear
-fontsize: 12pt
-geometry: margin=1in
-header-includes:
-- \usepackage{enumitem}
-- \usepackage{indentfirst}
-- \usepackage[default, scale=1]{raleway}
-- \usepackage[T1]{fontenc}
-- \usepackage{inconsolata}
-always_allow_html: yes
 ---
 
 # Overview
@@ -46,65 +28,6 @@ hmo %>%
     ggplot(aes(x =tmle_est)) +
     geom_histogram(binwidth = 0.1, fill="#69b3a2", color="#e9ecef", alpha = 0.9) +
     theme_classic()
-```
-
-# Volcano plot
-```{r}
-# Calculate p-value
-bioc $ z_base = bioc $ tmle_est_base / bioc $ se_base
-bioc $ pvalue_base = exp((-0.717 * bioc $ z_base) - (0.416 * (bioc $ z_base^2)))
-
-bioc $ z_6 = bioc $ tmle_est_6 / bioc $ se_6
-bioc $ pvalue_6 = exp((-0.717 * bioc $ z_6) - (0.416 * (bioc $ z_6^2)))
-
-# Calculate log 2 fold change for baseline vs 6 months: (B - A)/A
-bioc $ log2FoldChange <- log2(bioc $ tmle_est_6 - bioc $ tmle_est_base) / bioc $ tmle_est_base
-
-# Convert directly in the aes()
-p <- ggplot(data = bioc, aes(x = log2FoldChange, y = log10(pvalue_base))) + geom_point() +
-  theme_minimal()
-
-# Add vertical lines for log2FoldChange thresholds, and one horizontal line for 
-# the p-value threshold 
-p2 <- p + geom_vline(xintercept = c(-0.6, 0.6), col = "red") +
-    geom_hline(yintercept = -log10(0.05), col = "red")
-
-# The significantly different are the ones found in the upper-left and upper-right corners.
-# Add a column to the data frame to specify if they are UP- or DOWN- (log2FoldChange respectively positive or negative)
-
-# add a column of NAs
-bioc $ state <- "NO"
-# if log2Foldchange > 0.6 and pvalue < 0.05, set as "UP" 
-bioc $ state[bioc $ log2FoldChange > 0.6 & bioc $ pvalue_base < 0.05] <- "UP"
-# if log2Foldchange < -0.6 and pvalue < 0.05, set as "DOWN"
-bioc $ state[bioc $ log2FoldChange < -0.6 & bioc $ pvalue_base < 0.05] <- "DOWN"
-
-# Re-plot but this time color the points with "state"
-p <- ggplot(data = bioc, aes(x = log2FoldChange, y = -log10(pvalue_base), 
-                          col = state)) + geom_point() + theme_minimal()
-
-# Add lines as before...
-p2 <- p + geom_vline(xintercept = c(-0.6, 0.6), col = "red") +
-        geom_hline(yintercept = -log10(0.05), col = "red")
-
-# Change point color 
-mycolors <- c("blue", "red", "black")
-names(mycolors) <- c("DOWN", "UP", "NO")
-p3 <- p2 + scale_colour_manual(values = mycolors)
-
-# Now write down the names of variables beside the points
-# Create a new column "delabel" to de, that will contain the name of genes differentially expressed (NA in case they are not)
-bioc $ delabel <- NA
-bioc $ delabel[bioc $ status != "NO"] <- bioc $ gene_symbol[bioc $ status != "NO"]
-
-ggplot(data = bioc, aes(x = log2FoldChange, y = -log10(pvalue_base), col = bioc $ status, 
-                       label = delabel)) + 
-  geom_point() + theme_minimal() + 
-  #geom_text_repel() + 
-  scale_color_manual(values = c("blue", "black", "red")) +
-  geom_vline(xintercept = c(-0.6, 0.6), col = "red") +
-  geom_hline(yintercept = -log10(0.05), col = "red")
-
 ```
 
 ## Biocrates (329 features)
