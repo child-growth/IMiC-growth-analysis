@@ -5,12 +5,120 @@ author: "Sajia Darwish"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 ---
 
-# Unadjusted analyses: Elicit
+# Load libraries
 ```{r}
 library(tidyverse)
 library(broom)
+library(limma)
+library(EnhancedVolcano)
+```
 
+# Limma function
+```{r}
+limmaFunc <- function(data, outcome, matrix){
+  
+    # Make design matrix that will be fed into limma - Must be nxp.
+    design <- model.matrix(~ 0 + outcome, data = data)
+    
+    # Take the log
+    biomarkerLogMatrix <- log(matrix)
+    
+    # Transpose the matrix to be able to fit linear model
+    biomarkerLogMatrix <- t(biomarkerLogMatrix)
+    
+    ## Does the limmat fit - experHS is a matrix of n (subject) rows and p (biomarker) columns.
+    fit <- lmFit(biomarkerLogMatrix, design)
+    
+    ## Derives the empirical Bayes SE's for more robust inference
+    ebayes <- eBayes(fit)
+    
+    # Number of biomarkers (p)
+    nprobes = dim(biomarkerLogMatrix)[1]
+    
+    ## Creates a result table where you draw the parameter estimate from each of the fits - does FDR adjustment.
+    tt1 = topTable(ebayes, adjust.method = "fdr",
+                 number = nprobes, genelist = rownames(biomarkerLogMatrix))
+    
+    # Make a volcano plot
+    volcanoPlot <- EnhancedVolcano(ebayes,
+        lab = rownames(ebayes),
+        x = 'coefficients',
+        y = 'p.value',
+        xlim = c(-5, 5),
+        pCutoff = 10e-16,
+        pointSize = 1.0,
+        FCcutoff = 0.5,
+        labSize = 4)
+    
+    return(volcanoPlot)
+}
+```
+
+# Limma Elicit
+```{r}
+wide <- read.csv("/data/imic/data/raw_lab_data/elicit/merged_elicit/wideDataset.csv")
+
+names(wide)[1:50]
+
+wide $ haz_6mBinary <- ifelse(wide $ haz_6m_simulated > 
+                                median(wide $ haz_6m_simulated), 1, 0)
+
+# Make matrix of log-transformed biomarkers (rows are the observations)
+biomarkerMatrix <- wide %>%
+  select(!c("X", "bmid_base", "country", "studyid", "subjid", "subjido", 
+            "arm_base", "sex_base", "brthyr_base", "brthweek_base", "mage_base", 
+            "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
+            "meducyrs_base", "h2osrcp_base", "cookplac_base", "epoch_base", 
+            "mhtcm_base", "mwtkg_base", "mbmi_base", "dlvloc_base", "wtkg_base", 
+            "lencm_base", "bmi_base", "waz_base", "haz_base", "whz_base", 
+            "baz_base", "agedays_base", "dur_bf_base", "dur_ebf_base", "haz_6m", 
+            "haz_6m_simulated", "haz_6mBinary")) %>%
+  as.matrix()
+
+# Run the function and save the plot
+volcanoPlotElicit <- limmaFunc(data = wide, matrix = biomarkerMatrix, outcome = wide $ haz_6m_simulated)
+
+ggsave(volcanoPlotElicit, filename = "/data/imic/results/figures/volcanoPlotElicit.png")
+```
+
+# Limma Vital
+```{r}
+wide <- read.csv("/data/imic/data/raw_lab_data/vital/merged_vital/wideDataset.csv")
+
+dput(names(wide)[1:100])
+
+wide $ haz_6mBinary <- ifelse(wide $ haz_6m_simulated > 
+                                median(wide $ haz_6m_simulated), 1, 0)
+
+# Make matrix of log-transformed biomarkers (rows are the observations)
+biomarkerMatrix <- wide %>%
+  select(!c("X", "bmid_base", "subjid", "country", "studyid", "subjido", 
+            "arm_base", "sex_base", "brthyr_base", "brthweek_base", "mage_base", 
+            "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
+            "meducyrs_base", "h2osrcp_base", "agedays_base", "epochn_base", 
+            "epoch_base", "mhtcm_base", "mwtkg_base", "mbmi_base", "dlvloc_base", 
+            "wtkg_base", "lencm_base", "bmi_base", "muaccm_base", "waz_base", 
+            "haz_base", "whz_base", "baz_base", "feeding_base", "dur_bf_base", 
+            "dur_ebf_base", "visit_r_fl_base", "dur_r_base", "fever_r_base", 
+            "cough_r_base", "anti_r_base", "citytown_base", "gagebrth_base", 
+            "gagecm_base", "birthwt_base", "birthlen_base", "birthord_base", 
+            "gravida_base", "nlivbrth_base", "floor_base", "gagedays_base", 
+            "postbmi_base", "mmuaccm_base", "delivery_base", "bfinittm_base", 
+            "cmfdint_base", "formlkfl_base", "fever_base", "diarr_base", 
+            "physican_base", "hosp_base", "antibiot_base")) %>%
+  as.matrix()
+
+# Run the function and save the plot
+volcanoPlotVital <- limmaFunc(data = wide, matrix = biomarkerMatrix, outcome = wide $ haz_6m_simulated)
+
+ggsave(volcanoPlotVital, filename = "/data/imic/results/figures/volcanoPlotVital.png")
+```
+
+# Unadjusted analyses: Elicit
+```{r}
 data <- read.csv("/data/imic/data/raw_lab_data/elicit/merged_elicit/longDataset.csv")
+
+names(data)
 
 df <- data %>% 
   select(haz_6m, biomarker, value) %>%
@@ -79,61 +187,6 @@ res <- res %>%
 
 write.csv(res, file = "/data/imic/results/unadjustedVital.csv")
 ```
-
-# Limma
-```{r}
-library(limma)
-library(tidyverse)
-library(EnhancedVolcano)
-
-data <- read.csv("/data/imic/data/raw_lab_data/elicit/merged_elicit/wideDataset.csv")
-
-## Make design matrix that will be fed into limma - Must be nxp.
-data $ haz_6mBinary <- ifelse(data $ haz_6m > median(data $ haz_6m), 1, 0)
-
-data <- data[1:199, ]
-
-design <- model.matrix(~ 0 + data $ haz_6m, data = data)
-
-# Make matrix of log-transformed biomarkers (rows are the observations)
-biomarkerMatrix <- data %>%
-  select(!c(X, haz_6m, haz_6mBinary)) %>%
-  as.matrix()
-
-# Take the log
-biomarkerLogMatrix <- log(biomarkerMatrix)
-
-# Transpose the matrix to be able to fit linear model
-biomarkerLogMatrix <- t(biomarkerLogMatrix)
-
-## Does the limmat fit - experHS is a matrix of n (subject) rows and p (biomarker) columns.
-fit <- lmFit(biomarkerLogMatrix, design)
-
-## Derives the empirical Bayes SE's for more robust inference
-ebayes <- eBayes(fit)
-
-# Number of biomarkers (p)
-nprobes = dim(biomarkerLogMatrix)[1]
-
-## Creates a result table where you draw the parameter estimate from each of the fits - does FDR adjustment.
-tt1 = topTable(ebayes, adjust.method = "fdr",
-             number = nprobes, genelist = rownames(biomarkerLogMatrix))
-
-# Make a volcano plot
-EnhancedVolcano(ebayes,
-    lab = rownames(ebayes),
-    x = 'coefficients',
-    y = 'p.value',
-    xlim = c(-5, 5),
-    pCutoff = 10e-16,
-    pointSize = 1.0,
-    FCcutoff = 0.5,
-    labSize = 4)
-```
-
-
-
-
 
 
 
