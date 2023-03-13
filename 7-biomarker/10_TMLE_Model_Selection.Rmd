@@ -37,7 +37,7 @@ slModelFunc <- function(data, covars, outcome) {
   lrnr_glmtree <- make_learner(Lrnr_glmtree)
   lrnr_ranger100 <- make_learner(Lrnr_ranger, num.trees = 100)
   lrnr_gam <- Lrnr_pkg_SuperLearner $ new("SL.gam")
-  lrnr_bayesglm <- Lrnr_pkg_SuperLearner$new("SL.bayesglm")
+  lrnr_bayesglm <- Lrnr_pkg_SuperLearner $ new("SL.bayesglm")
   lrn_ridge <- Lrnr_glmnet $ new(alpha = 0)
   lrn_lasso <- Lrnr_glmnet $ new(alpha = 1)
   # spline regressions:
@@ -127,7 +127,6 @@ fit <- pipeline$train(task)
 
 # Make predictions
 predictions <- predict(fit, new_data = my_new_data)
-
 ```
 
 # Function to loop over each biomarker for making predictions and summarize
