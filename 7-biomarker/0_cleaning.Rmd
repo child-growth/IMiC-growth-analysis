@@ -4,11 +4,15 @@ title: |
 author: "Sajia Darwish"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 ---
-# Make a cleaning function
-```{r message=FALSE, warning=FALSE}
+
+# Load libraries
+```{r}
 library(naniar)
 library(tidyverse)
+```
 
+# Make a cleaning function
+```{r message=FALSE, warning=FALSE}
 # Make a cleaning function
 cleanFunc <- function(data) {
   
@@ -58,7 +62,7 @@ hmoClean $ haz_6m_simulated <- rnorm(n = nrow(hmoClean), mean = mean, sd = sd)
 hmoClean $ haz_6m_simulated <- as.numeric(format(round(hmoClean $ haz_6m_simulated, 2), 
                                             nsmall = 2))
 
-#saveRDS(hmoClean, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS"))
+saveRDS(hmoClean, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS"))
 ```
 
 # Biocrates ELICIT
@@ -188,6 +192,16 @@ sapient[sapient == Inf] <- 0
 # Convert sex_base to binary.
 sapient $ sex_base = ifelse(sapient $ sex_base == "Male", 0, 1)
 
+# Get mean and variance of the outcome
+hist(sapient $ haz_6m)
+mean <- mean(sapient $ haz_6m)
+sd <- sd(sapient $ haz_6m)
+
+# Generate new data from this distribution
+sapient $ haz_6m_simulated <- rnorm(n = 199, mean = mean, sd = sd)
+sapient $ haz_6m_simulated <- as.numeric(format(round(sapient $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+
 saveRDS(sapient, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/sapientClean.RDS"))
 ```
 
@@ -195,7 +209,9 @@ saveRDS(sapient, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elici
 ```{r}
 hmo <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
 
-# Collapse hmo data into long format
+names(hmo)
+
+# Collapse all data into long format
 id <- c("bmid_base", "country", "studyid", "subjid", "subjido", 
         "arm_base", "sex_base", "brthyr_base", "brthweek_base", 
         "mage_base", "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
@@ -204,7 +220,7 @@ id <- c("bmid_base", "country", "studyid", "subjid", "subjido",
         "mbmi_base", "dlvloc_base", 
         "wtkg_base", "lencm_base", "bmi_base", "waz_base", 
         "haz_base", "whz_base", "baz_base", "agedays_base", 
-        "dur_bf_base", "dur_ebf_base", "haz_6m")
+        "dur_bf_base", "dur_ebf_base", "haz_6m", "haz_6m_simulated")
 
 longHmo <- hmo %>%
   select(c(id,
@@ -237,7 +253,7 @@ A = bioc %>%
             "baz_9m", "baz_12m", "baz_15m", "baz_18m", "exbfdu_r_0to6m", 
             "fever_r_0to6m", "fever_r_6to18m", "cough_r_0to6m", "cough_r_6to18m", 
             "diarr_r_0to6m", "diarr_r_6to18m", "mhgb_18m", "muaccm_18m", 
-            "muaz_18m", "bfdu_r_0to18m", "anti_r_0to18m", "haz_6m_simulated"))
+            "muaz_18m", "bfdu_r_0to18m", "anti_r_0to18m", "haz_6m", "haz_6m_simulated"))
 A = colnames(A)
 
 longBioc <- bioc %>%
@@ -271,7 +287,7 @@ A = bvit %>%
             "exbfed_r_0to6m", "exbfdu_r_0to6m", "fever_r_0to6m", "fever_r_6to18m", 
             "cough_r_0to6m", "cough_r_6to18m", "diarr_r_0to6m", "diarr_r_6to18m", 
             "mhgb_18m", "muaccm_18m", "muaz_18m", "agedays_18m.1", "bfdu_r_0to18m", 
-            "anti_r_0to18m", "haz_6m_simulated"))
+            "anti_r_0to18m", "haz_6m_simulated", "haz_6m"))
 A = colnames(A)
 
 longBvit <- bvit %>%
@@ -379,7 +395,7 @@ A = sapient %>%
             "exbfed_r_0to6m", "exbfdu_r_0to6m", "fever_r_0to6m", "fever_r_6to18m",
             "cough_r_0to6m", "cough_r_6to18m", "diarr_r_0to6m", "diarr_r_6to18m",
             "mhgb_18m", "muaccm_18m", "muaz_18m", "agedays_18m.1", "bfdu_r_0to18m",
-            "anti_r_0to18m"))
+            "anti_r_0to18m", "haz_6m", "haz_6m_simulated"))
 A = colnames(A)
 
 longSapient <- sapient %>%
@@ -394,8 +410,16 @@ LongDataset <- rbind(LongDataset, longHmo)
 LongDataset <- rbind(LongDataset, longMetabol)
 LongDataset <- rbind(LongDataset, longSapient)
 
-# Save dataset
+# Save long dataset
 write.csv(LongDataset, file = "/data/imic/data/raw_lab_data/elicit/merged_elicit/longDataset.csv")
+
+# Make a wide dataset and save
+wideDataset <- LongDataset %>% 
+  pivot_wider(id_cols = id,
+              names_from = "biomarker",
+              values_from = all_of("value"))
+
+write.csv(wideDataset, file = "/data/imic/data/raw_lab_data/elicit/merged_elicit/wideDataset.csv")
 ```
 
 # HMO VITAL
@@ -418,7 +442,7 @@ hmoClean <- data.frame(hmoClean)
 percentMissing <- gg_miss_var(hmoClean, show_pct = T)
 
 # Get mean and variance of the outcome
-hist(hmoClean $ haz_m6)
+#hist(hmoClean $ haz_m6)
 mean <- mean(hmoClean $ haz_m6)
 sd <- sd(hmoClean $ haz_m6)
 
@@ -484,9 +508,14 @@ pblClean <- cleanFunc(pbl)
 # Convert sex_base to binary.
 pblClean $ sex_base = ifelse(pblClean $ sex_base == "Male", 0, 1)
 
-# Look at columns with NA
-pblClean <- data.frame(pblClean)
-percentMissing <- gg_miss_var(pblClean, show_pct = T)
+# Get mean and variance of the outcome
+mean <- mean(pblClean $ haz_m6)
+sd <- sd(pblClean $ haz_m6)
+
+# Generate new data from this distribution
+pblClean $ haz_6m_simulated <- rnorm(n = 157, mean = mean, sd = sd)
+pblClean $ haz_6m_simulated <- as.numeric(format(round(pblClean $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
 
 saveRDS(pblClean, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/pblClean.RDS"))
 ```
@@ -505,12 +534,7 @@ metabolClean <- cleanFunc(metabol)
 # Convert sex_base to binary.
 metabolClean $ sex_base = ifelse(metabolClean $ sex_base == "Male", 0, 1)
 
-# Look at columns with NA
-metabolClean <- data.frame(metabolClean)
-percentMissing <- gg_miss_var(metabolClean, show_pct = T)
-
 # Get mean and variance of the outcome
-hist(metabolClean $ haz_m6)
 mean <- mean(metabolClean $ haz_m6)
 sd <- sd(metabolClean $ haz_m6)
 
@@ -539,10 +563,17 @@ sapient[, lapply(.SD, function(x) ifelse(is.na(x), min(x, na.rm = T) / 2, x)), .
 # Change Inf values to 0.
 sapient[sapient == Inf] <- 0
 
-#sapientClean <- cleanFunc(sapient)
-
 # Convert sex_base to binary.
 sapient $ sex_base = ifelse(sapient $ sex_base == "Male", 0, 1)
+
+# Get mean and variance of the outcome
+mean <- mean(sapient $ haz_m6)
+sd <- sd(sapient $ haz_m6)
+
+# Generate new data from this distribution
+sapient $ haz_6m_simulated <- rnorm(n = 147, mean = mean, sd = sd)
+sapient $ haz_6m_simulated <- as.numeric(format(round(sapient $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
 
 saveRDS(sapient, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/sapientClean.RDS"))
 ```
@@ -567,7 +598,7 @@ id <- c("bmid_base", "subjid", "country", "studyid", "subjido",
         "delivery_base", "bfinittm_base", "cmfdint_base", 
         "formlkfl_base", "fever_base", "diarr_base", 
         "physican_base", "hosp_base", "antibiot_base", "anti_oral_base", 
-        "anti_inj_base", "haz_m6")
+        "anti_inj_base", "haz_m6", "haz_6m_simulated")
 
 longHmo <- hmo %>%
   select(c(id,
@@ -639,7 +670,7 @@ A = bioc %>%
             "dur_r_m6", "cough_r_m6", "diarr_r_m6", "anti_r_m6", "gagedays_m6", 
             "postbmi_m6", "mmuaccm_m6", "cmfdint_m6", "bfmode_m6", "bfedfl_m6", 
             "exbfedfl_m6", "sldfedfl_m6", "cough_m6", "diarr_m6", "physican_m6", 
-            "hosp_m6", "antibiot_m6", "anti_oral_m6", "anti_inj_m6"))
+            "hosp_m6", "antibiot_m6", "anti_oral_m6", "anti_inj_m6", "haz_6m_simulated"))
 A = colnames(A)
 
 longBioc <- bioc %>%
@@ -713,7 +744,7 @@ A = pbl %>%
             "anti_r_m6", "gagedays_m6", "postbmi_m6", "mmuaccm_m6", "cmfdint_m6", 
             "bfmode_m6", "bfedfl_m6", "exbfedfl_m6", "sldfedfl_m6", "fever_m6", 
             "cough_m6", "diarr_m6", "vomit_m6", "physican_m6", "hosp_m6", 
-            "antibiot_m6", "anti_oral_m6", "anti_inj_m6"))
+            "antibiot_m6", "anti_oral_m6", "anti_inj_m6", "haz_6m_simulated"))
 A = colnames(A)
 
 longBpl <- pbl %>%
@@ -787,7 +818,7 @@ A = metabol %>%
           "anti_r_m6", "gagedays_m6", "postbmi_m6", "mmuaccm_m6", "cmfdint_m6", 
           "bfmode_m6", "bfedfl_m6", "exbfedfl_m6", "sldfedfl_m6", "fever_m6", 
           "cough_m6", "diarr_m6", "vomit_m6", "physican_m6", "hosp_m6", 
-          "antibiot_m6", "anti_oral_m6", "anti_inj_m6"))
+          "antibiot_m6", "anti_oral_m6", "anti_inj_m6", "haz_6m_simulated"))
 A = colnames(A)
 
 longMetabol <- metabol %>%
@@ -861,7 +892,7 @@ A = sapient %>%
             "anti_r_m6", "gagedays_m6", "postbmi_m6", "mmuaccm_m6", "cmfdint_m6", 
             "bfmode_m6", "bfedfl_m6", "exbfedfl_m6", "sldfedfl_m6", "fever_m6", 
             "cough_m6", "diarr_m6", "vomit_m6", "physican_m6", "hosp_m6", 
-            "antibiot_m6", "anti_oral_m6", "anti_inj_m6"))
+            "antibiot_m6", "anti_oral_m6", "anti_inj_m6", "haz_6m_simulated"))
 A = colnames(A)
 
 longSapient <- sapient %>%
@@ -877,7 +908,15 @@ LongDataset <- rbind(LongDataset, longMetabol)
 LongDataset <- rbind(LongDataset, longSapient)
 
 # Save dataset
-#write.csv(LongDataset, file = "/data/imic/data/raw_lab_data/vital/merged_vital/longDataset.csv")
+write.csv(LongDataset, file = "/data/imic/data/raw_lab_data/vital/merged_vital/longDataset.csv")
+
+# Make a wide dataset and save
+wideDataset <- LongDataset %>% 
+  pivot_wider(id_cols = id,
+              names_from = "biomarker",
+              values_from = all_of("value"))
+
+write.csv(wideDataset, file = "/data/imic/data/raw_lab_data/vital/merged_vital/wideDataset.csv")
 ```
 
 
