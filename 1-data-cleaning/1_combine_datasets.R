@@ -137,11 +137,9 @@ table(is.na(elicit$date))
 
 #This one seems to have all the data needed, including date of visit, dob, and anthropometry metrics
 vital_raw <- read.csv("/data/imic/data/raw_field_data/vital_raw/ZSCORE_FOR_EACH_VISIT.csv")
-colnames(vital_raw)
-
 
 #Vital_raw is the Z-scores for all 6 visits concatenated, but doesn't have a subject ID that links to the main dataset
-#I think both thid date of birth and baseline anthro have both ID's to merge to both datasets to allow them to merge
+#I think both this date of birth and baseline anthro have both ID's to merge to both datasets to allow them to merge
 dob <- read.csv("/data/imic/data/raw_field_data/vital_raw/DOB.csv")
 unique(dob$ID)
 unique(dob$SUBJID)
@@ -150,6 +148,12 @@ baseline_anthro <- read.csv("/data/imic/data/raw_field_data/vital_raw/CRF3C_BANT
 unique(baseline_anthro$assid)
 unique(baseline_anthro$crf3c_q2)
 
+baseline_anthro <- baseline_anthro %>%
+  rename(ID = crf3c_q2) %>%
+  rename(SUBJIDO = assid)
+  
+vital_ids <- inner_join(dob, baseline_anthro, by = c("ID", "SUBJIDO")) %>%
+  select(ID, SUBJIDO)
 
 unique(vital$SUBJID)
 unique(vital$SUBJIDO)
@@ -158,12 +162,13 @@ unique(vital_raw$studyid)
 #include date of visit & date of birth
 #To do: subset to just the needed variables and merge with the main data with the ID variable and the sample date
 vital_raw <- vital_raw %>%
-  select(studyid, dov, dob)
+  select(studyid, dov, dob) %>%
+  rename(ID = studyid)
+
+vital_raw <- left_join(vital_raw, vital_ids, by = "ID")
 
 #Merge in with harmonized data set
-vitalmerged <- inner_join(vital_raw, vital)
-vitalmerged
-
+vitalmerged <- left_join(vital, vital_raw, by = "SUBJIDO")
 
 #-------------------------------------------------------------------
 # misame raw data
