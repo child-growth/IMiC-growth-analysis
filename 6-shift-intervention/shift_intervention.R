@@ -64,7 +64,7 @@ for (i in 1:ncol(A)) {
   shiftFunc(covariates = W, treat = A[, i], outcome = Y, shift = 0.05, data = hmoE)
 }
 
-class(A $X2.FL_ug.mL)
+class(A $ X2.FL_ug.mL)
 
 
 # FOR FUTURE--------------------------------------------------------------------
