@@ -81,7 +81,7 @@ return(volcanoPlot)
 # Limma Elicit: loop limmaFunc over every biomarker family and save the plots and FDR-adjusted
 # tables.
 ```{r}
-wide <- read.csv("/data/imic/data/raw_lab_data/elicit/merged_elicit/wideDataset.csv")
+elicit <- read.csv("/data/imic/data/raw_lab_data/elicit/merged_elicit/wideDataset.csv")
 
 id <- c("X", "bmid_base", "country", "studyid", "subjid", "subjido", 
         "arm_base", "sex_base", "brthyr_base", "brthweek_base", "mage_base", 
@@ -90,15 +90,15 @@ id <- c("X", "bmid_base", "country", "studyid", "subjid", "subjido",
         "mhtcm_base", "mwtkg_base", "mbmi_base", "dlvloc_base", "wtkg_base", 
         "lencm_base", "bmi_base", "waz_base", "haz_base", "whz_base", 
         "baz_base", "agedays_base", "dur_bf_base", "dur_ebf_base", "haz_6m", 
-        "haz_6m_simulated", "haz_6mBinary", "family", "site")
+        "haz_6m_simulated", "family", "site")
 
 # Write a for loop over each family
-for (i in levels(as.factor(wide $ family))) {
-  family_data <- wide[wide $ family == i, ]
+for (i in levels(as.factor(elicit $ family))) {
+  family_data <- elicit[elicit $ family == i, ]
   
   # Make matrix of log-transformed biomarkers (rows are the observations)
   biomarkerMatrix <- family_data %>%
-  select(!id) %>%
+  select(c(!id)) %>%
   as.matrix()
   
   # Save FDR adjusted tables
@@ -109,44 +109,67 @@ for (i in levels(as.factor(wide $ family))) {
   table <- na.omit(table)
   
   # Save the table
-  file_name <- paste("/data/imic/results/limma/fdr_Elicit_", i, ".RDS", sep = "")
+  file_name <- paste("/data/imic/results/limma/fdr_elicit_", i, ".RDS", sep = "")
   saveRDS(table, file = file_name)
   
   # Make volcano plots and save them
   plot <- volcanoPlot(data = family_data, 
                       outcome = family_data $ haz_6m, matrix = biomarkerMatrix)
   # Save the plot
-  file_name <- paste("/data/imic/results/figures/limma/volcano_Elicit_", i, ".png", sep = "")
+  file_name <- paste("/data/imic/results/figures/limma/volcano_elicit_", i, ".png", sep = "")
   ggsave(plot, filename = file_name)
 }
 ```
 
 # Limma Vital
 ```{r}
-wide <- read.csv("/data/imic/data/raw_lab_data/vital/merged_vital/wideDataset.csv")
+vital <- read.csv("/data/imic/data/raw_lab_data/vital/merged_vital/wideDataset.csv")
 
-# Make matrix of log-transformed biomarkers (rows are the observations)
-biomarkerMatrix <- wide %>%
-  select(!c("X", "bmid_base", "subjid", "country", "studyid", "subjido", 
-            "arm_base", "sex_base", "brthyr_base", "brthweek_base", "mage_base", 
-            "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
-            "meducyrs_base", "h2osrcp_base", "agedays_base", "epochn_base", 
-            "epoch_base", "mhtcm_base", "mwtkg_base", "mbmi_base", "dlvloc_base", 
-            "wtkg_base", "lencm_base", "bmi_base", "muaccm_base", "waz_base", 
-            "haz_base", "whz_base", "baz_base", "feeding_base", "dur_bf_base", 
-            "dur_ebf_base", "visit_r_fl_base", "dur_r_base", "fever_r_base", 
-            "cough_r_base", "anti_r_base", "citytown_base", "gagebrth_base", 
-            "gagecm_base", "birthwt_base", "birthlen_base", "birthord_base", 
-            "gravida_base", "nlivbrth_base", "floor_base", "gagedays_base", 
-            "postbmi_base", "mmuaccm_base", "delivery_base", "bfinittm_base", 
-            "cmfdint_base", "formlkfl_base", "fever_base", "diarr_base", 
-            "physican_base", "hosp_base", "antibiot_base")) %>%
+names(vital)
+
+id <- c("X", "bmid_base", "subjid", "country", "studyid", "subjido", 
+        "arm_base", "sex_base", "brthyr_base", "brthweek_base", "mage_base", 
+        "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
+        "meducyrs_base", "h2osrcp_base", "agedays_base", "epochn_base", 
+        "epoch_base", "mhtcm_base", "mwtkg_base", "mbmi_base", "dlvloc_base", 
+        "wtkg_base", "lencm_base", "bmi_base", "muaccm_base", "waz_base", 
+        "haz_base", "whz_base", "baz_base", "feeding_base", "dur_bf_base", 
+        "dur_ebf_base", "visit_r_fl_base", "dur_r_base", "fever_r_base", 
+        "cough_r_base", "anti_r_base", "citytown_base", "gagebrth_base", 
+        "gagecm_base", "birthwt_base", "birthlen_base", "birthord_base", 
+        "gravida_base", "nlivbrth_base", "floor_base", "gagedays_base", 
+        "postbmi_base", "mmuaccm_base", "delivery_base", "bfinittm_base", 
+        "cmfdint_base", "formlkfl_base", "fever_base", "diarr_base", 
+        "physican_base", "hosp_base", "antibiot_base", "haz_m6", 
+        "haz_6m_simulated", "family", "site")
+
+# Write a for loop over each family
+for (i in levels(as.factor(vital $ family))) {
+  family_data <- vital[vital $ family == i, ]
+  
+  # Make matrix of log-transformed biomarkers (rows are the observations)
+  biomarkerMatrix <- family_data %>%
+  select(c(!id)) %>%
   as.matrix()
-
-# Run the function and save the plot
-volcanoPlotVital <- limmaFunc(data = wide, matrix = biomarkerMatrix, outcome = wide $ haz_6m)
-
-ggsave(volcanoPlotVital, filename = "/data/imic/results/figures/volcanoPlotVital.png")
+  
+  # Save FDR adjusted tables
+  table <- fdrTable(data = family_data, 
+                      outcome = family_data $ haz_m6, matrix = biomarkerMatrix)
+  
+  # Drop all NA
+  table <- na.omit(table)
+  
+  # Save the table
+  file_name <- paste("/data/imic/results/limma/fdr_vital_", i, ".RDS", sep = "")
+  saveRDS(table, file = file_name)
+  
+  # Make volcano plots and save them
+  plot <- volcanoPlot(data = family_data, 
+                      outcome = family_data $ haz_m6, matrix = biomarkerMatrix)
+  # Save the plot
+  file_name <- paste("/data/imic/results/figures/limma/volcano_vital_", i, ".png", sep = "")
+  ggsave(plot, filename = file_name)
+}
 ```
 
 # TO DO: Meta-analysis
