@@ -1,27 +1,53 @@
 
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
-
+library(lubridate)
 #load the combined raw data with dates merged in
 
 dfull <- readRDS("/data/imic/data/combined_raw_data.rds")
 
 # start with elicit seasonality
 # but eventually repeat for all studies
-elicit <- dfull %>% filter(studyid=="ELICIT")
-
-
-#
-
+elicit <- dfull %>% 
+  filter(studyid=="ELICIT") %>% 
+  select("subjido", "dob", "age (days)", "bmc_collection_date", "anthro date") %>%
+  rename(anthro_date = `anthro date`)
+colnames(elicit)
+head(elicit)
 
 #1) Make histogram of number of measurements by month by study
+<<<<<<< HEAD
 p_hist <- ggplot(dfull, aes(x=month)) + facet_wrap(~studyid)
+=======
+
+elicit <- elicit %>%
+  select(bmc_collection_date, anthro_date) %>%
+  mutate(bmc_month = month(bmc_collection_date),
+         anthro_month = month(anthro_date)) %>%
+  gather(key = "column", value = "date_month", bmc_month, anthro_month)
+
+elicit_hist <- ggplot(elicit, aes(x = date_month)) +
+  geom_histogram(binwidth = 0.5) +
+  facet_wrap(column ~ ., labeller = labeller(column = c("bmc_month" = "Breastmilk collection", "anthro_month" = "Anthropometry visit"))) +
+  xlab("month") +
+  scale_x_continuous(breaks = seq(0, 12, by = 1)) +
+  ylab("number of visits") +
+  ggtitle("ELICIT") +
+  scale_y_continuous(breaks = seq(0, 800, by = 100)) +
+  theme(plot.title = element_text(hjust = 0.5),
+        strip.text = element_text(size = 10, face = "bold"))
+
+elicit_hist
+>>>>>>> eb4cf5c944bec8c54a40932ed888d206ba3fa6b4
 
 #2) Make spline plots of child growth by day of the year
 #https://github.com/child-growth/ki-longitudinal-manuscripts/blob/master/5-visualizations/wasting/fig-wasting-seasonality.R
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> eb4cf5c944bec8c54a40932ed888d206ba3fa6b4
 # 2a) Make spline plot of mean whz by day of the year
 
 

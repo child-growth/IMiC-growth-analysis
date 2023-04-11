@@ -169,6 +169,9 @@ vital_raw <- left_join(vital_raw, vital_ids, by = "ID")
 
 #Merge in with harmonized data set
 vitalmerged <- left_join(vital, vital_raw, by = "SUBJIDO")
+unique(vitalmerged$dob)
+unique(vitalmerged$dov)
+colnames(vitalmerged)
 
 #seems way too big!
 
@@ -218,8 +221,6 @@ table(d$visit[d$studyid=="VITAL-Lactation"])
 #Check measurement frequency
 meas_freq_tab <- d %>% filter(!is.na(waz)|!is.na(haz)) %>% group_by(studyid, country, subjid) %>% mutate(lagage=agedays-lag(agedays)) %>% group_by(studyid) %>% summarize(mn=mean(lagage,na.rm=T), md=median(lagage,na.rm=T))
 meas_freq_tab
-
-
 
 
 
