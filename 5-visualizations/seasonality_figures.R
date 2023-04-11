@@ -15,10 +15,12 @@ elicit <- dfull %>% filter(studyid=="ELICIT")
 
 
 #1) Make histogram of number of measurements by month by study
-
+p_hist <- ggplot(dfull, aes(x=month)) + facet_wrap(~studyid)
 
 #2) Make spline plots of child growth by day of the year
 #https://github.com/child-growth/ki-longitudinal-manuscripts/blob/master/5-visualizations/wasting/fig-wasting-seasonality.R
+
+
 
 # 2a) Make spline plot of mean whz by day of the year
 
@@ -105,4 +107,5 @@ p
 # 3a) Get GPS data for each study and merge into dataset
 
 
-# 3b) Download precipitation data from XXX
+# 3b) Download and merge precipitation data from:
+# https://www.r-bloggers.com/2014/06/updates-to-r-package-raincpc-global-daily-rainfall-for-over-35-years/

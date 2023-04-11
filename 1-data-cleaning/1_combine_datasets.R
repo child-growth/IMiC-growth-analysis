@@ -170,6 +170,8 @@ vital_raw <- left_join(vital_raw, vital_ids, by = "ID")
 #Merge in with harmonized data set
 vitalmerged <- left_join(vital, vital_raw, by = "SUBJIDO")
 
+#seems way too big!
+
 #-------------------------------------------------------------------
 # misame raw data
 #-------------------------------------------------------------------
