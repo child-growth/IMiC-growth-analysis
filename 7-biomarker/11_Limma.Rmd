@@ -12,6 +12,8 @@ library(broom)
 library(limma)
 library(EnhancedVolcano)
 library(ggplot2)
+install.packages("fdrci")
+library(fdrci)
 ```
 
 # 1) Make Limma function that returns results from eBayes. 
@@ -108,6 +110,9 @@ for (i in levels(as.factor(elicit $ family))) {
   # Drop all NA
   table <- na.omit(table)
   
+  # Remove row names
+  row.names(table) <- NULL
+  
   # Save the table
   file_name <- paste("/data/imic/results/limma/fdr_elicit_", i, ".RDS", sep = "")
   saveRDS(table, file = file_name)
@@ -125,8 +130,6 @@ for (i in levels(as.factor(elicit $ family))) {
 ```{r}
 vital <- read.csv("/data/imic/data/raw_lab_data/vital/merged_vital/wideDataset.csv")
 
-names(vital)
-
 id <- c("X", "bmid_base", "subjid", "country", "studyid", "subjido", 
         "arm_base", "sex_base", "brthyr_base", "brthweek_base", "mage_base", 
         "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
@@ -140,8 +143,8 @@ id <- c("X", "bmid_base", "subjid", "country", "studyid", "subjido",
         "gravida_base", "nlivbrth_base", "floor_base", "gagedays_base", 
         "postbmi_base", "mmuaccm_base", "delivery_base", "bfinittm_base", 
         "cmfdint_base", "formlkfl_base", "fever_base", "diarr_base", 
-        "physican_base", "hosp_base", "antibiot_base", "haz_m6", 
-        "haz_6m_simulated", "family", "site")
+        "physican_base", "hosp_base", "antibiot_base", "haz_m6", "anti_inj_base",
+        "anti_oral_base", "haz_6m_simulated", "family", "site")
 
 # Write a for loop over each family
 for (i in levels(as.factor(vital $ family))) {
@@ -159,6 +162,9 @@ for (i in levels(as.factor(vital $ family))) {
   # Drop all NA
   table <- na.omit(table)
   
+  # Remove row names
+  row.names(table) <- NULL
+  
   # Save the table
   file_name <- paste("/data/imic/results/limma/fdr_vital_", i, ".RDS", sep = "")
   saveRDS(table, file = file_name)
@@ -174,6 +180,13 @@ for (i in levels(as.factor(vital $ family))) {
 
 # TO DO: Meta-analysis
 ```{r}
+# Load datasets
+hmoE <- readRDS("/data/imic/results/limma/fdr_elicit_hmo.RDS")
+hmoV <- readRDS("/data/imic/results/limma/fdr_vital_hmo.RDS")
+
+# Check if both datasets have the same biomarkers
+table(hmoE $ ID %in% c(hmoV $ ID))
+
 ```
 
 # Unadjusted analyses: Elicit

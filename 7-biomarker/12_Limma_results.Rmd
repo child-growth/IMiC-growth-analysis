@@ -1,0 +1,71 @@
+---
+title: |
+  Limma Results
+author: "Sajia Darwish"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+opts_chunk$set(echo = FALSE,
+               out.width = "75%", 
+               fig.align = "center",
+               fig.show = 'hold')
+```
+
+### BiocNorm: Elicit and Vital
+```{r,echo=FALSE,out.width='.49\\linewidth',fig.width=3,fig.height=3,fig.show='hold',fig.align='center'}
+include_graphics(c("/data/imic/results/figures/limma/volcano_elicit_biocNorm.png",
+                   "/data/imic/results/figures/limma/volcano_vital_biocNorm.png"))
+```
+
+### MetabInd: Elicit and Vital
+```{r,echo=FALSE,out.width='.49\\linewidth',fig.width=3,fig.height=3,fig.show='hold',fig.align='center'}
+include_graphics(c("/data/imic/results/figures/limma/volcano_elicit_metabInd.png",
+                   "/data/imic/results/figures/limma/volcano_vital_metabolInd.png"))
+```
+
+### HMO: Elicit and Vital
+```{r,echo=FALSE,out.width='.49\\linewidth',fig.width=3,fig.height=3,fig.show='hold',fig.align='center'}
+include_graphics(c("/data/imic/results/figures/limma/volcano_elicit_hmo.png",
+                   "/data/imic/results/figures/limma/volcano_vital_hmo.png"))
+```
+
+### Sapient: Elicit and Vital
+```{r,echo=FALSE,out.width='.49\\linewidth',fig.width=3,fig.height=3,fig.show='hold',fig.align='center'}
+include_graphics(c("/data/imic/results/figures/limma/volcano_elicit_sapient.png",
+                   "/data/imic/results/figures/limma/volcano_vital_sapient.png"))
+```
+
+### Bvitamin: Elicit
+```{r,echo=FALSE,out.width='.49\\linewidth',fig.width=3,fig.height=3,fig.show='hold',fig.align='center'}
+include_graphics("/data/imic/results/figures/limma/volcano_elicit_bvit.png")
+```
+
+### Bpl: Vital
+```{r,echo=FALSE,out.width='.49\\linewidth',fig.width=3,fig.height=3,fig.show='hold',fig.align='center'}
+include_graphics("/data/imic/results/figures/limma/volcano_vital_pbl.png")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
