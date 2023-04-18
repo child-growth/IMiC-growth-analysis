@@ -15,10 +15,7 @@ elicit <- dfull %>%
 colnames(elicit)
 head(elicit)
 
-#1) Make histogram of number of measurements by month by study
-<<<<<<< HEAD
-p_hist <- ggplot(dfull, aes(x=month)) + facet_wrap(~studyid)
-=======
+# #1) Make histogram of number of measurements by month by study
 
 elicit <- elicit %>%
   select(bmc_collection_date, anthro_date) %>%
@@ -38,17 +35,21 @@ elicit_hist <- ggplot(elicit, aes(x = date_month)) +
         strip.text = element_text(size = 10, face = "bold"))
 
 elicit_hist
->>>>>>> eb4cf5c944bec8c54a40932ed888d206ba3fa6b4
 
 #2) Make spline plots of child growth by day of the year
 #https://github.com/child-growth/ki-longitudinal-manuscripts/blob/master/5-visualizations/wasting/fig-wasting-seasonality.R
 
 
-<<<<<<< HEAD
 
-=======
->>>>>>> eb4cf5c944bec8c54a40932ed888d206ba3fa6b4
 # 2a) Make spline plot of mean whz by day of the year
+ggplot(data=elicit, aes(x=yday(`Anthro Date`), y=WHZ)) + geom_smooth() + geom_point()
+ggplot(data=elicit, aes(x=yday(`Anthro Date`), y=WAZ)) + geom_smooth() + geom_point()
+ggplot(data=elicit, aes(x=yday(`Anthro Date`), y=BAZ)) + geom_smooth() + geom_point()
+ggplot(data=elicit, aes(x=`Anthro Date`, y=WHZ)) + geom_smooth() + geom_point()
+ggplot(data=elicit, aes(x=`Anthro Date`, y=BAZ)) + geom_smooth() + geom_point()
+ggplot(data=elicit, aes(x=`Anthro Date`, y=WAZ)) + geom_smooth() + geom_point()
+ggplot(data=elicit, aes(x=`Anthro Date`, y=WTKG )) + geom_smooth() + geom_point()
+
 
 
 # estimate a pooled fit, over all studies
