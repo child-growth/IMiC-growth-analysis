@@ -218,7 +218,7 @@ misame_clean <- read.csv("/data/imic/data/harmonized_datasets/MISAME_3_IMiC_anal
 
 # misame raw data
 misame_raw <- haven::read_sas("/data/imic/data/raw_field_data/misame_raw/misame3_imic.sas7bdat")
-
+#need to transform the raw data from wide to long first
 
 misame= NULL
 
