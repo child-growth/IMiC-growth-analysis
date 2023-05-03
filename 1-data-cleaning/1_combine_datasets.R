@@ -52,9 +52,9 @@ elicit_raw[sample_waz_string] <- ymd(elicit_raw$dob) + days(as.numeric(unlist(el
 }
 
 # # #To do: subset to just the needed variables and merge with the main data with the ID variable and the sample date
-elicit_raw <- elicit_raw %>% select(pid, dob, agedays_laz_0, sampledate_laz_0, agedays_laz_3, sampledate_laz_3, agedays_laz_6, sampledate_laz_6, agedays_laz_9, sampledate_laz_9, agedays_laz_12, sampledate_laz_12, agedays_laz_15, sampledate_laz_15, agedays_waz_0, sampledate_waz_0, agedays_waz_3, sampledate_waz_3, agedays_waz_6, sampledate_waz_6, agedays_waz_9, sampledate_waz_9, agedays_waz_12, sampledate_waz_12, agedays_waz_15, sampledate_waz_15)
+elicit_raw <- elicit_raw %>% subset(., select=c(pid, dob, agedays_laz_0, sampledate_laz_0, agedays_laz_3, sampledate_laz_3, agedays_laz_6, sampledate_laz_6, agedays_laz_9, sampledate_laz_9, agedays_laz_12, sampledate_laz_12, agedays_laz_15, sampledate_laz_15, agedays_waz_0, sampledate_waz_0, agedays_waz_3, sampledate_waz_3, agedays_waz_6, sampledate_waz_6, agedays_waz_9, sampledate_waz_9, agedays_waz_12, sampledate_waz_12, agedays_waz_15, sampledate_waz_15))
 elicit_raw_bm <- elicit_raw_bm %>% 
-  select(pid, bmc_date_collected) 
+  subset(., select=c(pid, bmc_date_collected))
 
 #Convert BM dataset to include visit round (1 month & 5 months)
 elicit_bm <- elicit_raw_bm %>%
@@ -66,7 +66,7 @@ elicit_bm <- elicit_raw_bm %>%
 
 #Convert to longform dataset
 lazpivot1 <- elicit_raw %>% 
-  select(pid,dob,agedays_laz_0, agedays_laz_3, agedays_laz_6, agedays_laz_9, agedays_laz_12, agedays_laz_15) %>%
+  subset(., select=c(pid,dob,agedays_laz_0, agedays_laz_3, agedays_laz_6, agedays_laz_9, agedays_laz_12, agedays_laz_15)) %>%
   pivot_longer(
     cols = starts_with("agedays_laz"),
     names_to = "VISIT",
@@ -76,7 +76,7 @@ lazpivot1 <- elicit_raw %>%
   )
 
 lazpivot2 <- elicit_raw %>%
-  select(pid,dob, sampledate_laz_0, sampledate_laz_3, sampledate_laz_6, sampledate_laz_9, sampledate_laz_12, sampledate_laz_15) %>%
+  subset(., select=c(pid,dob, sampledate_laz_0, sampledate_laz_3, sampledate_laz_6, sampledate_laz_9, sampledate_laz_12, sampledate_laz_15)) %>%
   pivot_longer(
     cols = starts_with("sampledate_laz"),
     names_to = "VISIT",
@@ -136,7 +136,7 @@ vital_vno <- vital %>% group_by(SUBJIDO) %>% arrange(AGEDAYS) %>%
          #are not in the raw anthro dataset so the dates wouldn't line up. Check in the future
          #|!is.na(WTKG)
          |!is.na(BMI)|!is.na(MUACCM)) %>% mutate(vno=row_number()-1) %>% 
-  select(SUBJIDO, AGEDAYS, vno) %>% distinct()
+  subset(., select=c(SUBJIDO, AGEDAYS, vno)) %>% distinct()
 
 dim(vital)
 dim(vital_vno)
@@ -162,7 +162,7 @@ vital_baseline_anthro <- vital_baseline_anthro %>%
   rename(SUBJIDO = assid)
   
 vital_ids <- inner_join(dob, vital_baseline_anthro, by = c("ID", "SUBJIDO")) %>%
-  select(ID, SUBJIDO)
+  subset(., select=c(ID, SUBJIDO))
 
 
 
@@ -170,7 +170,7 @@ vital_ids <- inner_join(dob, vital_baseline_anthro, by = c("ID", "SUBJIDO")) %>%
 #include date of visit & date of birth
 #To do: subset to just the needed variables and merge with the main data with the ID variable and the sample date
 vital_raw <- vital_raw %>%
-  select(studyid, dov, dob, visit, vno) %>%
+  subset(., select=c(studyid, dov, dob, visit, vno)) %>%
   rename(ID = studyid)
 
 vital_raw <- left_join(vital_raw, vital_ids, by = "ID")
@@ -199,7 +199,7 @@ dim(vitalmerged_anthro)
 vitalmerged_anthro <- vitalmerged_anthro %>% 
   mutate(anthro_date=mdy(dov),
          dob=mdy(dob)) %>% 
-  select(SUBJIDO, VISIT, anthro_date, dob) %>% distinct()
+  subset(., select=c(SUBJIDO, VISIT, anthro_date, dob)) %>% distinct()
 dim(vitalmerged_anthro)
 
 dim(vital)
@@ -220,7 +220,28 @@ misame_clean <- read.csv("/data/imic/data/harmonized_datasets/MISAME_3_IMiC_anal
 misame_raw <- haven::read_sas("/data/imic/data/raw_field_data/misame_raw/misame3_imic.sas7bdat")
 #need to transform the raw data from wide to long first
 
+# create data dictionary ----
+misame_dictionary <- data.frame(labelled::generate_dictionary(misame_raw))
+write.csv(misame_dictionary[,c(1:3)],file="/data/imic/data/raw_field_data/misame_raw/misame3_imic_variable_dictionary.csv", row.names = FALSE)
+
+
 misame= NULL
+
+head(misame_clean)
+head(misame_raw)
+
+colnames(misame_raw)
+
+unique(misame_clean$SUBJIDO)
+unique(misame_raw$idbs)
+unique(misame_raw$idwoman)
+
+misame_raw <- misame_raw %>% subset(., select=c()) %>% rename()
+
+dim(misame_clean)
+dim(misame_raw)
+misame <- left_join(misame_clean,misame_raw, by="SUBJIDO")
+dim(misame)
 
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
