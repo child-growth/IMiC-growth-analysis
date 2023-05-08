@@ -14,6 +14,17 @@ library(EnhancedVolcano)
 library(ggplot2)
 #install.packages("fdrci")
 library(fdrci)
+
+# if (!require("BiocManager", quietly = TRUE))
+#   install.packages("BiocManager")
+# 
+# BiocManager::install("genefilter")
+
+library(genefilter)
+
+# Load and install heatmaply package
+install.packages("heatmaply")
+library(heatmaply)
 ```
 
 # 1) Make Limma function that returns results from eBayes. 
@@ -252,7 +263,9 @@ res <- res %>%
 write.csv(res, file = "/data/imic/results/unadjustedVital.csv")
 ```
 
+
 # Make a function to plot heatmaps of the same biomarker family in different sites
+# Using Limma results
 ```{r}
 # file1 must be elicit and file2 vital
 process_and_plot_heatmap <- function(rds_file1, rds_file2) {
@@ -320,8 +333,6 @@ process_and_plot_heatmap("/data/imic/results/limma/fdr_elicit_sapient.RDS",
 process_and_plot_heatmap("/data/imic/results/limma/fdr_elicit_metabInd.RDS",
                                      "/data/imic/results/limma/fdr_vital_metabolInd.RDS")
 ```
-
-
 
 
 
