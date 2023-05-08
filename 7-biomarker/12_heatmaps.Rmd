@@ -31,7 +31,6 @@ select_and_plot_top_features <- function(data, n_features = 60, file_name) {
   # Convert the subsetted data frame to a matrix
   dataMatrix <- as.matrix(subset_data)
   
-  
   # Set up file path for image to save
   png(file = file_name, width = 700, height = 520)
   
