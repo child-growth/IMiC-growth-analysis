@@ -1,0 +1,86 @@
+---
+title: |
+  R2Weight
+author: "Sajia Darwish"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  pdf_document: default
+classoption: landscape
+---
+
+# Load libraries and data
+```{r}
+# # install/load devtools package
+# if(!("devtools" %in% row.names(installed.packages()))){
+#     install.packages("devtools")
+# }
+# library("devtools")
+# 
+# # install/load r2weight from GitHub
+# if(!("r2weight" %in% row.names(installed.packages()))){
+#     install_github("benkeser/r2weight")
+# }
+library(r2weight)
+library(quadprog)
+
+hmoE <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmo.RDS")
+```
+
+# Implement r2weight
+```{r}
+hmoE <- data.frame(hmoE %>%
+                  select(c("nlchild_base", "nperson_base", "nrooms_base", 
+                            "meducyrs_base", "h2osrcp_base", "cookplac_base",
+                            "inctot_base", "DFLac_nmol.mL",
+                           "X2.FL_nmol.mL", "X3FL_nmol.mL", "X3.SL_nmol.mL",
+                           "X6.SL_nmol.mL", "LNT_nmol.mL", "LNnT_nmol.mL",
+                           "LNFP.I_nmol.mL", "LNFP.II_nmol.mL", "LNFP.III_nmol.mL",
+                           "LSTb_nmol.mL", "LSTc_nmol.mL", "DFLNT_nmol.mL",
+                           "LNH_nmol.mL", "DSLNT_nmol.mL", "FLNH_nmol.mL",
+                           "DFLNH_nmol.mL", "FDSLNH_nmol.mL", "DSLNH_nmol.mL",
+                           "SUM_nmol.mL", "Sia_nmol.mL", "Fuc_nmol.mL"))) %>%
+  drop_na()
+
+X <- data.frame(hmoE %>%
+                  select(c("nlchild_base", "nperson_base", "nrooms_base", 
+                            "meducyrs_base", "h2osrcp_base", "cookplac_base",
+                            "inctot_base")))
+
+X $ cookplac_base <- as.factor(ifelse(X $ cookplac_base == "Yes", 1, 0))
+
+# Group together related levels to avoid small sample sizes
+X $ h2osrcp_base <- as.factor(case_when(X $ h2osrcp_base == "Tube well or borehole" |
+                              X $ h2osrcp_base == "Protected well" ~ 1,
+
+                              X $ h2osrcp_base == "Surface water" |
+                              X $ h2osrcp_base == "Unprotected well" ~ 2,
+
+                              X $ h2osrcp_base == "Piped to yard/plot" |
+                              X $ h2osrcp_base == "Public tap/stand pipe" ~ 3))
+
+Y <- data.frame(hmoE %>%
+                  select(c("X2.FL_nmol.mL", "X3FL_nmol.mL", "DFLac_nmol.mL",
+                           "X3.SL_nmol.mL", "X6.SL_nmol.mL", "LNT_nmol.mL",
+                           "LNnT_nmol.mL", "LNFP.I_nmol.mL", "LNFP.II_nmol.mL",
+                           "LNFP.III_nmol.mL", "LSTb_nmol.mL", "LSTc_nmol.mL", 
+                           "DFLNT_nmol.mL", "LNH_nmol.mL", "DSLNT_nmol.mL",
+                           "FLNH_nmol.mL", "DFLNH_nmol.mL", "FDSLNH_nmol.mL",
+                           "DSLNH_nmol.mL", "SUM_nmol.mL", "Sia_nmol.mL", "Fuc_nmol.mL")))
+
+# call optWeight using simple Super Learner library
+out1 <- optWeight(Y = Y, X = X, SL.library = c("SL.mean","SL.glm","SL.step"))
+
+# print the object
+out1
+```
+
+
+
+
+
+
+
+
+
+
+
