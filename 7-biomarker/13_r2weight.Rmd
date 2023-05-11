@@ -5,7 +5,6 @@ author: "Sajia Darwish"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output:
   pdf_document: default
-classoption: landscape
 ---
 
 # Load libraries and data
@@ -24,9 +23,11 @@ library(r2weight)
 library(quadprog)
 
 hmoE <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmo.RDS")
+bvitE <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/bvit.RDS")
+dput(names(bvitE))
 ```
 
-# Implement r2weight
+# Implement r2weight for Elicit HMO
 ```{r}
 hmoE <- data.frame(hmoE %>%
                   select(c("nlchild_base", "nperson_base", "nrooms_base", 
@@ -48,6 +49,8 @@ X <- data.frame(hmoE %>%
 
 X $ cookplac_base <- as.factor(ifelse(X $ cookplac_base == "Yes", 1, 0))
 
+
+
 # Group together related levels to avoid small sample sizes
 X $ h2osrcp_base <- as.factor(case_when(X $ h2osrcp_base == "Tube well or borehole" |
                               X $ h2osrcp_base == "Protected well" ~ 1,
@@ -67,16 +70,17 @@ Y <- data.frame(hmoE %>%
                            "FLNH_nmol.mL", "DFLNH_nmol.mL", "FDSLNH_nmol.mL",
                            "DSLNH_nmol.mL", "SUM_nmol.mL", "Sia_nmol.mL", "Fuc_nmol.mL")))
 
+Yscale = scale(Y)
+
 # call optWeight using simple Super Learner library
-out1 <- optWeight(Y = Y, X = X, SL.library = c("SL.mean","SL.glm","SL.step"))
+outHmo <- optWeight(Y = Yscale, X = X, SL.library = c("SL.mean","SL.glm","SL.step"))
+outHmo
 
-# print the object
-out1
+# cross-validated R-squared
+# set verbose = TRUE to see a progress bar
+r2.outHmo <- r2_optWeight(outHmo, Y = Yscale, X = X)
+r2.outHmo
 ```
-
-
-
-
 
 
 
