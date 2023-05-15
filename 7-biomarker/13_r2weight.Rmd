@@ -32,7 +32,7 @@ r2weightFunc <- function(X, Y) {
   
   # cross-validated R-squared
   # set verbose = TRUE to see a progress bar
-  r2.out1 <- r2_optWeight(out1, Y = Yscale, X = X)
+  r2.out1 <- r2_optWeight(out1, Y = Y, X = X)
   
   # Make a dataframe
   results <- data.frame(matrix(ncol = 4))
@@ -40,10 +40,10 @@ r2weightFunc <- function(X, Y) {
   
   for (i in 1:ncol(X)) {
   # Measure importance of every feature
-  out2 <- optWeight(Y = Yscale, X = X[, -i], SL.library = c("SL.glm","SL.mean"))#,"SL.step"))
+  out2 <- optWeight(Y = Y, X = X[, -i], SL.library = c("SL.glm","SL.mean"))#,"SL.step"))
   
   # Get R-squared for combined outcome excluding each feature one at a time
-  r2.out2 <- r2_optWeight(out2, Y = Yscale, X = X[, -i])
+  r2.out2 <- r2_optWeight(out2, Y = Y, X = X[, -i])
   
   # Compare to full fit to get importance for combined outcome
   outDiff.r2 <- r2_diff(r2.out1, r2.out2)
