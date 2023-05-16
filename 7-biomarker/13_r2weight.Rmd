@@ -35,8 +35,10 @@ r2weightFunc <- function(X, Y) {
   r2.out1 <- r2_optWeight(out1, Y = Y, X = X)
   
   # Make a dataframe
-  results <- data.frame(matrix(ncol = 4))
-  names(results) = c("est", "CI.l", "CI.h", "p.value")
+  results <- data.frame(matrix(ncol = 5, nrow = 7))
+  names(results) = c("estFullModel", "estDiff", "CI.l", "CI.h", "p.value")
+  
+  results $ estFullModel = r2.out1 $ r2
   
   for (i in 1:ncol(X)) {
   # Measure importance of every feature
@@ -49,10 +51,11 @@ r2weightFunc <- function(X, Y) {
   outDiff.r2 <- r2_diff(r2.out1, r2.out2)
   
   # Save the difference as a data frame
-  results[i, 1] = outDiff.r2 $ diff[, 1]
-  results[i, 2] = outDiff.r2 $ diff[, 2]
-  results[i, 3] = outDiff.r2 $ diff[, 3]
-  results[i, 4] = outDiff.r2 $ diff[, 4]
+  results[i, 2] = outDiff.r2 $ diff[, 1]
+  results[i, 3] = outDiff.r2 $ diff[, 2]
+  results[i, 4] = outDiff.r2 $ diff[, 3]
+  results[i, 5] = outDiff.r2 $ diff[, 4]
+  results[1, 1] = 
   }
   
   return(results)
@@ -143,18 +146,26 @@ YbvitEscale = scale(YbvitE)
 ```{r}
 # Elicit HMO
 hmoEresult <- r2weightFunc(X = XhmoE, Y = YhmoEscale)
+predictors <- c("nlchild_base", "nperson_base", "nrooms_base", "meducyrs_base",
+                "h2osrcp_base", "cookplac_base", "inctot_base")
+hmoEresult $ predictors = predictors
 # Save the dataset to directory
 write.csv(hmoEresult, file = "/data/imic/results/r2weight/hmoEr2weight.csv")
 
 # Elicit Bvit
 bvitResult <- r2weightFunc(X = XbvitE, Y = YbvitEscale)
+bvitResult $ predictors = predictors
+
 write.csv(bvitResult, file = "/data/imic/results/r2weight/bvitEr2weight.csv")
 ```
 
 # We could also get importance for each individual outcome:
 ```{r}
+# call optWeight using simple Super Learner library
+out1 <- optWeight(Y = YbvitEscale, X = XbvitE, SL.library = c("SL.mean","SL.glm"))#,"SL.step"))
+
 # Measure importance of x7
-out2 <- optWeight(Y = Yscale, X = X[, 1:6], SL.library = c("SL.glm","SL.mean","SL.step"))
+out2 <- optWeight(Y = Yscale, X = X[, 1:6], SL.library = c("SL.glm","SL.mean"))#,"SL.step"))
 
 # Compare to full fit to get importance for each individual outcome
 outDiff <- r2_diff(out1, out2)
