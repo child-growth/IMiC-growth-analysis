@@ -6,12 +6,13 @@ library(lubridate)
 
 dfull <- readRDS("/data/imic/data/combined_raw_data.rds")
 
+table(dfull$studyid, is.na(dfull$anthro_date))
+
 # start with elicit seasonality
 # but eventually repeat for all studies
 elicit <- dfull %>% 
   filter(studyid=="ELICIT") %>% 
-  select("subjido", "dob", "age (days)", "bmc_collection_date", "anthro date") %>%
-  rename(anthro_date = `anthro date`)
+  select("subjido", "dob", "age (days)", "bmc_collection_date", "anthro_date", "haz","waz","whz") 
 colnames(elicit)
 head(elicit)
 
@@ -40,6 +41,8 @@ elicit_hist
 #https://github.com/child-growth/ki-longitudinal-manuscripts/blob/master/5-visualizations/wasting/fig-wasting-seasonality.R
 
 
+elicit <- elicit %>% rename(`Anthro Date` = anthro_date, WHZ=whz, WAZ=waz, HAZ=haz)
+
 
 # 2a) Make spline plot of mean whz by day of the year
 ggplot(data=elicit, aes(x=yday(`Anthro Date`), y=WHZ)) + geom_smooth() + geom_point()
@@ -49,6 +52,35 @@ ggplot(data=elicit, aes(x=`Anthro Date`, y=WHZ)) + geom_smooth() + geom_point()
 ggplot(data=elicit, aes(x=`Anthro Date`, y=BAZ)) + geom_smooth() + geom_point()
 ggplot(data=elicit, aes(x=`Anthro Date`, y=WAZ)) + geom_smooth() + geom_point()
 ggplot(data=elicit, aes(x=`Anthro Date`, y=WTKG )) + geom_smooth() + geom_point()
+
+
+
+
+
+
+
+#look at multiple studies
+dfull <- dfull %>% 
+  filter(studyid=="ELICIT") %>% 
+  select("subjido", "dob", "age (days)", "bmc_collection_date", "anthro_date", "haz","waz","whz") 
+colnames(elicit)
+head(elicit)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -217,7 +217,8 @@ dim(vital)
 misame_clean <- read.csv("/data/imic/data/harmonized_datasets/MISAME_3_IMiC_analysis.csv")
 
 # misame raw data
-misame_raw <- haven::read_sas("/data/imic/data/raw_field_data/misame_raw/misame3_imic.sas7bdat")
+#misame_raw <- haven::read_sas("/data/imic/data/raw_field_data/misame_raw/misame3_imic.sas7bdat")
+misame_raw <- haven::read_sas("/data/imic/data/raw_field_data/misame_raw/misame3_wide.sas7bdat") 
 #need to transform the raw data from wide to long first
 
 # create data dictionary ----
@@ -233,15 +234,18 @@ head(misame_raw)
 colnames(misame_raw)
 
 unique(misame_clean$SUBJIDO)
-unique(misame_raw$idbs)
-unique(misame_raw$idwoman)
+unique(misame_raw$idnew )
 
-misame_raw <- misame_raw %>% subset(., select=c()) %>% rename()
+misame_raw <- misame_raw %>% #subset(., select=c()) %>% 
+  rename(SUBJIDO=idnew) 
 
 dim(misame_clean)
 dim(misame_raw)
 misame <- left_join(misame_clean,misame_raw, by="SUBJIDO")
 dim(misame)
+
+misame <- misame %>% mutate(SUBJIDO=as.character(SUBJIDO),
+                            MHGB=as.numeric(MHGB))
 
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -252,6 +256,10 @@ dim(misame)
 
 head(vital)
 head(elicit)
+
+class(vital$MHGB)
+class(elicit$MHGB)
+class(misame$MHGB)
 
 #Combine datasets
 dfull <- bind_rows(vital, elicit, misame)
