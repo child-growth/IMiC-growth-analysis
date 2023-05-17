@@ -60,23 +60,16 @@ ggplot(data=elicit, aes(x=`Anthro Date`, y=WTKG )) + geom_smooth() + geom_point(
 
 
 #look at multiple studies
-dfull <- dfull %>% 
-  filter(studyid=="ELICIT") %>% 
-  select("subjido", "dob", "age (days)", "bmc_collection_date", "anthro_date", "haz","waz","whz") 
-colnames(elicit)
-head(elicit)
+d <- dfull %>% 
+  filter(!is.na(anthro_date)) %>% 
+  select("studyid", "subjido", "dob", "age (days)", "bmc_collection_date", "anthro_date", "haz","waz","whz") 
+colnames(d)
+head(d)
 
+ggplot(data=d, aes(x=yday(anthro_date), y=whz)) + geom_smooth() + geom_point() + facet_wrap(~studyid)
 
-
-
-
-
-
-
-
-
-
-
+ggplot(data=d, aes(x=yday(anthro_date), y=whz)) + geom_smooth()  + facet_wrap(~studyid)
+ggplot(data=d, aes(x=yday(anthro_date), y=waz)) + geom_smooth()  + facet_wrap(~studyid)
 
 
 

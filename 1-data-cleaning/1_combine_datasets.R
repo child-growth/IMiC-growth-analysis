@@ -39,7 +39,7 @@ wazprefix <- "agedays_waz"
 samplelaz <- "sampledate_laz"
 samplewaz <- "sampledate_waz"
 
-rounds <- c("0","3","6","9","12","15")
+rounds <- c("0","3","6","9","12","15","18")
 for (val in rounds){
   
 laz_string <- paste(lazprefix, val, sep="_") 
@@ -52,7 +52,25 @@ elicit_raw[sample_waz_string] <- ymd(elicit_raw$dob) + days(as.numeric(unlist(el
 }
 
 # # #To do: subset to just the needed variables and merge with the main data with the ID variable and the sample date
-elicit_raw <- elicit_raw %>% subset(., select=c(pid, dob, agedays_laz_0, sampledate_laz_0, agedays_laz_3, sampledate_laz_3, agedays_laz_6, sampledate_laz_6, agedays_laz_9, sampledate_laz_9, agedays_laz_12, sampledate_laz_12, agedays_laz_15, sampledate_laz_15, agedays_waz_0, sampledate_waz_0, agedays_waz_3, sampledate_waz_3, agedays_waz_6, sampledate_waz_6, agedays_waz_9, sampledate_waz_9, agedays_waz_12, sampledate_waz_12, agedays_waz_15, sampledate_waz_15))
+
+# subset to just the needed variables and merge with the main data with the ID variable and the sample date
+elicit_raw <- elicit_raw %>% subset(., select=c(pid, dob, 
+                                                agedays_laz_0, sampledate_laz_0, 
+                                                agedays_laz_3, sampledate_laz_3, 
+                                                agedays_laz_6, sampledate_laz_6, 
+                                                agedays_laz_9, sampledate_laz_9,
+                                                agedays_laz_12, sampledate_laz_12, 
+                                                agedays_laz_15, sampledate_laz_15, 
+                                                agedays_laz_18, sampledate_laz_18, 
+                                                agedays_waz_0, sampledate_waz_0, 
+                                                agedays_waz_3, sampledate_waz_3, 
+                                                agedays_waz_6, sampledate_waz_6, 
+                                                agedays_waz_9, sampledate_waz_9,
+                                                agedays_waz_12, sampledate_waz_12, 
+                                                agedays_waz_15, sampledate_waz_15,
+                                                agedays_waz_18, sampledate_waz_18)) %>%
+  mutate(agedays_laz_18 = as.character(agedays_laz_18))
+
 elicit_raw_bm <- elicit_raw_bm %>% 
   subset(., select=c(pid, bmc_date_collected))
 
@@ -90,12 +108,15 @@ lazpivot2 <- elicit_raw %>%
 lazmerged <- full_join(lazpivot1,lazpivot2, by=c("pid","dob","VISIT")) %>% 
   rename(SUBJIDO = pid) 
 
-lazmerged <- lazmerged %>% mutate(VISIT = ifelse(VISIT == "0", "Enrolment Visit", 
-                                   ifelse(VISIT == "3", "3 Months Visit",
-                                          ifelse(VISIT == "6", "6 Months Visit",
-                                                 ifelse(VISIT == "9", "9 Months Visit",
-                                                        ifelse(VISIT == "12", "12 Months Visit",
-                                                               ifelse(VISIT == "15", "15 Months Visit", VISIT)))))))
+lazmerged <- lazmerged %>% mutate(VISIT = case_when(
+  VISIT == "0" ~ "Enrolment Visit",
+  VISIT == "3" ~ "3 Months Visit",
+  VISIT == "6" ~ "6 Months Visit",
+  VISIT == "9" ~ "9 Months Visit",
+  VISIT == "12" ~ "12 Months Visit",
+  VISIT == "15" ~ "15 Months Visit",
+  VISIT == "18" ~ "18 Months Visit"))
+
 
 #Merge in with harmonized data set
 dim(elicit)
@@ -219,11 +240,12 @@ misame_clean <- read.csv("/data/imic/data/harmonized_datasets/MISAME_3_IMiC_anal
 # misame raw data
 #misame_raw <- haven::read_sas("/data/imic/data/raw_field_data/misame_raw/misame3_imic.sas7bdat")
 misame_raw <- haven::read_sas("/data/imic/data/raw_field_data/misame_raw/misame3_wide.sas7bdat") 
+colnames(misame_raw)
 #need to transform the raw data from wide to long first
 
-# create data dictionary ----
-misame_dictionary <- data.frame(labelled::generate_dictionary(misame_raw))
-write.csv(misame_dictionary[,c(1:3)],file="/data/imic/data/raw_field_data/misame_raw/misame3_imic_variable_dictionary.csv", row.names = FALSE)
+# # create data dictionary ----
+# misame_dictionary <- data.frame(labelled::generate_dictionary(misame_raw))
+# write.csv(misame_dictionary[,c(1:3)],file="/data/imic/data/raw_field_data/misame_raw/misame3_imic_variable_dictionary.csv", row.names = FALSE)
 
 
 misame= NULL
@@ -236,18 +258,69 @@ colnames(misame_raw)
 unique(misame_clean$SUBJIDO)
 unique(misame_raw$idnew )
 
-misame_raw <- misame_raw %>% #subset(., select=c()) %>% 
-  rename(SUBJIDO=idnew) 
 
-dim(misame_clean)
+
+misame_raw_long_dates<- misame_raw %>% 
+  rename(SUBJIDO=idnew ) %>%
+  subset(., select=c(SUBJIDO, pn_date_1,
+                     pn_date_2,
+                     pn_date_3,
+                     pn_date_4,
+                     pn_date_5,
+                     pn_date_6,
+                     pn_date_9,
+                     pn_date_12)) %>%
+  pivot_longer(!SUBJIDO, names_to = "round", names_prefix = "pn_date_",  values_to = "date")
+misame_raw_long_ages<- misame_raw %>% 
+  rename(SUBJIDO=idnew ) %>%
+  subset(., select=c(SUBJIDO,
+                     pn_cage_1,
+                     pn_cage_2,
+                     pn_cage_3,
+                     pn_cage_4,
+                     pn_cage_5,
+                     pn_cage_6,
+                     pn_cage_9,
+                     pn_cage_12)) %>%
+  pivot_longer(!SUBJIDO, names_to = "round", names_prefix = "pn_cage_",  values_to = "age")
+misame_raw_long <- left_join(misame_raw_long_dates, misame_raw_long_ages, by=c("SUBJIDO", "round")) %>% filter(!is.na(date))
+
+#temp subset to anthro only:
+misame_anthro <- misame_clean %>% filter(!is.na(HAZ))  %>%
+  subset(., select=c(STUDYID, SUBJIDO, VISITNUM, AGEDAYS, WAZ, HAZ, WHZ, BAZ, MUAZ)) %>% distinct()
+
+
+misame_raw_long <- misame_raw_long %>% mutate(agedays=ceiling(age*31))
+
+table(misame_raw_long$round)
+table(misame_anthro$VISITNUM )
+
+# misame_anthro <- misame_anthro %>% filter(SUBJIDO==15)
+# misame_raw_long <- misame_raw_long %>% filter(SUBJIDO==15)
+
+
+
+#-check merging on age works after transforming to long (vs figuring out visit num)
+
+
+# Add in: #IMIC collection dates and ID's
+# IMiC_date_1421
+# IMiC_date_12
+# IMiC_date_34
+# bmid1
+# bmid2
+# bmid3
+
+
+
+dim(misame_anthro)
 dim(misame_raw)
-misame <- left_join(misame_clean,misame_raw, by="SUBJIDO")
+misame <- left_join(misame_anthro, misame_raw_long, by=c("SUBJIDO"))
 dim(misame)
 
-misame <- misame %>% mutate(SUBJIDO=as.character(SUBJIDO),
-                            MHGB=as.numeric(MHGB))
+misame <- misame %>% mutate(SUBJIDO=as.character(SUBJIDO)) %>%
+                    subset(., select = -c(date))
 
-#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 
 #-------------------------------------------------------------------
@@ -257,9 +330,9 @@ misame <- misame %>% mutate(SUBJIDO=as.character(SUBJIDO),
 head(vital)
 head(elicit)
 
-class(vital$MHGB)
-class(elicit$MHGB)
-class(misame$MHGB)
+# class(vital$date)
+# class(elicit$date)
+# class(misame$date)
 
 #Combine datasets
 dfull <- bind_rows(vital, elicit, misame)
