@@ -88,8 +88,6 @@ mean_wlz_plot
 # save plot and underlying data
 ggsave(mean_wlz_plot, file=paste0(BV_dir,"/figures/wasting/fig-cohort-wlz.png"), width=14, height=3)
 saveRDS(mean_wlz_plot, paste0(BV_dir,"/figures/plot-objects/mean_wlz_plot_objects.rds"))
-saveRDS(df, file=paste0(figdata_dir_wasting,"figdata-cohort-wlz.RDS"))
 
 
 
-#,  expand=c(0,0)
