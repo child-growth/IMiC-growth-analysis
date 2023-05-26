@@ -20,76 +20,6 @@
 # minN: Number of children needed to keep a strata to use in the pooled estimation, defaults to 50
 # measure: Optional character label to add to the output dataframe as a column of characters
 
-cohort.summary <- function(d, var, strata=c("region","studyid","country","agecat"), ci=F, continious=F, severe=F, minN=50, measure=NULL){
-  
-  cutoff <- ifelse(severe, -3, -2)
-  
-  colnames(d)[colnames(d)==var] <- "Y"
-  
-  strata_sym <- syms(strata)
-  
-  if(!ci | continious){
-    d <- d %>%
-      filter(!is.na(agecat)) %>%
-      group_by(!!!(strata_sym),subjid) %>%
-      summarise(Y=mean(Y, na.rm=T))
-  }else{
-    #Check if Y is binary
-    if(sum(!(d$Y %in% c(0,1)))>0){
-      d <- d %>%
-        filter(!is.na(agecat)) %>%
-        group_by(!!!(strata_sym),subjid) %>%
-        mutate(Y = ifelse(Y < cutoff, 1, 0)) %>%
-        summarise(Y = ifelse(sum(Y)>0, 1, 0))
-    }else{
-      d <- d %>%
-        filter(!is.na(agecat)) %>%
-        group_by(!!!(strata_sym),subjid) %>%
-        summarise(Y = ifelse(sum(Y)>0, 1, 0))
-    }
-  }
-  
-  # summarize measurements per study by age
-  # exclude time points if number of measurements per age
-  # in a study is < threshold
-  if(continious){
-    cohort.sum = d %>%
-      filter(!is.na(agecat) & !is.na(Y)) %>%
-      group_by(!!!(strata_sym)) %>%
-      summarise(N=n(),
-                Mean=mean(Y),
-                Var=var(Y)) %>%
-      filter(N>=minN)
-  }else{
-    if(ci){
-      cohort.sum = d %>%
-        group_by(!!!(strata_sym)) %>%
-        summarise(N=n(),
-                  Prop=mean(Y),
-                  Ncases=sum(Y==1)) %>%
-        filter(N>=minN) 
-    }else{
-      cohort.sum = d %>%
-        filter(!is.na(agecat) & !is.na(Y)) %>%
-        mutate(Y = ifelse(Y < cutoff, 1, 0)) %>%
-        group_by(!!!(strata_sym)) %>%        
-        summarise(N=n(),
-                  Prop=mean(Y),
-                  Ncases=sum(Y==1)) %>%
-        filter(N>=minN) 
-    }
-  }
-  
-  cohort.sum$variable <- var
-  
-  #Add measure label
-  if(!is.null(measure)){cohort.sum$measure <- measure}
-  
-  #Drop missing agecat levels
-  cohort.sum <- droplevels(cohort.sum)
-  return(cohort.sum)
-}
-
 
 ##############################################
 # pool_over_agecat
@@ -196,9 +126,6 @@ summarize_over_strata <- function(cohort.sum, strata=c("region","studyid","count
   
   return(res)
 }
-
-
-
 
 
 
@@ -763,50 +690,20 @@ calc.prev.agecat <- function(d) {
           ifelse(agedays > 8 * 30.4167 & agedays < 10 * 30.4167, "9 months",
             ifelse(agedays > 11 * 30.4167 & agedays < 13 * 30.4167, "12 months",
               ifelse(agedays > 14 * 30.4167 & agedays < 16 * 30.4167, "15 months",
-                ifelse(agedays > 17 * 30.4167 & agedays < 19 * 30.4167, "18 months",
-                  ifelse(agedays > 20 * 30.4167 & agedays < 22 * 30.4167, "21 months",
-                    ifelse(agedays > 23 * 30.4167 & agedays < 25 * 30.4167, "24 months", "")
-                  )
+                ifelse(agedays > 17 * 30.4167, "18 months", "")
+                  #ifelse(agedays > 20 * 30.4167 & agedays < 22 * 30.4167, "21 months",
+                    #ifelse(agedays > 23 * 30.4167 & agedays < 25 * 30.4167, "24 months", "")
                 )
               )
             )
           )
         )
       )
-    )) %>%
+      ) %>%
     mutate(agecat = factor(agecat, levels = c(
       "Birth", "3 months", "6 months", "9 months",
-      "12 months", "15 months", "18 months", "21 months", "24 months"
+      "12 months", "15 months", "18 months"
     )))
-}
-
-calc.prev.agecatE <- function (d) {
-  d <- d %>%
-    arrange(studyid, subjid, agedays) %>%
-    mutate(agecat = case_when(d $ agedays < 30 ~ "base",
-                              d $ agedays >= 30 &
-                                d $ agedays < 61 ~ "1m",
-                              d $ agedays >= 61 &
-                                d $ agedays < 91 ~ "Lab1",
-                              d $ agedays >= 91 &
-                                d $ agedays < 152 ~ "3m",
-                              d $ agedays >= 152 &
-                                d $ agedays < 183 ~ "5m",
-                              d $ agedays >= 183 &
-                                d $ agedays < 244 ~ "6m",
-                              d $ agedays >= 244 &
-                                d $ agedays < 274 ~ "Lab2",
-                              d $ agedays >= 274 &
-                                d $ agedays < 365 ~ "9m",
-                              d $ agedays >= 365 &
-                                d $ agedays < 457 ~ "12m",
-                              d $ agedays >= 457 &
-                                d $ agedays < 548 ~ "15m",
-                              d $ agedays >= 548 ~ "18m",
-              TRUE ~ d $ visit)) %>%
-    mutate(agecat = factor(agecat, levels = c("base", "1m", "3m", "5m", "6m",
-                                              "9m", "12m", "15m", "18m", "0to6m",
-                                              "6to18m", "0to18m", "Lab1", "Lab2")))
 }
 
 
@@ -832,28 +729,30 @@ calc.ci.agecat <- function(d, range = 3, birth = "yes") {
           ifelse(agedays > 6 * 30.4167 & agedays <= 9 * 30.4167, "6-9 months",
             ifelse(agedays > 9 * 30.4167 & agedays <= 12 * 30.4167, "9-12 months",
               ifelse(agedays > 12 * 30.4167 & agedays <= 15 * 30.4167, "12-15 months",
-                ifelse(agedays > 15 * 30.4167 & agedays <= 18 * 30.4167, "15-18 months",
-                  ifelse(agedays > 18 * 30.4167 & agedays <= 21 * 30.4167, "18-21 months",
-                    ifelse(agedays > 21 * 30.4167 & agedays <= 24 * 30.4167, "21-24 months", "")
+                ifelse(agedays > 15 * 30.4167, "15-18 months", "")
+                  #ifelse(agedays > 18 * 30.4167 & agedays <= 21 * 30.4167, "18-21 months",
+                    #ifelse(agedays > 21 * 30.4167 & agedays <= 24 * 30.4167, "21-24 months", "")
                   )
                 )
               )
             )
           )
-        )
-      )) %>%
-      mutate(agecat = factor(agecat, levels = c("0-3 months", "3-6 months", "6-9 months", "9-12 months", "12-15 months", "15-18 months", "18-21 months", "21-24 months")))
+        ) %>%
+      mutate(agecat = factor(agecat, levels = c("0-3 months", "3-6 months",
+                                                "6-9 months", "9-12 months",
+                                                "12-15 months", "15-18 months")))
   }
   if (range == 6 & birth == "yes") {
     d <- d %>%
       mutate(agecat = ifelse(agedays <= 6 * 30.4167, "0-6 months",
         ifelse(agedays > 6 * 30.4167 & agedays <= 12 * 30.4167, "6-12 months",
-          ifelse(agedays > 12 * 30.4167 & agedays <= 18 * 30.4167, "12-18 months",
-            ifelse(agedays > 18 * 30.4167 & agedays <= 24 * 30.4167, "18-24 months", "")
+          ifelse(agedays > 12 * 30.4167, "12-18 months", ""
+            #ifelse(agedays > 18 * 30.4167 & agedays <= 24 * 30.4167, "18-24 months", "")
           )
         )
       )) %>%
-      mutate(agecat = factor(agecat, levels = c("0-6 months", "6-12 months", "12-18 months", "18-24 months")))
+      mutate(agecat = factor(agecat, levels = c("0-6 months", "6-12 months",
+                                                "12-18 months")))
   }
 
   # ----------------------------------------------
@@ -867,36 +766,76 @@ calc.ci.agecat <- function(d, range = 3, birth = "yes") {
           ifelse(agedays > 6 * 30.4167 & agedays <= 9 * 30.4167, "6-9 months",
             ifelse(agedays > 9 * 30.4167 & agedays <= 12 * 30.4167, "9-12 months",
               ifelse(agedays > 12 * 30.4167 & agedays <= 15 * 30.4167, "12-15 months",
-                ifelse(agedays > 15 * 30.4167 & agedays <= 18 * 30.4167, "15-18 months",
-                  ifelse(agedays > 18 * 30.4167 & agedays <= 21 * 30.4167, "18-21 months",
-                    ifelse(agedays > 21 * 30.4167 & agedays <= 24 * 30.4167, "21-24 months", "")
-                  )
+                ifelse(agedays > 15 * 30.4167, "15-18 months", "")
+                 # ifelse(agedays > 18 * 30.4167 & agedays <= 21 * 30.4167, "18-21 months",
+                    #ifelse(agedays > 21 * 30.4167 & agedays <= 24 * 30.4167, "21-24 months", "")
                 )
               )
             )
           )
         )
-      ))) %>%
-      mutate(agecat = factor(agecat, levels = c("Birth","8 days-3 months", "3-6 months", "6-9 months", "9-12 months", "12-15 months", "15-18 months", "18-21 months", "21-24 months")))
+      )) %>%
+      mutate(agecat = factor(agecat, levels = c("Birth","8 days-3 months",
+                                                "3-6 months", "6-9 months",
+                                                "9-12 months", "12-15 months",
+                                                "15-18 months")))
   }
   if (range == 6 & birth == "no") {
     d <- d %>%
       mutate(agecat = ifelse(agedays <= 7, "Birth",
        ifelse(agedays > 7 & agedays <= 6 * 30.4167, "8 days-6 months",
         ifelse(agedays > 6 * 30.4167 & agedays <= 12 * 30.4167, "6-12 months",
-          ifelse(agedays > 12 * 30.4167 & agedays <= 18 * 30.41867, "12-18 months",
-            ifelse(agedays > 18 * 30.4167 & agedays <= 24 * 30.4167, "18-24 months", "")
-          )
+          ifelse(agedays > 12 * 30.4167 & agedays <= 18 * 30.41867, "12-18 months", "")
+           # ifelse(agedays > 18 * 30.4167 & agedays <= 24 * 30.4167, "18-24 months", "")
         )
       ))) %>%
-      mutate(agecat = factor(agecat, levels = c("Birth", "8 days-6 months", "6-12 months", "12-18 months", "18-24 months")))
+      mutate(agecat = factor(agecat, levels = c("Birth", "8 days-6 months",
+                                                "6-12 months", "12-18 months")))
   }
 
   return(d)
 }
 
-
-
+calc.ci.agecat.vital <- function(d, range = 3, birth = "yes") {
+  # ----------------------------------------------
+  # first age interval includes birth
+  # ----------------------------------------------
+  if (range == 3 & birth == "yes") {
+    d <- d %>%
+      mutate(agecat = ifelse(agedays <= 3 * 30.4167, "0-3 months",
+                             ifelse(agedays > 3 * 30.4167 & agedays <= 6 * 30.4167, "3-6 months","")
+      )) %>%
+      mutate(agecat = factor(agecat, levels = c("0-3 months", "3-6 months")))
+  }
+  if (range == 6 & birth == "yes") {
+    d <- d %>%
+      mutate(agecat = ifelse(agedays <= 7 * 30.4167, "0-6 months", ""))%>%
+      mutate(agecat = factor(agecat, levels = c("0-6 months")))
+  }
+  
+  # ----------------------------------------------
+  # first age interval excludes birth
+  # ----------------------------------------------
+  if (range == 3 & birth == "no") {
+    d <- d %>%
+      mutate(agecat = ifelse(agedays <= 7, "Birth",
+                             ifelse(agedays > 8 & agedays <= 3 * 30.4167, "8 days-3 months",
+                                    ifelse(agedays > 3 * 30.4167 & agedays <= 6 * 30.4167, "3-6 months", "")
+                                                  )
+                             )) %>%
+      mutate(agecat = factor(agecat, levels = c("Birth","8 days-3 months",
+                                                "3-6 months")))
+  }
+  if (range == 6 & birth == "no") {
+    d <- d %>%
+      mutate(agecat = ifelse(agedays <= 7, "Birth",
+                             ifelse(agedays > 7 & agedays <= 6 * 30.4167, "8 days-6 months",""
+                             ))) %>%
+      mutate(agecat = factor(agecat, levels = c("Birth", "8 days-6 months")))
+  }
+  
+  return(d)
+}
 
 
 

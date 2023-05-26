@@ -13,7 +13,8 @@ source(paste0(here::here(), "/0-config.R"))
 source(paste0(here::here(),"/0-project-functions/0_descriptive_epi_wast_functions.R"))
 
 
-load(paste0(ghapdata_dir,"Wasting_inc_rf_data.RData"))
+load(paste0(ghapdata_dir,"Wasting_inc_data.RData"))
+
 
 
 #Drop TR so it doesn't affect merge with covariates
@@ -45,18 +46,21 @@ dprev <- calc.prev.agecat(d)
 dmn <- dprev %>%
   filter(!is.na(agecat)) %>%
   group_by(studyid,country,subjid,agecat) %>%
-  summarise(whz=mean(whz)) %>%
+  summarise(whz=mean(whz), N=n()) %>%
   mutate(wasted=ifelse(whz< -2, 1,0),swasted=ifelse(whz< -3, 1,0))
 
+#look at how many measures are averaged
+table(dmn$N)
+table(dmn$agecat, dmn$N)
 
 # export
 prev = dmn %>% 
-  filter(agecat=="Birth" | agecat=="6 months" | agecat=="24 months") %>% 
   select(studyid,subjid,country,agecat, wasted, swasted)
+
+table(prev$studyid, prev$agecat)
 
 # save mean Z scores at each age
 meanWHZ = dmn %>% 
-  filter(agecat=="Birth" | agecat=="6 months" | agecat=="24 months") %>%
   select(studyid,subjid,country,agecat,
          whz)
 
@@ -69,74 +73,79 @@ meanWHZ = dmn %>%
 
 # define age windows
 d6 <- calc.ci.agecat(d, range = 6, birth="yes")
-
+table(d6$agecat)
 
 #calculate any wasting from 0-6
 wast_ci_0_6 = d6 %>% ungroup() %>%
   filter(agecat=="0-6 months") %>%
   group_by(studyid,country,subjid) %>%
   #create variable with minhaz by age category, cumulatively
-  mutate(agecat="0-6 months", ever_wasted= 1*(sum(wast_inc, na.rm=T)>0), ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
+  mutate(agecat="0-6 months", ever_wasted= 1*(sum(wast_inc, na.rm=T)>0),
+         ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
   mutate(N=n()) %>%
   ungroup() 
 
 # #calculate any wasting from 6-24
-wast_ci_6_24 = d6 %>% ungroup() %>% 
+wast_ci_6_18 = d6 %>% ungroup() %>% 
   group_by(studyid,country,subjid) %>%
   arrange(studyid,country,subjid, agedays) %>% 
   filter(agecat!="0-6 months") %>%
-  mutate(agecat="6-24 months",  ever_wasted=1*(sum(wast_inc, na.rm=T)>0), ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
+  mutate(agecat="6-18 months",  ever_wasted=1*(sum(wast_inc, na.rm=T)>0),
+         ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
   mutate(N=n()) %>%
   ungroup() 
 
 #calculate any wasting from 0-24
-wast_ci_0_24 = d6 %>% ungroup() %>%
+wast_ci_0_18 = d6 %>% ungroup() %>%
   filter(!is.na(agecat)) %>%
   group_by(studyid,country,subjid) %>%
   #create variable with minhaz by age category, cumulatively
-  mutate(agecat="0-24 months", ever_wasted=1*(sum(wast_inc, na.rm=T)>0),  ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
+  mutate(agecat="0-18 months", ever_wasted=1*(sum(wast_inc, na.rm=T)>0),
+         ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
   mutate(N=n()) %>%
   ungroup() 
 
-cuminc <- bind_rows(wast_ci_0_6, wast_ci_6_24, wast_ci_0_24)
+cuminc <- bind_rows(wast_ci_0_6, wast_ci_6_18, wast_ci_0_18)
 
-
-#--------------------------------------
-# Calculate cumulative incidence, excluding
-# wasting at birth
-#--------------------------------------
-
-# define age windows
-d6_nobirth <- calc.ci.agecat(d_noBW, range = 6, birth="yes")
-
-
-wast_ci_0_6_no_birth = d6_nobirth %>% ungroup() %>% 
-  arrange(studyid,country,subjid, agedays) %>% 
-  filter(agecat=="0-6 months" & !is.na(agecat)) %>%
-  group_by(studyid,country,subjid) %>%
-  arrange(studyid,country,subjid, agedays) %>% 
-  filter(wasting_episode!="Born Wasted") %>% #drop children born wasted
-  mutate(agecat="0-6 months (no birth wast)", ever_wasted=1*(sum(wast_inc, na.rm=T)>0),  ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
-  mutate(N=n()) %>%
-  ungroup() 
-
-wast_ci_0_24_no_birth = d6_nobirth %>% ungroup() %>% 
-  filter(!is.na(agecat)) %>%
-  group_by(studyid,country,subjid) %>%
-  arrange(studyid,country,subjid, agedays) %>% 
-  filter(wasting_episode!="Born Wasted") %>% #drop children born wasted
-  mutate(agecat="0-24 months (no birth wast)", ever_wasted=1*(sum(wast_inc, na.rm=T)>0),  ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
-  mutate(N=n()) %>%
-  ungroup()
-
-cuminc_nobirth <- rbind(wast_ci_0_6_no_birth, wast_ci_0_24_no_birth, wast_ci_6_24)
-
-
-table(cuminc$ever_wasted[cuminc$agecat=="0-6 months"])
-table(cuminc_nobirth$ever_wasted[cuminc_nobirth$agecat=="0-6 months (no birth wast)"])
-
-table(cuminc$ever_wasted[cuminc$agecat=="0-24 months"])
-table(cuminc_nobirth$ever_wasted[cuminc_nobirth$agecat=="0-24 months (no birth wast)"])
+# 
+# #--------------------------------------
+# # Calculate cumulative incidence, excluding
+# # wasting at birth
+# #--------------------------------------
+# 
+# # define age windows
+# d6_nobirth <- calc.ci.agecat(d_noBW, range = 6, birth="yes")
+# 
+# 
+# wast_ci_0_6_no_birth = d6_nobirth %>% ungroup() %>% 
+#   arrange(studyid,country,subjid, agedays) %>% 
+#   filter(agecat=="0-6 months" & !is.na(agecat)) %>%
+#   group_by(studyid,country,subjid) %>%
+#   arrange(studyid,country,subjid, agedays) %>% 
+#   filter(wasting_episode!="Born Wasted") %>% #drop children born wasted
+#   mutate(agecat="0-6 months (no birth wast)", ever_wasted=1*(sum(wast_inc, na.rm=T)>0),
+#          ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
+#   mutate(N=n()) %>%
+#   ungroup() 
+# 
+# wast_ci_0_24_no_birth = d6_nobirth %>% ungroup() %>% 
+#   filter(!is.na(agecat)) %>%
+#   group_by(studyid,country,subjid) %>%
+#   arrange(studyid,country,subjid, agedays) %>% 
+#   filter(wasting_episode!="Born Wasted") %>% #drop children born wasted
+#   mutate(agecat="0-24 months (no birth wast)", ever_wasted=1*(sum(wast_inc, na.rm=T)>0),
+#          ever_swasted= 1*(sum(sevwast_inc, na.rm=T)>0), Nobs=n()) %>% slice(1) %>%
+#   mutate(N=n()) %>%
+#   ungroup()
+# 
+# cuminc_nobirth <- rbind(wast_ci_0_6_no_birth, wast_ci_0_24_no_birth, wast_ci_6_24)
+# 
+# 
+# table(cuminc$ever_wasted[cuminc$agecat=="0-6 months"])
+# table(cuminc_nobirth$ever_wasted[cuminc_nobirth$agecat=="0-6 months (no birth wast)"])
+# 
+# table(cuminc$ever_wasted[cuminc$agecat=="0-24 months"])
+# table(cuminc_nobirth$ever_wasted[cuminc_nobirth$agecat=="0-24 months (no birth wast)"])
 
 
 #--------------------------------------
@@ -156,7 +165,7 @@ pers_wast_0_6 <- d6 %>%
 summary(pers_wast_0_6$perc_wasting)
 table(pers_wast_0_6$pers_wast)
 
-pers_wast_0_24 <- d6 %>% 
+pers_wast_0_18 <- d6 %>% 
   filter(!is.na(agecat)) %>%
   group_by(studyid,country,subjid) %>%
   arrange(studyid,country,subjid, agedays) %>% 
@@ -164,9 +173,9 @@ pers_wast_0_24 <- d6 %>%
   mutate(perc_wasting=mean(whz < (-2)), mean_age_gap=mean(agedays-lag(agedays),na.rm=T)) %>%
   slice(1) %>%
   mutate(pers_wast = 1*(perc_wasting >= 0.5)) %>%
-  mutate(agecat="0-24 months") %>% ungroup() 
+  mutate(agecat="0-18 months") %>% ungroup() 
 
-pers_wast_6_24 <- d6 %>% 
+pers_wast_6_18 <- d6 %>% 
   filter(agecat!="6 months" & !is.na(agecat)) %>%
   group_by(studyid,country,subjid) %>%
   arrange(studyid,country,subjid, agedays) %>% 
@@ -174,29 +183,29 @@ pers_wast_6_24 <- d6 %>%
   mutate(perc_wasting=mean(whz < (-2)), mean_age_gap=mean(agedays-lag(agedays),na.rm=T)) %>%
   slice(1) %>%
   mutate(pers_wast = 1*(perc_wasting >= 0.5)) %>%
-  mutate(agecat="6-24 months") %>% ungroup() 
+  mutate(agecat="6-18 months") %>% ungroup() 
 
 table(pers_wast_0_6$pers_wast)
-table(pers_wast_6_24$pers_wast)
-table(pers_wast_0_24$pers_wast)
+table(pers_wast_6_18$pers_wast)
+table(pers_wast_0_18$pers_wast)
 
 mean(pers_wast_0_6$pers_wast)
-mean(pers_wast_6_24$pers_wast)
-mean(pers_wast_0_24$pers_wast)
+mean(pers_wast_6_18$pers_wast)
+mean(pers_wast_0_18$pers_wast)
 
 mean(pers_wast_0_6$mean_age_gap)
-mean(pers_wast_6_24$mean_age_gap)
-mean(pers_wast_0_24$mean_age_gap)
+mean(pers_wast_6_18$mean_age_gap)
+mean(pers_wast_0_18$mean_age_gap)
 
 summary(pers_wast_0_6$mean_age_gap)
-summary(pers_wast_6_24$mean_age_gap)
-summary(pers_wast_0_24$mean_age_gap)
+summary(pers_wast_6_18$mean_age_gap)
+summary(pers_wast_0_18$mean_age_gap)
 
 summary(pers_wast_0_6$perc_wasting)
-summary(pers_wast_6_24$perc_wasting)
-summary(pers_wast_0_24$perc_wasting)
+summary(pers_wast_6_18$perc_wasting)
+summary(pers_wast_0_18$perc_wasting)
 
-pers_wast <- bind_rows(pers_wast_0_6, pers_wast_6_24, pers_wast_0_24)
+pers_wast <- bind_rows(pers_wast_0_6, pers_wast_6_18, pers_wast_0_18)
 
 
 #--------------------------------------
@@ -211,19 +220,19 @@ wast_rec_0_6 = d6 %>% ungroup() %>%
   mutate(agecat="0-6 months") %>% ungroup() 
 
 # #calculate any wasting from 6-24
-wast_rec_6_24 = d6 %>% ungroup() %>% 
+wast_rec_6_18 = d6 %>% ungroup() %>% 
   group_by(studyid,country,subjid) %>%
   arrange(studyid,country,subjid, agedays) %>% 
   filter(agecat!="0-6 months" & !is.na(wast_rec90d)) %>%
-  mutate(agecat="6-24 months") %>% ungroup() 
+  mutate(agecat="6-18 months") %>% ungroup() 
 
 #calculate any wasting from 0-24
-wast_rec_0_24 = d6 %>% ungroup() %>%
+wast_rec_0_18 = d6 %>% ungroup() %>%
   filter(!is.na(agecat) & !is.na(wast_rec90d)) %>%
   group_by(studyid,country,subjid) %>%
-  mutate(agecat="0-24 months") %>% ungroup() 
+  mutate(agecat="0-18 months") %>% ungroup() 
 
-rec <- bind_rows(wast_rec_0_6, wast_rec_6_24, wast_rec_0_24)
+rec <- bind_rows(wast_rec_0_6, wast_rec_6_18, wast_rec_0_18)
 
 
 #--------------------------------------
@@ -231,12 +240,20 @@ rec <- bind_rows(wast_rec_0_6, wast_rec_6_24, wast_rec_0_24)
 #--------------------------------------
 
 
-save(prev, file=paste0(ghapdata_dir,"wast_prev.RData"))
+prev_wast <- prev %>% droplevels()
+table(prev_wast$studyid, prev_wast$agecat)
+
+meanWHZ <- meanWHZ %>% droplevels()
+cuminc_wast <- cuminc %>% droplevels()
+pers_wast <- pers_wast %>% droplevels()
+rec_wast <- rec %>% droplevels()
+
+
+save(prev_wast, file=paste0(ghapdata_dir,"wast_prev.RData"))
 save(meanWHZ, file=paste0(ghapdata_dir,"wast_meanZ_outcomes.RData"))
-save(cuminc, file=paste0(ghapdata_dir,"wast_cuminc.rdata"))
-save(cuminc_nobirth, file=paste0(ghapdata_dir,"wast_cuminc_nobirth.rdata"))
+save(cuminc_wast, file=paste0(ghapdata_dir,"wast_cuminc.rdata"))
 save(pers_wast, file=paste0(ghapdata_dir,"pers_wast.rdata"))
-save(rec, file=paste0(ghapdata_dir,"wast_rec.rdata"))
+save(rec_wast, file=paste0(ghapdata_dir,"wast_rec.rdata"))
 
 
 

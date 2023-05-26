@@ -10,11 +10,10 @@ source(paste0(here::here(), "/0-config.R"))
 d <- readRDS(paste0(ghapdata_dir, "FINAL_only_included_studies.rds"))
 #d <- readRDS(paste0(ghapdata_dir, "ki-manuscript-dataset.rds"))
 dim(d)
-
+head(d)
 
 unique(d$studyid)
-
-
+table(d$arm)
 
 unique(paste0(d$studyid,"-",d$country))
 length(unique(paste0(d$studyid,d$country,d$subjid)))
@@ -55,7 +54,7 @@ outliers_df <- outliers_df[!(outliers_df$id %in% no_outliers_df$id),]
 nrow(outliers_df %>% distinct(id))
 outliers_df<- outliers_df %>% group_by(id) %>% summarise(N=n()) 
 prop.table(table(outliers_df$N))
-outliers_df %>%  ungroup() %>% summarise(mean(N), median(N))
+outliers_df %>%  ungroup() %>% summarise(mean(N, na.rm=T), median(N, na.rm=T))
 
 
 dropped <- nchild_cc - nrow(no_outliers_df %>% distinct(studyid, subjid))
@@ -67,6 +66,8 @@ dropped/nchild_cc * 100
 # drop unrealistic measures depending on 
 # anthropometry measure
 #--------------------------------------------
+
+d <- d %>% filter(!is.na(haz)|!is.na(waz)|!is.na(whz))
 
 stunt <- d %>% filter(haz >= -6 & haz <=6, !is.na(haz)) %>%
   subset(., select = - c(whz, waz, muaz)) %>%

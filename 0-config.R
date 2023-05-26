@@ -5,30 +5,28 @@
 # source base functions
 # load libraries
 #-------------------------------------
-kiPath <- c("/data/KI/R/x86_64-pc-linux-gnu-library/4.0/" , .libPaths())
+kiPath <- c("/data/R/x86_64-pc-linux-gnu-library/4.0/" , .libPaths())
 .libPaths(kiPath)
+
+library(tidyverse)
 
 #suppress grouping messages
 options(dplyr.summarise.inform=F) 
 
-library(metafor)
 library(tidyverse)
+library(metafor)
 library(here)
 library(data.table)
 library(ggthemes)
 
-
-
-
-
 # Define directories
 # results that can be pushed to github:
-res_dir                           = "/data/KI/imic/results/"
-data_dir                           = "/data/KI/imic/data/"
-ghapdata_dir                      = "/data/KI/imic/data/"
+res_dir                           = "/data/imic/results/"
+data_dir                          = "/data/imic/data/"
+ghapdata_dir                      = "/data/imic/data/"
 
 #Bluevelvet directory
-BV_dir                           = "/data/KI/imic/"
+BV_dir                            = "/data/imic/"
 
 
 project_functions_dir             = paste0(here::here(),"/0-project-functions")
@@ -39,7 +37,7 @@ longbow_tmle_analysis_dir         = paste0(here::here(),"/4-longbow-tmle-analysi
 visualizations_dir                = paste0(here::here(),"/5-visualizations")
 
 
-fig_dir                           = "/data/KI/imic/figures/"
+fig_dir                           = "/data/imic/figures/"
 figdata_dir_stunting              = paste0(fig_dir,"stunting/figure-data/")
 figdata_dir_wasting               = paste0(fig_dir,"wasting/figure-data/")
 
@@ -67,6 +65,9 @@ source(paste0(project_functions_dir, "/0_descriptive_epi_shared_functions.R"))
 source(paste0(project_functions_dir, "/0_descriptive_epi_stunt_functions.R"))
 source(paste0(project_functions_dir, "/0_descriptive_epi_wast_functions.R"))
 source(paste0(project_functions_dir, "/0_risk_factor_functions.R"))
+source(paste0(project_functions_dir, "/0_shift_intervention_functions.R"))
+source(paste0(project_functions_dir, "/0_pca_functions.R"))
+source(paste0(project_functions_dir, "/0_preprocessing_functions.R"))
 
 
 # Set theme
