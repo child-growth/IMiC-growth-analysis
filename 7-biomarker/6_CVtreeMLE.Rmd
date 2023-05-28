@@ -86,6 +86,11 @@ results <- CVtreeMLE(data = hmo,
                      family = "continuous",
                      num_cores = 10)
 proc.time() - ptm
+
+
+#save results
+saveRDS(results, file=paste0(here::here(),"/results/CVtreeMLE_example_model.RDS"))
+
 ```
 
 ## Pooled TMLE results
