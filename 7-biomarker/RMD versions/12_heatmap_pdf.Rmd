@@ -1,0 +1,71 @@
+---
+title: |
+  Heatmaps on Raw Data
+author: "Sajia Darwish"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  pdf_document: default
+classoption: landscape
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(gplots)
+opts_chunk$set(echo = FALSE,
+               out.width = "80%",
+               out.height = "150%",
+               fig.align = "center",
+               fig.show = 'hold')
+```
+
+
+### HMO: Elicit and Vital
+```{r,echo=FALSE,out.width='.49\\linewidth',fig.width=4,fig.height=4,fig.show='hold',fig.align='center'}
+include_graphics(c("/data/imic/results/figures/heatmaps/hmoE.png",
+                   "/data/imic/results/figures/heatmaps/hmoV.png"))
+```
+
+### MetabolInd: Elicit and Vital
+```{r,echo=FALSE,out.width='.49\\linewidth',fig.width=4,fig.height=4,fig.show='hold',fig.align='center'}
+include_graphics(c("/data/imic/results/figures/heatmaps/metabolE.png",
+                   "/data/imic/results/figures/heatmaps/metabolV.png"))
+```
+
+### BiocNorm: Elicit and Vital
+```{r,echo=FALSE,out.width='.49\\linewidth',fig.width=4,fig.height=4,fig.show='hold',fig.align='center'}
+include_graphics(c("/data/imic/results/figures/heatmaps/biocNormE.png",
+                   "/data/imic/results/figures/heatmaps/biocNormV.png"))
+```
+
+### Sapient: Elicit and Vital
+```{r,echo=FALSE,out.width='.49\\linewidth',fig.width=4,fig.height=4,fig.show='hold',fig.align='center'}
+include_graphics(c("/data/imic/results/figures/heatmaps/sapientE.png",
+                   "/data/imic/results/figures/heatmaps/sapientV.png"))
+```
+
+### Bvit: Elicit & Pbl: Vital
+```{r,echo=FALSE,out.width='.49\\linewidth',fig.width=4,fig.height=4,fig.show='hold',fig.align='center'}
+include_graphics(c("/data/imic/results/figures/heatmaps/bvitE.png",
+                   "/data/imic/results/figures/heatmaps/pblV.png"))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

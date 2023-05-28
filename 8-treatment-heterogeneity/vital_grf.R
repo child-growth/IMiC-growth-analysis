@@ -14,7 +14,10 @@ library(grf)
 
 
 #load dataset of HMO biomarkers and baseline variables
-dfull <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/hmoClean.RDS")
+#dfull <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/hmoClean.RDS")
+dfull <- readRDS("C:/Users/andre/Downloads/hmoClean.RDS")
+
+
 head(dfull)
 
 table(dfull$arm_base)
@@ -68,3 +71,5 @@ grf_model <- causal_forest(X=X_df,
                            Y=df$haz_6m_simulated, 
                            W=df$tr)
 grf_model
+
+saveRDS(grf_model, file=paste0(here::here(),"/results/vital_grf_model.RDS"))

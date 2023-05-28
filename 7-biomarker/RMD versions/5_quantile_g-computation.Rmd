@@ -1,0 +1,477 @@
+---
+title: |
+  Quantile-Based G-Computation
+author: "Sajia Darwish"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+keep_tex: yes
+theme: bclear
+fontsize: 10pt
+geometry: margin=1in
+header-includes:
+- \usepackage{enumitem}
+- \usepackage{indentfirst}
+- \usepackage[default, scale=1]{raleway}
+- \usepackage[T1]{fontenc}
+- \usepackage{inconsolata}
+always_allow_html: yes
+---
+
+# Overview
+- Last time: looked at biomarker components from PCA.
+- Suggetion: use a supervised method to look at the effect of biomarker mixtures on child growth and development, with the option of controlling for covariates.
+
+- This method: combines methods from weighted quantile sum regression (WQS) and g-computation to address effects of exposure mixtures (Keil et al., 2020).
+- WQS: multivariate regression in high-dimensional dataset that operates in a supervised framework, creating a single score (the weighted quantile sum) that summarizes the overall exposure to the mixture, and by including this score in a regression model to evaluate the overall effect of the mixture on the outcome of interest.
+
+- WQS requires directional homogeneity assumption -> all exposures are related to the outcome in the same direction. Q-based g-computation does not make this assumption.
+
+# Elicit
+```{r, include=FALSE}
+library(qgcomp)
+library(ggplot2)
+library(tidyverse)
+
+data <- readRDS("~/Desktop/hmo_elicit.RDS")
+
+dput(names(data))
+
+hmo <- data %>%
+select(c("Secretor", "Diversity", "Evenness", "X2.FL_nmol.mL", 
+         "X3FL_nmol.mL", "DFLac_nmol.mL", "X3.SL_nmol.mL", "X6.SL_nmol.mL", 
+         "LNT_nmol.mL", "LNnT_nmol.mL", "LNFP.I_nmol.mL", "LNFP.II_nmol.mL", 
+         "LNFP.III_nmol.mL", "LSTb_nmol.mL", "LSTc_nmol.mL", "DFLNT_nmol.mL", 
+         "LNH_nmol.mL", "DSLNT_nmol.mL", "FLNH_nmol.mL", "DFLNH_nmol.mL", 
+         "FDSLNH_nmol.mL", "DSLNH_nmol.mL", "SUM_nmol.mL", "Sia_nmol.mL", 
+         "Fuc_nmol.mL","sex_base", "mage_base", "nlchild_base", "haz_6m"))
+
+# Remove _nmol.mL
+# Keep everything before and up to ":": 
+names(hmo) <- gsub("_nmol.mL.*", "", names(hmo))
+```
+
+## Human milk oligosaccharides (HMOs)
+### Quantile g-computation with covariates
+Quantization level = 4. <br /> 
+Covariates = gender, mother's age, number of children at home, secretor status, diversity, evenness. <br /> 
+Outcome = height for age z-score at 6 months.
+```{r, echo=FALSE}
+# Save the names of the mixture variables
+mixVars <- c("X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT",
+             "LNFP.I", "LNFP.II", "LNFP.III", "LSTb", "LSTc", "DFLNT",
+             "LNH", "DSLNT", "FLNH", "DFLNH", "FDSLNH", "DSLNH", "SUM", "Sia", "Fuc")
+
+covars = c("sex_base", "mage_base", "nlchild_base", "Secretor", "Diversity", "Evenness")
+
+qc.fit <- qgcomp(haz_6m ~ ., data = hmo[, c(mixVars, 'haz_6m')],
+                 family = gaussian(), bayes = TRUE, q = 4)
+
+# View results: scaled coefficients/weights and statistical inference about mixture effects.
+qc.fit
+```
+
+The overall mixture effect from quantile g-computation (psi1) is interpreted as the effect on the outcome of increasing every exposure by one quantile, conditional on covariates. Given the overall exposure effect, the weights are considered fixed and so do not have confidence intervals or p-values.
+
+### Plot of weights to see direction
+```{r, echo=FALSE}
+plot(qc.fit)
+```
+
+### Quantile g-computation without covariates
+```{r, echo=FALSE}
+noCovars <- hmo %>%
+  select(-c("sex_base", "mage_base", "nlchild_base", "Secretor", "Diversity", "Evenness"))
+
+qc.fit2 <- qgcomp(haz_6m ~ ., data = noCovars[, c(mixVars, 'haz_6m')],
+                 family = gaussian(), bayes = TRUE, q = 4)
+
+# View results: scaled coefficients/weights and statistical inference about mixture effects.
+qc.fit2
+```
+
+```{r, echo=FALSE}
+plot(qc.fit2)
+```
+
+### Q = 10
+```{r, echo=FALSE}
+qc.fit4 <- qgcomp(haz_6m ~ ., data = hmo[, c(mixVars, 'haz_6m')],
+                 family = gaussian(), bayes = TRUE, q = 10)
+
+# View results: scaled coefficients/weights and statistical inference about mixture effects.
+qc.fit4
+```
+
+```{r, echo=FALSE}
+plot(qc.fit4)
+```
+
+### Q = 20
+```{r, echo=FALSE}
+noCovars <- hmo %>%
+  select(-c("sex_base", "mage_base", "nlchild_base", "Secretor", "Diversity", "Evenness"))
+
+qc.fit5 <- qgcomp(haz_6m ~ ., data = hmo[, c(mixVars, 'haz_6m')],
+                 family = gaussian(), bayes = TRUE, q = 20)
+
+# View results: scaled coefficients/weights and statistical inference about mixture effects.
+qc.fit5
+```
+
+```{r, echo=FALSE}
+plot(qc.fit5)
+```
+
+# Questions:
+
+### 1. How useful is the overall estimate?
+### 2. How do we determine quantization level?
+```{r, echo = FALSE, include=FALSE}
+estimates = rep(0, 10)
+
+for (i in 1:10) {
+  estimates[i] = qgcomp(haz_6m ~ ., data = hmo[, c(mixVars, 'haz_6m')],
+                 family = gaussian(), bayes = TRUE, q = i) $ psi
+}
+```
+
+```{r, echo = FALSE}
+estimateQuant <- cbind(estimate = as.numeric(estimates), quantization_level = 1:10)
+estimateQuant <- as.data.frame(estimateQuant)
+
+estimateQuant %>%
+  ggplot(aes(x = quantization_level, y = estimates)) +
+  geom_point() +
+  geom_line() +
+  scale_x_continuous(breaks = seq(1, 10, 1)) +
+  theme_classic()
+```
+
+### 3. How is this method applicable to large biomarker dataset?
+```{r, include=FALSE, echo=FALSE}
+biocrates <- readRDS("~/Desktop/biocratesNorm.RDS")
+
+data <- biocrates %>%
+select(c("C3.1", "C4", "C4.1", "C5", "C5.DC..C6.OH.", "C5.M.DC", "C5.OH..C3.DC.M.", 
+"C5.1", "C5.1.DC", "C6..C4.1.DC.", "C6.1", "C7.DC", "C8", "C9", 
+"C10", "C10.1", "C10.2", "C12", "C12.DC", "C12.1", "C14", "C14.1", 
+"C14.1.OH", "C14.2", "C14.2.OH", "C16", "C16.OH", "C16.1", "C16.1.OH", 
+"C16.2", "C16.2.OH", "C18", "C18.1", "C18.1.OH", "C18.2", "Trigonelline", 
+"TMAO", "X1.Met.His", "X3.Met.His", "X5.AVA", "AABA", "Ac.Orn", 
+"ADMA", "alpha.AAA", "Anserine", "BABA", "Betaine", "c4.OH.Pro", 
+"Carnosine", "Cit", "Creatinine", "Cystine", "DOPA", "HArg", 
+"HCys", "Kynurenine", "Met.SO", "Nitro.Tyr", "Orn", "PAG", "PheAlaBetaine", 
+"ProBetaine", "Sarcosine", "SDMA", "t4.OH.Pro", "Taurine", "TrpBetaine", 
+"Ala", "Arg", "Asn", "Asp", "Cys", "Gln", "Glu", "Gly", "His", 
+"Ile", "Leu", "Lys", "Met", "Phe", "Pro", "Ser", "Thr", "Trp", 
+"Tyr", "Val", "CA", "CDCA", "DCA", "GCA", "GCDCA", "GDCA", "GLCA", 
+"GLCAS", "GUDCA", "TCA", "TCDCA", "TDCA", "TLCA", "TMCA", "beta.Ala", 
+"Dopamine", "GABA", "Histamine", "PEA", "Putrescine", "Serotonin", 
+"Spermidine", "Spermine", "H1", "AconAcid", "DiCA.12.0.", "DiCA.14.0.", 
+"HipAcid", "Lac", "OH.GlutAcid", "Suc", "Cer.d16.1.18.0.", "Cer.d16.1.20.0.", 
+"Cer.d16.1.22.0.", "Cer.d16.1.23.0.", "Cer.d16.1.24.0.", "Cer.d18.1.14.0.", 
+"Cer.d18.1.16.0.", "Cer.d18.1.18.0.OH..", "Cer.d18.1.18.0.", 
+"Cer.d18.1.18.1.", "Cer.d18.1.20.0.OH..", "Cer.d18.1.20.0.", 
+"Cer.d18.1.22.0.", "Cer.d18.1.23.0.", "Cer.d18.1.24.0.", "Cer.d18.1.24.1.", 
+"Cer.d18.1.25.0.", "Cer.d18.1.26.0.", "Cer.d18.1.26.1.", "Cer.d18.2.14.0.", 
+"Cer.d18.2.16.0.", "Cer.d18.2.18.0.", "Cer.d18.2.18.1.", "Cer.d18.2.20.0.", 
+"Cer.d18.2.22.0.", "Cer.d18.2.23.0.", "Cer.d18.2.24.0.", "Cer.d18.2.24.1.", 
+"CE.14.0.", "CE.14.1.", "CE.15.0.", "CE.15.1.", "CE.16.0.", "CE.16.1.", 
+"CE.17.0.", "CE.17.1.", "CE.18.0.", "CE.18.1.", "CE.18.2.", "CE.18.3.", 
+"CE.20.0.", "CE.20.1.", "CE.20.3.", "CE.20.4.", "CE.20.5.", "CE.22.0.", 
+"CE.22.1.", "CE.22.2.", "CE.22.5.", "CE.22.6.", "p.Cresol.SO4", 
+"DG.14.0_14.0.", "DG.14.0_18.1.", "DG.14.0_18.2.", "DG.14.0_20.0.", 
+"DG.14.1_18.1.", "DG.14.1_20.2.", "DG.16.0_16.0.", "DG.16.0_16.1.", 
+"DG.16.0_18.1.", "DG.16.0_18.2.", "DG.16.0_20.0.", "DG.16.0_20.3.", 
+"DG.16.0_20.4.", "DG.16.1_18.0.", "DG.16.1_18.1.", "DG.16.1_18.2.", 
+"DG.16.1_20.0.", "DG.17.0_17.1.", "DG.17.0_18.1.", "DG.18.0_20.0.", 
+"DG.18.0_20.4.", "DG.18.1_18.1.", "DG.18.1_18.2.", "DG.18.1_18.3.", 
+"DG.18.1_18.4.", "DG.18.1_20.0.", "DG.18.1_20.1.", "DG.18.1_20.2.", 
+"DG.18.1_20.3.", "DG.18.1_20.4.", "DG.18.1_22.5.", "DG.18.1_22.6.", 
+"DG.18.2_18.2.", "DG.18.2_18.3.", "DG.18.2_18.4.", "DG.18.2_20.0.", 
+"DG.18.2_20.4.", "DG.18.3_18.3.", "DG.18.3_20.2.", "DG.21.0_22.6.", 
+"DG.22.1_22.2.", "DG.O.14.0_18.2.", "DG.O.16.0_18.1.", "DG.O.16.0_20.4.", 
+"Hex2Cer.d18.1.14.0.", "Hex2Cer.d18.1.16.0.", "Hex2Cer.d18.1.18.0.", 
+"Hex2Cer.d18.1.20.0.", "Hex2Cer.d18.1.22.0.", "Hex2Cer.d18.1.24.0.", 
+"Hex2Cer.d18.1.24.1.", "Hex2Cer.d18.1.26.0.", "Hex2Cer.d18.1.26.1.", 
+"Cer.d18.0.18.0.OH..", "Cer.d18.0.18.0.", "Cer.d18.0.20.0.", 
+"Cer.d18.0.22.0.", "Cer.d18.0.24.0.", "Cer.d18.0.24.1.", "Cer.d18.0.26.1.OH..", 
+"Cer.d18.0.26.1.", "AA", "DHA", "EPA", "FA.12.0.", "FA.14.0.", 
+"FA.16.0.", "FA.18.0.", "FA.18.1.", "FA.18.2.", "FA.20.1.", "FA.20.2.", 
+"FA.20.3.", "HexCer.d16.1.22.0.", "HexCer.d16.1.24.0.", "HexCer.d18.1.14.0.", 
+"HexCer.d18.1.16.0.", "HexCer.d18.1.18.0.", "HexCer.d18.1.18.1.", 
+"HexCer.d18.1.20.0.", "HexCer.d18.1.22.0.", "HexCer.d18.1.23.0.", 
+"HexCer.d18.1.24.0.", "HexCer.d18.1.24.1.", "HexCer.d18.1.26.0.", 
+"HexCer.d18.1.26.1.", "HexCer.d18.2.16.0.", "HexCer.d18.2.18.0.", 
+"HexCer.d18.2.20.0.", "HexCer.d18.2.22.0.", "HexCer.d18.2.23.0.", 
+"HexCer.d18.2.24.0.", "AbsAcid", "Cortisol", "Cortisone", "DHEAS", 
+"X3.IAA", "X3.IPA", "Ind.SO4", "Indole", "lysoPC.a.C14.0", "lysoPC.a.C16.0", 
+"lysoPC.a.C16.1", "lysoPC.a.C17.0", "lysoPC.a.C18.0", "lysoPC.a.C18.1", 
+"lysoPC.a.C18.2", "lysoPC.a.C20.3", "lysoPC.a.C20.4", "lysoPC.a.C24.0", 
+"lysoPC.a.C26.0", "lysoPC.a.C26.1", "lysoPC.a.C28.0", "lysoPC.a.C28.1", 
+"Hypoxanthine", "Xanthine", "PC.aa.C24.0", "PC.aa.C26.0", "PC.aa.C28.1", 
+"PC.aa.C30.0", "PC.aa.C30.2", "PC.aa.C32.0", "PC.aa.C32.1", "PC.aa.C32.2", 
+"PC.aa.C32.3", "PC.aa.C34.1", "PC.aa.C34.2", "PC.aa.C34.3", "PC.aa.C34.4", 
+"PC.aa.C36.0", "PC.aa.C36.1", "PC.aa.C36.2", "PC.aa.C36.3", "PC.aa.C36.4", 
+"PC.aa.C36.5", "PC.aa.C36.6", "PC.aa.C38.0", "PC.aa.C38.1", "PC.aa.C38.3", 
+"PC.aa.C38.4", "PC.aa.C38.5", "PC.aa.C38.6", "PC.aa.C40.1", "PC.aa.C40.2", 
+"PC.aa.C40.3", "PC.aa.C40.4", "PC.aa.C40.5", "PC.aa.C40.6", "PC.aa.C42.0", 
+"PC.aa.C42.1", "PC.aa.C42.2", "PC.aa.C42.4", "PC.aa.C42.5", "PC.aa.C42.6", 
+"PC.ae.C30.0", "PC.ae.C30.1", "PC.ae.C30.2", "PC.ae.C32.1", "PC.ae.C32.2", 
+"PC.ae.C34.0", "PC.ae.C34.1", "PC.ae.C34.2", "PC.ae.C34.3", "PC.ae.C36.0", 
+"PC.ae.C36.1", "PC.ae.C36.2", "PC.ae.C36.3", "PC.ae.C36.4", "PC.ae.C36.5", 
+"PC.ae.C38.0", "PC.ae.C38.1", "PC.ae.C38.2", "PC.ae.C38.3", "PC.ae.C38.4", 
+"PC.ae.C38.5", "PC.ae.C38.6", "PC.ae.C40.1", "PC.ae.C40.2", "PC.ae.C40.3", 
+"PC.ae.C40.4", "PC.ae.C40.5", "PC.ae.C40.6", "PC.ae.C42.0", "PC.ae.C42.1", 
+"PC.ae.C42.2", "PC.ae.C42.3", "PC.ae.C42.4", "PC.ae.C42.5", "PC.ae.C44.3", 
+"PC.ae.C44.4", "PC.ae.C44.5", "PC.ae.C44.6", "SM..OH..C14.1", 
+"SM..OH..C16.1", "SM..OH..C22.1", "SM..OH..C22.2", "SM..OH..C24.1", 
+"SM.C16.0", "SM.C16.1", "SM.C18.0", "SM.C18.1", "SM.C20.2", "SM.C22.3", 
+"SM.C24.0", "SM.C24.1", "SM.C26.0", "SM.C26.1", "TG.14.0_32.2.", 
+"TG.14.0_34.0.", "TG.14.0_34.1.", "TG.14.0_34.2.", "TG.14.0_34.3.", 
+"TG.14.0_35.1.", "TG.14.0_35.2.", "TG.14.0_36.1.", "TG.14.0_36.2.", 
+"TG.14.0_36.3.", "TG.14.0_36.4.", "TG.14.0_38.4.", "TG.14.0_38.5.", 
+"TG.14.0_39.3.", "TG.16.0_28.1.", "TG.16.0_28.2.", "TG.16.0_30.2.", 
+"TG.16.0_32.0.", "TG.16.0_32.1.", "TG.16.0_32.2.", "TG.16.0_32.3.", 
+"TG.16.0_33.1.", "TG.16.0_33.2.", "TG.16.0_34.0.", "TG.16.0_34.1.", 
+"TG.16.0_34.2.", "TG.16.0_34.3.", "TG.16.0_34.4.", "TG.16.0_35.1.", 
+"TG.16.0_35.2.", "TG.16.0_35.3.", "TG.16.0_36.2.", "TG.16.0_36.3.", 
+"TG.16.0_36.4.", "TG.16.0_36.5.", "TG.16.0_36.6.", "TG.16.0_37.3.", 
+"TG.16.0_38.1.", "TG.16.0_38.2.", "TG.16.0_38.3.", "TG.16.0_38.4.", 
+"TG.16.0_38.5.", "TG.16.0_38.6.", "TG.16.0_38.7.", "TG.16.0_40.6.", 
+"TG.16.0_40.7.", "TG.16.0_40.8.", "TG.16.1_28.0.", "TG.16.1_30.1.", 
+"TG.16.1_32.0.", "TG.16.1_32.1.", "TG.16.1_32.2.", "TG.16.1_33.1.", 
+"TG.16.1_34.0.", "TG.16.1_34.1.", "TG.16.1_34.2.", "TG.16.1_34.3.", 
+"TG.16.1_36.1.", "TG.16.1_36.2.", "TG.16.1_36.3.", "TG.16.1_36.4.", 
+"TG.16.1_36.5.", "TG.16.1_38.3.", "TG.16.1_38.4.", "TG.16.1_38.5.", 
+"TG.17.0_32.1.", "TG.17.0_34.1.", "TG.17.0_34.2.", "TG.17.0_34.3.", 
+"TG.17.0_36.3.", "TG.17.0_36.4.", "TG.17.1_32.1.", "TG.17.1_34.1.", 
+"TG.17.1_34.2.", "TG.17.1_34.3.", "TG.17.1_36.3.", "TG.17.1_36.4.", 
+"TG.17.1_36.5.", "TG.17.1_38.5.", "TG.17.1_38.6.", "TG.17.1_38.7.", 
+"TG.17.2_34.2.", "TG.17.2_34.3.", "TG.17.2_36.2.", "TG.17.2_36.3.", 
+"TG.17.2_36.4.", "TG.17.2_38.5.", "TG.17.2_38.6.", "TG.17.2_38.7.", 
+"TG.18.0_30.0.", "TG.18.0_30.1.", "TG.18.0_32.0.", "TG.18.0_32.1.", 
+"TG.18.0_32.2.", "TG.18.0_34.2.", "TG.18.0_34.3.", "TG.18.0_36.1.", 
+"TG.18.0_36.2.", "TG.18.0_36.3.", "TG.18.0_36.4.", "TG.18.0_36.5.", 
+"TG.18.0_38.6.", "TG.18.0_38.7.", "TG.18.1_26.0.", "TG.18.1_28.1.", 
+"TG.18.1_30.0.", "TG.18.1_30.1.", "TG.18.1_30.2.", "TG.18.1_31.0.", 
+"TG.18.1_32.0.", "TG.18.1_32.1.", "TG.18.1_32.2.", "TG.18.1_32.3.", 
+"TG.18.1_33.0.", "TG.18.1_33.1.", "TG.18.1_33.2.", "TG.18.1_33.3.", 
+"TG.18.1_34.1.", "TG.18.1_34.2.", "TG.18.1_34.3.", "TG.18.1_34.4.", 
+"TG.18.1_35.2.", "TG.18.1_35.3.", "TG.18.1_36.0.", "TG.18.1_36.1.", 
+"TG.18.1_36.2.", "TG.18.1_36.3.", "TG.18.1_36.4.", "TG.18.1_36.5.", 
+"TG.18.1_36.6.", "TG.18.1_38.5.", "TG.18.1_38.6.", "TG.18.1_38.7.", 
+"TG.18.2_28.0.", "TG.18.2_30.0.", "TG.18.2_30.1.", "TG.18.2_31.0.", 
+"TG.18.2_32.0.", "TG.18.2_32.1.", "TG.18.2_32.2.", "TG.18.2_33.0.", 
+"TG.18.2_33.1.", "TG.18.2_33.2.", "TG.18.2_34.0.", "TG.18.2_34.1.", 
+"TG.18.2_34.2.", "TG.18.2_34.3.", "TG.18.2_34.4.", "TG.18.2_35.1.", 
+"TG.18.2_35.2.", "TG.18.2_35.3.", "TG.18.2_36.0.", "TG.18.2_36.1.", 
+"TG.18.2_36.2.", "TG.18.2_36.3.", "TG.18.2_36.4.", "TG.18.2_36.5.", 
+"TG.18.2_38.4.", "TG.18.2_38.5.", "TG.18.2_38.6.", "TG.18.3_30.0.", 
+"TG.18.3_32.0.", "TG.18.3_32.1.", "TG.18.3_33.2.", "TG.18.3_34.0.", 
+"TG.18.3_34.1.", "TG.18.3_34.2.", "TG.18.3_34.3.", "TG.18.3_35.2.", 
+"TG.18.3_36.1.", "TG.18.3_36.2.", "TG.18.3_36.3.", "TG.18.3_36.4.", 
+"TG.18.3_38.5.", "TG.18.3_38.6.", "TG.20.0_32.3.", "TG.20.0_32.4.", 
+"TG.20.0_34.1.", "TG.20.1_24.3.", "TG.20.1_26.1.", "TG.20.1_30.1.", 
+"TG.20.1_31.0.", "TG.20.1_32.1.", "TG.20.1_32.2.", "TG.20.1_32.3.", 
+"TG.20.1_34.0.", "TG.20.1_34.1.", "TG.20.1_34.2.", "TG.20.1_34.3.", 
+"TG.20.2_32.0.", "TG.20.2_32.1.", "TG.20.2_34.1.", "TG.20.2_34.2.", 
+"TG.20.2_34.3.", "TG.20.2_34.4.", "TG.20.2_36.5.", "TG.20.3_32.0.", 
+"TG.20.3_32.1.", "TG.20.3_32.2.", "TG.20.3_34.0.", "TG.20.3_34.1.", 
+"TG.20.3_34.2.", "TG.20.3_34.3.", "TG.20.3_36.3.", "TG.20.3_36.4.", 
+"TG.20.3_36.5.", "TG.20.4_30.0.", "TG.20.4_32.0.", "TG.20.4_32.1.", 
+"TG.20.4_32.2.", "TG.20.4_33.2.", "TG.20.4_34.0.", "TG.20.4_34.1.", 
+"TG.20.4_34.2.", "TG.20.4_34.3.", "TG.20.4_35.3.", "TG.20.4_36.2.", 
+"TG.20.4_36.3.", "TG.20.4_36.4.", "TG.20.4_36.5.", "TG.20.5_34.0.", 
+"TG.20.5_34.1.", "TG.20.5_34.2.", "TG.20.5_36.2.", "TG.20.5_36.3.", 
+"TG.22.0_32.4.", "TG.22.1_32.5.", "TG.22.2_32.4.", "TG.22.3_30.2.", 
+"TG.22.4_32.0.", "TG.22.4_32.2.", "TG.22.4_34.2.", "TG.22.5_32.0.", 
+"TG.22.5_32.1.", "TG.22.5_34.1.", "TG.22.5_34.2.", "TG.22.5_34.3.", 
+"TG.22.6_32.0.", "TG.22.6_32.1.", "TG.22.6_34.1.", "TG.22.6_34.2.", 
+"TG.22.6_34.3.", "Hex3Cer.d18.1.16.0.", "Hex3Cer.d18.1.18.0.", 
+"Hex3Cer.d18.1.24.1.", "Hex3Cer.d18.1.26.1.", "Hex3Cer.d18.1_20.0.", 
+"Hex3Cer.d18.1_22.0.", "Choline","haz_6m"))
+
+# Change <LOD to 0
+for (i in 1:ncol(data)) {
+    data[, i] = ifelse(data[, i] == "< LOD", 0, data[, i])
+}
+
+#remove rows with NA value in y or z column
+df <- data[complete.cases(data[ , 'haz_6m']), ]
+
+df <- as.data.frame(sapply(df, as.numeric))
+
+# Get all 0 and NA variables
+dput(names(df)[sapply(df, setequal, c(0, NA))])
+
+df <- df %>%
+  select(-c("C10", "C10.1", "C10.2", "C12.DC", "C14.2", "C16.OH", "C16.1", 
+"C18.1", "C18.1.OH", "BABA", "c4.OH.Pro", "DOPA", "Nitro.Tyr", 
+"PAG", "GLCA", "TLCA", "Dopamine", "PEA", "Serotonin", "DiCA.12.0.", 
+"DiCA.14.0.", "CE.15.1.", "DG.O.14.0_18.2.", "Cortisone", "DHEAS", 
+"PC.aa.C26.0", "PC.aa.C40.1", "PC.ae.C42.1", "PC.ae.C44.4", "TG.20.1_24.3."))
+
+df <- df[-20, ]
+
+# library(naniar)
+# gg_miss_var(data, show_pct = T)
+# 
+# # Look at columns with a 100% NA
+# gg_miss_var(data[, which(colMeans(is.na(data)) == 1)], show_pct = TRUE)
+# 
+# # Delete columns with 100% NA
+# newData <- data[, -which(colMeans(is.na(data)) == 1)]
+```
+
+```{r, echo=FALSE, include=FALSE}
+# Save the names of the mixture variables
+mixVars <- c("C3.1", "C4", "C4.1", "C5", "C5.DC..C6.OH.", "C5.M.DC", "C5.OH..C3.DC.M.", 
+"C5.1", "C5.1.DC", "C6..C4.1.DC.", "C6.1", "C7.DC", "C8", "C9", 
+"C12", "C12.1", "C14", "C14.1", "C14.1.OH", "C14.2.OH", "C16", 
+"C16.1.OH", "C16.2", "C16.2.OH", "C18", "C18.2", "Trigonelline", 
+"TMAO", "X1.Met.His", "X3.Met.His", "X5.AVA", "AABA", "Ac.Orn", 
+"ADMA", "alpha.AAA", "Anserine", "Betaine", "Carnosine", "Cit", 
+"Creatinine", "Cystine", "HArg", "HCys", "Kynurenine", "Met.SO", 
+"Orn", "PheAlaBetaine", "ProBetaine", "Sarcosine", "SDMA", "t4.OH.Pro", 
+"Taurine", "TrpBetaine", "Ala", "Arg", "Asn", "Asp", "Cys", "Gln", 
+"Glu", "Gly", "His", "Ile", "Leu", "Lys", "Met", "Phe", "Pro", 
+"Ser", "Thr", "Trp", "Tyr", "Val", "CA", "CDCA", "DCA", "GCA", 
+"GCDCA", "GDCA", "GLCAS", "GUDCA", "TCA", "TCDCA", "TDCA", "TMCA", 
+"beta.Ala", "GABA", "Histamine", "Putrescine", "Spermidine", 
+"Spermine", "H1", "AconAcid", "HipAcid", "Lac", "OH.GlutAcid", 
+"Suc", "Cer.d16.1.18.0.", "Cer.d16.1.20.0.", "Cer.d16.1.22.0.", 
+"Cer.d16.1.23.0.", "Cer.d16.1.24.0.", "Cer.d18.1.14.0.", "Cer.d18.1.16.0.", 
+"Cer.d18.1.18.0.OH..", "Cer.d18.1.18.0.", "Cer.d18.1.18.1.", 
+"Cer.d18.1.20.0.OH..", "Cer.d18.1.20.0.", "Cer.d18.1.22.0.", 
+"Cer.d18.1.23.0.", "Cer.d18.1.24.0.", "Cer.d18.1.24.1.", "Cer.d18.1.25.0.", 
+"Cer.d18.1.26.0.", "Cer.d18.1.26.1.", "Cer.d18.2.14.0.", "Cer.d18.2.16.0.", 
+"Cer.d18.2.18.0.", "Cer.d18.2.18.1.", "Cer.d18.2.20.0.", "Cer.d18.2.22.0.", 
+"Cer.d18.2.23.0.", "Cer.d18.2.24.0.", "Cer.d18.2.24.1.", "CE.14.0.", 
+"CE.14.1.", "CE.15.0.", "CE.16.0.", "CE.16.1.", "CE.17.0.", "CE.17.1.", 
+"CE.18.0.", "CE.18.1.", "CE.18.2.", "CE.18.3.", "CE.20.0.", "CE.20.1.", 
+"CE.20.3.", "CE.20.4.", "CE.20.5.", "CE.22.0.", "CE.22.1.", "CE.22.2.", 
+"CE.22.5.", "CE.22.6.", "p.Cresol.SO4", "DG.14.0_14.0.", "DG.14.0_18.1.", 
+"DG.14.0_18.2.", "DG.14.0_20.0.", "DG.14.1_18.1.", "DG.14.1_20.2.", 
+"DG.16.0_16.0.", "DG.16.0_16.1.", "DG.16.0_18.1.", "DG.16.0_18.2.", 
+"DG.16.0_20.0.", "DG.16.0_20.3.", "DG.16.0_20.4.", "DG.16.1_18.0.", 
+"DG.16.1_18.1.", "DG.16.1_18.2.", "DG.16.1_20.0.", "DG.17.0_17.1.", 
+"DG.17.0_18.1.", "DG.18.0_20.0.", "DG.18.0_20.4.", "DG.18.1_18.1.", 
+"DG.18.1_18.2.", "DG.18.1_18.3.", "DG.18.1_18.4.", "DG.18.1_20.0.", 
+"DG.18.1_20.1.", "DG.18.1_20.2.", "DG.18.1_20.3.", "DG.18.1_20.4.", 
+"DG.18.1_22.5.", "DG.18.1_22.6.", "DG.18.2_18.2.", "DG.18.2_18.3.", 
+"DG.18.2_18.4.", "DG.18.2_20.0.", "DG.18.2_20.4.", "DG.18.3_18.3.", 
+"DG.18.3_20.2.", "DG.21.0_22.6.", "DG.22.1_22.2.", "DG.O.16.0_18.1.", 
+"DG.O.16.0_20.4.", "Hex2Cer.d18.1.14.0.", "Hex2Cer.d18.1.16.0.", 
+"Hex2Cer.d18.1.18.0.", "Hex2Cer.d18.1.20.0.", "Hex2Cer.d18.1.22.0.", 
+"Hex2Cer.d18.1.24.0.", "Hex2Cer.d18.1.24.1.", "Hex2Cer.d18.1.26.0.", 
+"Hex2Cer.d18.1.26.1.", "Cer.d18.0.18.0.OH..", "Cer.d18.0.18.0.", 
+"Cer.d18.0.20.0.", "Cer.d18.0.22.0.", "Cer.d18.0.24.0.", "Cer.d18.0.24.1.", 
+"Cer.d18.0.26.1.OH..", "Cer.d18.0.26.1.", "AA", "DHA", "EPA", 
+"FA.12.0.", "FA.14.0.", "FA.16.0.", "FA.18.0.", "FA.18.1.", "FA.18.2.", 
+"FA.20.1.", "FA.20.2.", "FA.20.3.", "HexCer.d16.1.22.0.", "HexCer.d16.1.24.0.", 
+"HexCer.d18.1.14.0.", "HexCer.d18.1.16.0.", "HexCer.d18.1.18.0.", 
+"HexCer.d18.1.18.1.", "HexCer.d18.1.20.0.", "HexCer.d18.1.22.0.", 
+"HexCer.d18.1.23.0.", "HexCer.d18.1.24.0.", "HexCer.d18.1.24.1.", 
+"HexCer.d18.1.26.0.", "HexCer.d18.1.26.1.", "HexCer.d18.2.16.0.", 
+"HexCer.d18.2.18.0.", "HexCer.d18.2.20.0.", "HexCer.d18.2.22.0.", 
+"HexCer.d18.2.23.0.", "HexCer.d18.2.24.0.", "AbsAcid", "Cortisol", 
+"X3.IAA", "X3.IPA", "Ind.SO4", "Indole", "lysoPC.a.C14.0", "lysoPC.a.C16.0", 
+"lysoPC.a.C16.1", "lysoPC.a.C17.0", "lysoPC.a.C18.0", "lysoPC.a.C18.1", 
+"lysoPC.a.C18.2", "lysoPC.a.C20.3", "lysoPC.a.C20.4", "lysoPC.a.C24.0", 
+"lysoPC.a.C26.0", "lysoPC.a.C26.1", "lysoPC.a.C28.0", "lysoPC.a.C28.1", 
+"Hypoxanthine", "Xanthine", "PC.aa.C24.0", "PC.aa.C28.1", "PC.aa.C30.0", 
+"PC.aa.C30.2", "PC.aa.C32.0", "PC.aa.C32.1", "PC.aa.C32.2", "PC.aa.C32.3", 
+"PC.aa.C34.1", "PC.aa.C34.2", "PC.aa.C34.3", "PC.aa.C34.4", "PC.aa.C36.0", 
+"PC.aa.C36.1", "PC.aa.C36.2", "PC.aa.C36.3", "PC.aa.C36.4", "PC.aa.C36.5", 
+"PC.aa.C36.6", "PC.aa.C38.0", "PC.aa.C38.1", "PC.aa.C38.3", "PC.aa.C38.4", 
+"PC.aa.C38.5", "PC.aa.C38.6", "PC.aa.C40.2", "PC.aa.C40.3", "PC.aa.C40.4", 
+"PC.aa.C40.5", "PC.aa.C40.6", "PC.aa.C42.0", "PC.aa.C42.1", "PC.aa.C42.2", 
+"PC.aa.C42.4", "PC.aa.C42.5", "PC.aa.C42.6", "PC.ae.C30.0", "PC.ae.C30.1", 
+"PC.ae.C30.2", "PC.ae.C32.1", "PC.ae.C32.2", "PC.ae.C34.0", "PC.ae.C34.1", 
+"PC.ae.C34.2", "PC.ae.C34.3", "PC.ae.C36.0", "PC.ae.C36.1", "PC.ae.C36.2", 
+"PC.ae.C36.3", "PC.ae.C36.4", "PC.ae.C36.5", "PC.ae.C38.0", "PC.ae.C38.1", 
+"PC.ae.C38.2", "PC.ae.C38.3", "PC.ae.C38.4", "PC.ae.C38.5", "PC.ae.C38.6", 
+"PC.ae.C40.1", "PC.ae.C40.2", "PC.ae.C40.3", "PC.ae.C40.4", "PC.ae.C40.5", 
+"PC.ae.C40.6", "PC.ae.C42.0", "PC.ae.C42.2", "PC.ae.C42.3", "PC.ae.C42.4", 
+"PC.ae.C42.5", "PC.ae.C44.3", "PC.ae.C44.5", "PC.ae.C44.6", "SM..OH..C14.1", 
+"SM..OH..C16.1", "SM..OH..C22.1", "SM..OH..C22.2", "SM..OH..C24.1", 
+"SM.C16.0", "SM.C16.1", "SM.C18.0", "SM.C18.1", "SM.C20.2", "SM.C22.3", 
+"SM.C24.0", "SM.C24.1", "SM.C26.0", "SM.C26.1", "TG.14.0_32.2.", 
+"TG.14.0_34.0.", "TG.14.0_34.1.", "TG.14.0_34.2.", "TG.14.0_34.3.", 
+"TG.14.0_35.1.", "TG.14.0_35.2.", "TG.14.0_36.1.", "TG.14.0_36.2.", 
+"TG.14.0_36.3.", "TG.14.0_36.4.", "TG.14.0_38.4.", "TG.14.0_38.5.", 
+"TG.14.0_39.3.", "TG.16.0_28.1.", "TG.16.0_28.2.", "TG.16.0_30.2.", 
+"TG.16.0_32.0.", "TG.16.0_32.1.", "TG.16.0_32.2.", "TG.16.0_32.3.", 
+"TG.16.0_33.1.", "TG.16.0_33.2.", "TG.16.0_34.0.", "TG.16.0_34.1.", 
+"TG.16.0_34.2.", "TG.16.0_34.3.", "TG.16.0_34.4.", "TG.16.0_35.1.", 
+"TG.16.0_35.2.", "TG.16.0_35.3.", "TG.16.0_36.2.", "TG.16.0_36.3.", 
+"TG.16.0_36.4.", "TG.16.0_36.5.", "TG.16.0_36.6.", "TG.16.0_37.3.", 
+"TG.16.0_38.1.", "TG.16.0_38.2.", "TG.16.0_38.3.", "TG.16.0_38.4.", 
+"TG.16.0_38.5.", "TG.16.0_38.6.", "TG.16.0_38.7.", "TG.16.0_40.6.", 
+"TG.16.0_40.7.", "TG.16.0_40.8.", "TG.16.1_28.0.", "TG.16.1_30.1.", 
+"TG.16.1_32.0.", "TG.16.1_32.1.", "TG.16.1_32.2.", "TG.16.1_33.1.", 
+"TG.16.1_34.0.", "TG.16.1_34.1.", "TG.16.1_34.2.", "TG.16.1_34.3.", 
+"TG.16.1_36.1.", "TG.16.1_36.2.", "TG.16.1_36.3.", "TG.16.1_36.4.", 
+"TG.16.1_36.5.", "TG.16.1_38.3.", "TG.16.1_38.4.", "TG.16.1_38.5.", 
+"TG.17.0_32.1.", "TG.17.0_34.1.", "TG.17.0_34.2.", "TG.17.0_34.3.", 
+"TG.17.0_36.3.", "TG.17.0_36.4.", "TG.17.1_32.1.", "TG.17.1_34.1.", 
+"TG.17.1_34.2.", "TG.17.1_34.3.", "TG.17.1_36.3.", "TG.17.1_36.4.", 
+"TG.17.1_36.5.", "TG.17.1_38.5.", "TG.17.1_38.6.", "TG.17.1_38.7.", 
+"TG.17.2_34.2.", "TG.17.2_34.3.", "TG.17.2_36.2.", "TG.17.2_36.3.", 
+"TG.17.2_36.4.", "TG.17.2_38.5.", "TG.17.2_38.6.", "TG.17.2_38.7.", 
+"TG.18.0_30.0.", "TG.18.0_30.1.", "TG.18.0_32.0.", "TG.18.0_32.1.", 
+"TG.18.0_32.2.", "TG.18.0_34.2.", "TG.18.0_34.3.", "TG.18.0_36.1.", 
+"TG.18.0_36.2.", "TG.18.0_36.3.", "TG.18.0_36.4.", "TG.18.0_36.5.", 
+"TG.18.0_38.6.", "TG.18.0_38.7.", "TG.18.1_26.0.", "TG.18.1_28.1.", 
+"TG.18.1_30.0.", "TG.18.1_30.1.", "TG.18.1_30.2.", "TG.18.1_31.0.", 
+"TG.18.1_32.0.", "TG.18.1_32.1.", "TG.18.1_32.2.", "TG.18.1_32.3.", 
+"TG.18.1_33.0.", "TG.18.1_33.1.", "TG.18.1_33.2.", "TG.18.1_33.3.", 
+"TG.18.1_34.1.", "TG.18.1_34.2.", "TG.18.1_34.3.", "TG.18.1_34.4.", 
+"TG.18.1_35.2.", "TG.18.1_35.3.", "TG.18.1_36.0.", "TG.18.1_36.1.", 
+"TG.18.1_36.2.", "TG.18.1_36.3.", "TG.18.1_36.4.", "TG.18.1_36.5.", 
+"TG.18.1_36.6.", "TG.18.1_38.5.", "TG.18.1_38.6.", "TG.18.1_38.7.", 
+"TG.18.2_28.0.", "TG.18.2_30.0.", "TG.18.2_30.1.", "TG.18.2_31.0.", 
+"TG.18.2_32.0.", "TG.18.2_32.1.", "TG.18.2_32.2.", "TG.18.2_33.0.", 
+"TG.18.2_33.1.", "TG.18.2_33.2.", "TG.18.2_34.0.", "TG.18.2_34.1.", 
+"TG.18.2_34.2.", "TG.18.2_34.3.", "TG.18.2_34.4.", "TG.18.2_35.1.", 
+"TG.18.2_35.2.", "TG.18.2_35.3.", "TG.18.2_36.0.", "TG.18.2_36.1.", 
+"TG.18.2_36.2.", "TG.18.2_36.3.", "TG.18.2_36.4.", "TG.18.2_36.5.", 
+"TG.18.2_38.4.", "TG.18.2_38.5.", "TG.18.2_38.6.", "TG.18.3_30.0.", 
+"TG.18.3_32.0.", "TG.18.3_32.1.", "TG.18.3_33.2.", "TG.18.3_34.0.", 
+"TG.18.3_34.1.", "TG.18.3_34.2.", "TG.18.3_34.3.", "TG.18.3_35.2.", 
+"TG.18.3_36.1.", "TG.18.3_36.2.", "TG.18.3_36.3.", "TG.18.3_36.4.", 
+"TG.18.3_38.5.", "TG.18.3_38.6.", "TG.20.0_32.3.", "TG.20.0_32.4.", 
+"TG.20.0_34.1.", "TG.20.1_26.1.", "TG.20.1_30.1.", "TG.20.1_31.0.", 
+"TG.20.1_32.1.", "TG.20.1_32.2.", "TG.20.1_32.3.", "TG.20.1_34.0.", 
+"TG.20.1_34.1.", "TG.20.1_34.2.", "TG.20.1_34.3.", "TG.20.2_32.0.", 
+"TG.20.2_32.1.", "TG.20.2_34.1.", "TG.20.2_34.2.", "TG.20.2_34.3.", 
+"TG.20.2_34.4.", "TG.20.2_36.5.", "TG.20.3_32.0.", "TG.20.3_32.1.", 
+"TG.20.3_32.2.", "TG.20.3_34.0.", "TG.20.3_34.1.", "TG.20.3_34.2.", 
+"TG.20.3_34.3.", "TG.20.3_36.3.", "TG.20.3_36.4.", "TG.20.3_36.5.", 
+"TG.20.4_30.0.", "TG.20.4_32.0.", "TG.20.4_32.1.", "TG.20.4_32.2.", 
+"TG.20.4_33.2.", "TG.20.4_34.0.", "TG.20.4_34.1.", "TG.20.4_34.2.", 
+"TG.20.4_34.3.", "TG.20.4_35.3.", "TG.20.4_36.2.", "TG.20.4_36.3.", 
+"TG.20.4_36.4.", "TG.20.4_36.5.", "TG.20.5_34.0.", "TG.20.5_34.1.", 
+"TG.20.5_34.2.", "TG.20.5_36.2.", "TG.20.5_36.3.", "TG.22.0_32.4.", 
+"TG.22.1_32.5.", "TG.22.2_32.4.", "TG.22.3_30.2.", "TG.22.4_32.0.", 
+"TG.22.4_32.2.", "TG.22.4_34.2.", "TG.22.5_32.0.", "TG.22.5_32.1.", 
+"TG.22.5_34.1.", "TG.22.5_34.2.", "TG.22.5_34.3.", "TG.22.6_32.0.", 
+"TG.22.6_32.1.", "TG.22.6_34.1.", "TG.22.6_34.2.", "TG.22.6_34.3.", 
+"Hex3Cer.d18.1.16.0.", "Hex3Cer.d18.1.18.0.", "Hex3Cer.d18.1.24.1.", 
+"Hex3Cer.d18.1.26.1.", "Hex3Cer.d18.1_20.0.", "Hex3Cer.d18.1_22.0.", 
+"Choline")
+```
+
+
+
+
+
+
+

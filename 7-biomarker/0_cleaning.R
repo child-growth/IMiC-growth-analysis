@@ -1,0 +1,956 @@
+---
+title: |
+  Cleaning biomarker datasets
+author: "Sajia Darwish"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+---
+
+# Load libraries
+```{r}
+library(naniar)
+library(tidyverse)
+```
+
+# Make a cleaning function
+```{r message=FALSE, warning=FALSE}
+# Make a cleaning function
+cleanFunc <- function(data) {
+  
+  # Change <LOD to NA.
+  data[data == "< LOD"] <- NA
+  
+  # Change these values to min/2.
+  data <- data %>% 
+    mutate_if(is.numeric, function(x) ifelse(is.na(x), min(x, na.rm = T) / 2, x))
+  
+  # Change Inf values to 0.
+  data[data == Inf] <- 0
+  
+  # Check for missingness.
+  #table(is.na(data))
+  
+  # Remove columns with no variance.
+  #data <- data[, which(apply(data, 2, var) > 0)]
+  #str(data)
+  
+  return(data)
+}
+```
+
+# HMO ELICIT
+```{r}
+hmo <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmo.RDS")
+
+# Filter out obs without Y
+hmo <- hmo %>%
+  filter(!is.na(haz_6m))
+
+hmoClean <- cleanFunc(hmo)
+
+# Convert sex_base to binary.
+hmoClean $ sex_base = ifelse(hmoClean $ sex_base == "Male", 0, 1)
+
+# Look at columns with NA
+hmoClean <- data.frame(hmoClean)
+
+# Get mean and variance of the outcome
+mean <- mean(hmoClean $ haz_6m)
+sd <- sd(hmoClean $ haz_6m)
+
+# Generate new data from this distribution
+hmoClean $ haz_6m_simulated <- rnorm(n = nrow(hmoClean), mean = mean, sd = sd)
+hmoClean $ haz_6m_simulated <- as.numeric(format(round(hmoClean $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+hmoClean $ family = "hmo"
+
+saveRDS(hmoClean, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS"))
+```
+
+# Biocrates ELICIT
+```{r}
+bioc <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocratesNorm.RDS")
+#biocClean <- cleanFunc(bioc)
+
+# Filter out obs without Y
+bioc <- bioc %>%
+  filter(!is.na(haz_6m))
+
+biocClean <- cleanFunc(bioc)
+
+# Convert sex_base to binary.
+biocClean $ sex_base = ifelse(biocClean $ sex_base == "Male", 0, 1)
+
+# Look at columns with NA
+biocClean <- data.frame(biocClean)
+percentMissing <- gg_miss_var(biocClean, show_pct = T)
+
+# Delete columns with 100% NA
+newData <- biocClean[, -which(colMeans(is.na(biocClean)) == 1)]
+gg_miss_var(newData, show_pct = T)
+
+newData <- newData[ - as.numeric(which(apply(newData, 2, var) == 0))]
+gg_miss_var(newData, show_pct = T)
+
+newData <- newData[, -which(colMeans(is.na(newData)) > 0.001)]
+
+# Keep anything less than ~20% LOD and compute values.
+# Impute the below LOD values?
+
+# Get mean and variance of the outcome
+hist(newData $ haz_6m)
+mean <- mean(newData $ haz_6m)
+sd <- sd(newData $ haz_6m)
+
+# Generate new data from this distribution
+newData $ haz_6m_simulated <- rnorm(n = 199, mean = mean, sd = sd)
+newData $ haz_6m_simulated <- as.numeric(format(round(newData $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+
+newData $ family = "biocNorm"
+
+saveRDS(newData, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS"))
+```
+
+# Bvitamins ELICIT
+```{r}
+# Load data
+bvit <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/bvit.RDS")
+
+# Filter out obs without Y
+bvit <- bvit %>%
+  filter(!is.na(haz_6m))
+
+bvitClean <- cleanFunc(bvit)
+
+# Convert sex_base to binary.
+bvitClean $ sex_base = ifelse(bvitClean $ sex_base == "Male", 0, 1)
+
+# Look at columns with NA
+bvitClean <- data.frame(bvitClean)
+percentMissing <- gg_miss_var(bvitClean, show_pct = T)
+
+# Get mean and variance of the outcome
+hist(bvitClean $ haz_6m)
+mean <- mean(bvitClean $ haz_6m)
+sd <- sd(bvitClean $ haz_6m)
+
+# Generate new data from this distribution
+bvitClean $ haz_6m_simulated <- rnorm(n = 199, mean = mean, sd = sd)
+bvitClean $ haz_6m_simulated <- as.numeric(format(round(bvitClean $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+bvitClean $ family = "bvit"
+
+saveRDS(bvitClean, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/bvitClean.RDS"))
+```
+
+# Metabolomics ELICIT
+```{r}
+# Load data
+metabol <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/metabolInd.RDS")
+
+# Filter out obs without Y
+metabol <- metabol %>%
+  filter(!is.na(haz_6m))
+
+metabolClean <- cleanFunc(metabol)
+
+# Convert sex_base to binary.
+metabolClean $ sex_base = ifelse(metabolClean $ sex_base == "Male", 0, 1)
+
+# Look at columns with NA
+metabolClean <- data.frame(metabolClean)
+percentMissing <- gg_miss_var(metabolClean, show_pct = T)
+
+# Get mean and variance of the outcome
+hist(metabolClean $ haz_6m)
+mean <- mean(metabolClean $ haz_6m)
+sd <- sd(metabolClean $ haz_6m)
+
+# Generate new data from this distribution
+metabolClean $ haz_6m_simulated <- rnorm(n = 199, mean = mean, sd = sd)
+metabolClean $ haz_6m_simulated <- as.numeric(format(round(metabolClean $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+metabolClean $ family = "metabInd"
+
+saveRDS(metabolClean, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/metabolClean.RDS"))
+```
+
+# Sapient ELICIT
+```{r}
+sapient <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/sapient.RDS")
+
+# Filter out obs without Y
+sapient <- sapient %>%
+  filter(!is.na(haz_6m))
+
+sapient[sapient == "< LOD"] <- NA
+
+library(data.table)
+setDT(sapient)
+sapient[, lapply(.SD, function(x) ifelse(is.na(x), min(x, na.rm = T) / 2, x)), .SDcols = is.numeric]
+
+# Change Inf values to 0.
+sapient[sapient == Inf] <- 0
+
+#sapientClean <- cleanFunc(sapient)
+
+# Convert sex_base to binary.
+sapient $ sex_base = ifelse(sapient $ sex_base == "Male", 0, 1)
+
+# Get mean and variance of the outcome
+hist(sapient $ haz_6m)
+mean <- mean(sapient $ haz_6m)
+sd <- sd(sapient $ haz_6m)
+
+# Generate new data from this distribution
+sapient $ haz_6m_simulated <- rnorm(n = 199, mean = mean, sd = sd)
+sapient $ haz_6m_simulated <- as.numeric(format(round(sapient $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+sapient $ family = "sapient"
+
+saveRDS(sapient, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/sapientClean.RDS"))
+```
+
+# Make one dataset with child ID's + baseline covariates + all biomarkers: ELICIT
+```{r}
+hmo <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
+
+# Collapse all data into long format
+id <- c("bmid_base", "country", "studyid", "subjid", "subjido", 
+        "arm_base", "sex_base", "brthyr_base", "brthweek_base", 
+        "mage_base", "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
+        "meducyrs_base", "h2osrcp_base", "cookplac_base", 
+        "epoch_base", "mhtcm_base", "mwtkg_base", 
+        "mbmi_base", "dlvloc_base", 
+        "wtkg_base", "lencm_base", "bmi_base", "waz_base", 
+        "haz_base", "whz_base", "baz_base", "agedays_base", 
+        "dur_bf_base", "dur_ebf_base", "haz_6m", "haz_6m_simulated", "family")
+
+longHmo <- hmo %>%
+  select(c(id,
+           "X2.FL_nmol.mL", "X3FL_nmol.mL", "DFLac_nmol.mL", "X3.SL_nmol.mL",
+           "X6.SL_nmol.mL", "LNT_nmol.mL", "LNnT_nmol.mL", "LNFP.I_nmol.mL", 
+           "LNFP.II_nmol.mL", "LNFP.III_nmol.mL", "LSTb_nmol.mL", "LSTc_nmol.mL",
+           "DFLNT_nmol.mL", "LNH_nmol.mL", "DSLNT_nmol.mL", "FLNH_nmol.mL", "DFLNH_nmol.mL", 
+           "FDSLNH_nmol.mL", "DSLNH_nmol.mL", "SUM_nmol.mL", "Sia_nmol.mL", "Fuc_nmol.mL")) %>%
+  pivot_longer(!id,
+              names_to = "biomarker",
+              values_to = "value")
+
+bioc <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS")
+
+A = bioc %>%
+  select(!c("bmid_base", "country", "studyid", "subjid", "subjido", "arm_base", 
+            "sex_base", "brthyr_base", "brthweek_base", "mage_base", "parity_base", 
+            "nlchild_base", "nperson_base", "nrooms_base", "meducyrs_base", 
+            "h2osrcp_base", "cookplac_base", "inctot_base", "inctotu_base", 
+            "epoch_base", "mhtcm_base", "mwtkg_base", "mbmi_base", "dlvloc_base", 
+            "dvseason_base", "wtkg_base", "lencm_base", "bmi_base", "hcircm_base", 
+            "waz_base", "haz_base", "whz_base", "baz_base", "agedays_base", 
+            "dur_bf_base", "dur_ebf_base", "lencm_3m", "lencm_6m", "lencm_9m", 
+            "lencm_12m", "lencm_15m", "lencm_18m", "bmi_3m", "bmi_6m", "bmi_9m", 
+            "bmi_12m", "bmi_15m", "bmi_18m", "hcircm_3m", "hcircm_6m", "hcircm_9m", 
+            "hcircm_12m", "hcircm_15m", "hcircm_18m", "waz_3m", "waz_6m", 
+            "waz_9m", "waz_12m", "waz_15m", "waz_18m", "haz_3m", 
+            "haz_9m", "haz_12m", "haz_15m", "haz_18m", "whz_3m", "whz_6m", 
+            "whz_9m", "whz_12m", "whz_15m", "whz_18m", "baz_3m", "baz_6m", 
+            "baz_9m", "baz_12m", "baz_15m", "baz_18m", "exbfdu_r_0to6m", 
+            "fever_r_0to6m", "fever_r_6to18m", "cough_r_0to6m", "cough_r_6to18m", 
+            "diarr_r_0to6m", "diarr_r_6to18m", "mhgb_18m", "muaccm_18m", 
+            "muaz_18m", "bfdu_r_0to18m", "anti_r_0to18m", "haz_6m", 
+            "haz_6m_simulated", "family"))
+A = colnames(A)
+
+longBioc <- bioc %>%
+  select(c(id, A)) %>%
+  pivot_longer(!id,
+              names_to = "biomarker",
+              values_to = "value")
+
+bvit <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/bvitClean.RDS")
+
+A = bvit %>%
+  select(!c("bmid_base", "country", "studyid", "siteid", "subjid", "subjido", 
+            "studytyp", "arm_base", "sex_base", "brthyr_base", "brthweek_base", 
+            "mage_base", "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
+            "meducyrs_base", "h2osrcp_base", "cookplac_base", "inctot_base", 
+            "inctotu_base", "epochn_base", "epoch_base", "mhtcm_base", "mwtkg_base", 
+            "mbmi_base", "pregout_base", "dlvloc_base", "dvseason_base", 
+            "wtkg_base", "lencm_base", "bmi_base", "hcircm_base", "waz_base", 
+            "haz_base", "whz_base", "baz_base", "agedays_base", "feeding_base", 
+            "dur_bf_base", "dur_ebf_base", "bmcol_fl_1m", "bmcol_fl_5m", 
+            "agedays_1m", "agedays_5m", "lencm_3m", "lencm_6m", "lencm_9m", 
+            "lencm_12m", "lencm_15m", "lencm_18m", "bmi_3m", "bmi_6m", "bmi_9m", 
+            "bmi_12m", "bmi_15m", "bmi_18m", "hcircm_3m", "hcircm_6m", "hcircm_9m", 
+            "hcircm_12m", "hcircm_15m", "hcircm_18m", "waz_3m", "waz_6m", 
+            "waz_9m", "waz_12m", "waz_15m", "waz_18m", "haz_3m", 
+            "haz_9m", "haz_12m", "haz_15m", "haz_18m", "whz_3m", "whz_6m", 
+            "whz_9m", "whz_12m", "whz_15m", "whz_18m", "baz_3m", "baz_6m", 
+            "baz_9m", "baz_12m", "baz_15m", "baz_18m", "agedays_3m", "agedays_6m", 
+            "agedays_9m", "agedays_12m", "agedays_15m", "agedays_18m", "visit_r_fl_0to6m", 
+            "visit_r_fl_6to18m", "dur_r_0to6m", "dur_r_6to18m", "bfedfl_r_0to6m", 
+            "exbfed_r_0to6m", "exbfdu_r_0to6m", "fever_r_0to6m", "fever_r_6to18m", 
+            "cough_r_0to6m", "cough_r_6to18m", "diarr_r_0to6m", "diarr_r_6to18m", 
+            "mhgb_18m", "muaccm_18m", "muaz_18m", "agedays_18m.1", "bfdu_r_0to18m", 
+            "anti_r_0to18m", "haz_6m_simulated", "haz_6m", "family"))
+A = colnames(A)
+
+longBvit <- bvit %>%
+  select(c(id, A)) %>%
+  pivot_longer(!id,
+              names_to = "biomarker",
+              values_to = "value")
+
+metabol <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/metabolClean.RDS")
+
+A = metabol %>%
+  select(c("X2.Methylbutyrylglycinuria..NBS.", 
+          "X7.Alpha.Dehydroxylation.of.Cholic.Acid", "Alpha.Aminobutyric.Acid.Synthesis", 
+          "Anserine.Synthesis", "Asparagine.Synthesis", "Asymmetrical.Arginine.Methylation", 
+          "Beta.Alanine.Synthesis", "Beta.Oxidation", "Betaine.Synthesis", 
+          "Carnosine.Synthesis", "Citrulline.Synthesis", "Cortisone.Synthesis", 
+          "Carbamoyl.Phosphate.Synthase.Deficiency..NBS.", "Cysteine.Synthesis", 
+          "Cystine.Synthesis", "Dihydrolipoamide.Dehydrogenase.Deficiency..NBS.", 
+          "Fischer.Ratio", "Gamma.Aminobutyric.Acid.Synthesis",
+          "Global.Arginine.Bioavailability.Ratio",
+          "Glycodeoxycholic.Acid.Synthesis.from.Cholic.Acid", "Glutaminase.Activity", 
+          "Glutaminolysis.Rate", "Glycine.Conjugation.of.Cholic.Acid", 
+          "Glycine.Conjugation.of.Chenodeoxycholic.Acid",
+          "Glycine.Conjugation.of.Deoxycholic.Acid", 
+          "Glycine.Conjugation.of.Primary.Bile.Acids", "Glycine.Synthesis", 
+          "Glutathione.Constituents", "Homoarginine.Synthesis", "Homocysteine.Synthesis", 
+          "Hippuric.Acid.Synthesis", "Isobutyryl.Coenzyme.A.Dehydrogenase.Deficiency..NBS.", 
+          "Indoleamine.2.3.Dioxygenase.Activity", "Isovaleric.Acidemia..NBS.", 
+          "Lactate.Dehydrogenase.Activity", "Malonic.Aciduria..NBS.", "Methionine.Oxidation", 
+          "Methylmalonic.Acidemia..NBS.", "Methylenetetrahydrofolate.Reductase.Deficiency..NBS.", 
+          "Nitric.Oxide.Synthase.Activity", "Ornithine.Synthesis",
+          "Ornithine.Transcarbamylase.Deficiency..NBS.", 
+          "para.Cresol.Sulfate.Synthesis", "Phenylethylamine.Synthesis", 
+          "Phenylketonuria..NBS.", "Phospholipase.A2.Activity..2.",
+          "Phospholipase.A2.Activity..3.", 
+          "Phospholipase.A2.Activity..4.", "Phospholipase.A2.Activity..5.", 
+          "Phospholipase.A2.Activity..6.", "Polyamine.Synthesis",
+          "Ratio.of.Conjugated.Primary.Bile.Acids.to.Unconjugated.Primary.Bile.Acids", 
+          "Putrescine.Synthesis", "Ratio.of.Acetylcarnitine.to.Carnitine", 
+          "Ratio.of.Chenodeoxycholic.Acid.to.Cholic.Acid",
+          "Ratio.of.Docosahexaenoic.Acid.to.Arachidonic.Acid", 
+          "Ratio.of.Docosahexaenoic.Acid.to.Eicosapentaenoic.Acid", 
+          "Ratio.of.Eicosapentaenoic.Acid.to.Arachidonic.Acid", 
+          "Ratio.of.Homoarginine.to.Asymmetric.Dimethylarginine",
+          "Ratio.of.Homoarginine.to.Symmetric.Dimethylarginine", 
+          "Ratio.of.Non.Essential.to.Essential.Amino.Acids", "Ratio.of.Proline.to.Citrulline", 
+          "Ratio.of.Hydroxylated.Sphingomyelins.to.Non.Hydroxylated.Sphingomyelins", 
+          "Sarcosine.Synthesis.from.Choline", "Sarcosine.Synthesis.from.Glycine", 
+          "Short.Branched.Chain.Acyl.Coenzyme.A.Dehydrogenase.Deficiency..NBS.", 
+          "Short.Chain.Acyl.Coenzyme.A.Dehydrogenase.Deficiency..NBS.", 
+          "Spermidine.Synthesis", "Spermine.Synthesis", "Sum.of.12.Alpha.Hydroxylated.Bile.Acids", 
+          "Sum.of.Amino.Acids", "Sum.of.Aromatic.Amino.Acids", 
+          "Sum.of.Asymmetrical.and.Symmetrical.Arginine.Methylation", 
+          "Sum.of.Betaine.and.Related.Metabolites", "Sum.of.Betaine.Related.Metabolites", 
+          "Sum.of.Branched.Chain.Amino.Acids", "Sum.of.Conjugated.Primary.Bile.Acids", 
+          "Sum.of.Dimethylated.Arginines", "Sum.of.Essential.Amino.Acids", 
+          "Sum.of.Long.Chain.Fatty.Acid.Lysophosphatidylcholines", 
+          "Sum.of.Long.Chain.Fatty.Acid.Sphingomyelins", 
+          "Sum.of.Measured.Omega.3.Fatty.Acids", 
+          "Sum.of.Monounsaturated.Fatty.Acid.Lysophosphatidylcholines", 
+          "Sum.of.Non.Essential.Amino.Acids", "Sum.of.Polyamines", "Sum.of.Primary.Bile.Acids", 
+          "Sum.of.Polyunsaturated.Fatty.Acid.Lysophosphatidylcholines", 
+          "Sum.of.Purine.Derivatives", "Sum.of.Non.Hydroxylated.Sphingomyelins", 
+          "Sum.of.Hydroxylated.Sphingomyelins", "Sum.of.Sphingomyelins", 
+          "Sum.of.Solely.Glucogenic.Amino.Acids", "Sum.of.Solely.Ketogenic.Amino.Acids", 
+          "Sum.of.Steroid.Hormones", "Sum.of.Sulfur.Containing.Amino.Acids", 
+          "Sum.of.Unconjugated.Bile.Acids", "Sum.of.Unconjugated.Primary.Bile.Acids", 
+          "Sum.of.Very.Long.Chain.Fatty.Acid.Sphingomyelins", "Symmetrical.Arginine.Methylation", 
+          "Taurine.Conjugation.of.Cholic.Acid", "Taurine.Conjugation.of.Chenodeoxycholic.Acid", 
+          "Taurine.Conjugation.of.Deoxycholic.Acid", "Taurine.Conjugation.of.Primary.Bile.Acids", 
+          "Taurine.Synthesis", "Taurodeoxycholic.Acid.Synthesis.from.Cholic.Acid", 
+          "Trimethylamine.N.Oxide.Synthesis", "Trimethylamine.N.Oxide.Synthesis..direct.", 
+          "Valinemia..NBS.", "Xanthine.Synthesis", "Ratio.of.Serine.and.Glycine.to.Hexose", 
+          "Ratio.of.Serine..Glycine..and.Alanine.to.Hexose"))
+A = colnames(A)
+
+longMetabol <- metabol %>%
+  select(c(id, A)) %>%
+  pivot_longer(!id,
+              names_to = "biomarker",
+              values_to = "value")
+
+sapient <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/sapientClean.RDS")
+
+A = sapient %>%
+  select(!c("bmid_base", "country", "studyid", "siteid", "subjid", "subjido",
+            "studytyp", "arm_base", "sex_base", "brthyr_base", "brthweek_base",
+            "mage_base", "parity_base", "nlchild_base", "nperson_base", "nrooms_base",
+            "meducyrs_base", "h2osrcp_base", "cookplac_base", "inctot_base",
+            "inctotu_base", "epochn_base", "epoch_base", "mhtcm_base", "mwtkg_base",
+            "mbmi_base", "pregout_base", "dlvloc_base", "dvseason_base",
+            "wtkg_base", "lencm_base", "bmi_base", "hcircm_base", "waz_base",
+            "haz_base", "whz_base", "baz_base", "agedays_base", "feeding_base",
+            "dur_bf_base", "dur_ebf_base", "bmcol_fl_1m", "bmcol_fl_5m",
+            "agedays_1m", "agedays_5m", "lencm_3m", "lencm_6m", "lencm_9m",
+            "lencm_12m", "lencm_15m", "lencm_18m", "bmi_3m", "bmi_6m", "bmi_9m",
+            "bmi_12m", "bmi_15m", "bmi_18m", "hcircm_3m", "hcircm_6m", "hcircm_9m",
+            "hcircm_12m", "hcircm_15m", "hcircm_18m", "waz_3m", "waz_6m",
+            "waz_9m", "waz_12m", "waz_15m", "waz_18m", "haz_3m",
+            "haz_9m", "haz_12m", "haz_15m", "haz_18m", "whz_3m", "whz_6m",
+            "whz_9m", "whz_12m", "whz_15m", "whz_18m", "baz_3m", "baz_6m",
+            "baz_9m", "baz_12m", "baz_15m", "baz_18m", "agedays_3m", "agedays_6m",
+            "agedays_9m", "agedays_12m", "agedays_15m", "agedays_18m", "visit_r_fl_0to6m",
+            "visit_r_fl_6to18m", "dur_r_0to6m", "dur_r_6to18m", "bfedfl_r_0to6m",
+            "exbfed_r_0to6m", "exbfdu_r_0to6m", "fever_r_0to6m", "fever_r_6to18m",
+            "cough_r_0to6m", "cough_r_6to18m", "diarr_r_0to6m", "diarr_r_6to18m",
+            "mhgb_18m", "muaccm_18m", "muaz_18m", "agedays_18m.1", "bfdu_r_0to18m",
+            "anti_r_0to18m", "haz_6m", "haz_6m_simulated", "family"))
+A = colnames(A)
+
+longSapient <- sapient %>%
+  select(c(id, A)) %>%
+  pivot_longer(!id,
+              names_to = "biomarker",
+              values_to = "value")
+
+# Combine all datasets
+LongDataset <- rbind(longBioc, longBvit)
+LongDataset <- rbind(LongDataset, longHmo)
+LongDataset <- rbind(LongDataset, longMetabol)
+LongDataset <- rbind(LongDataset, longSapient)
+
+LongDataset $ site = "elicit"
+
+# Update id
+id <- append(id, "site")
+
+# Save long dataset
+write.csv(LongDataset, file = "/data/imic/data/raw_lab_data/elicit/merged_elicit/longDataset.csv")
+
+# Make a wide dataset and save
+wideDataset <- LongDataset %>% 
+  pivot_wider(id_cols = id,
+              names_from = "biomarker",
+              values_from = all_of("value"))
+
+write.csv(wideDataset, file = "/data/imic/data/raw_lab_data/elicit/merged_elicit/wideDataset.csv")
+```
+
+# HMO VITAL
+```{r}
+hmo <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/hmo.RDS")
+#biocClean <- cleanFunc(bioc)
+#names(hmo)
+
+# Filter out obs without Y
+hmo <- hmo %>%
+  filter(!is.na(haz_m6))
+
+hmoClean <- cleanFunc(hmo)
+
+# Convert sex_base to binary.
+hmoClean $ sex_base = ifelse(hmoClean $ sex_base == "Male", 0, 1)
+
+# Look at columns with NA
+hmoClean <- data.frame(hmoClean)
+percentMissing <- gg_miss_var(hmoClean, show_pct = T)
+
+# Get mean and variance of the outcome
+#hist(hmoClean $ haz_m6)
+mean <- mean(hmoClean $ haz_m6)
+sd <- sd(hmoClean $ haz_m6)
+
+# Generate new data from this distribution
+hmoClean $ haz_6m_simulated <- rnorm(n = 147, mean = mean, sd = sd)
+hmoClean $ haz_6m_simulated <- as.numeric(format(round(hmoClean $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+hmoClean $ family = "hmo"
+
+saveRDS(hmoClean, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/hmoClean.RDS"))
+```
+
+# Biocrates VITAL
+```{r}
+bioc <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/biocratesNorm.RDS")
+#biocClean <- cleanFunc(bioc)
+
+# Filter out obs without Y
+bioc <- bioc %>%
+  filter(!is.na(haz_m6))
+
+biocClean <- cleanFunc(bioc)
+
+# Convert sex_base to binary.
+biocClean $ sex_base = ifelse(biocClean $ sex_base == "Male", 0, 1)
+
+# Look at columns with NA
+biocClean <- data.frame(biocClean)
+percentMissing <- gg_miss_var(biocClean, show_pct = T)
+
+# Delete columns with 100% NA
+newData <- biocClean[, -which(colMeans(is.na(biocClean)) == 1)]
+gg_miss_var(newData, show_pct = T)
+
+newData <- newData[ - as.numeric(which(apply(newData, 2, var) == 0))]
+gg_miss_var(newData, show_pct = T)
+
+newData <- newData[, -which(colMeans(is.na(newData)) > 0.001)]
+
+# Get mean and variance of the outcome
+hist(newData $ haz_m6)
+mean <- mean(newData $ haz_m6)
+sd <- sd(newData $ haz_m6)
+
+# Generate new data from this distribution
+newData $ haz_6m_simulated <- rnorm(n = 147, mean = mean, sd = sd)
+newData $ haz_6m_simulated <- as.numeric(format(round(newData $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+newData $ family = "biocNorm"
+
+saveRDS(newData, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/biocNormClean.RDS"))
+```
+
+# Pbl VITAL
+```{r}
+# Load data
+pbl <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/pblNorm.RDS")
+
+# Filter out obs without Y
+pbl <- pbl %>%
+  filter(!is.na(haz_m6))
+
+pblClean <- cleanFunc(pbl)
+
+# Convert sex_base to binary.
+pblClean $ sex_base = ifelse(pblClean $ sex_base == "Male", 0, 1)
+
+# Get mean and variance of the outcome
+mean <- mean(pblClean $ haz_m6)
+sd <- sd(pblClean $ haz_m6)
+
+# Generate new data from this distribution
+pblClean $ haz_6m_simulated <- rnorm(n = 157, mean = mean, sd = sd)
+pblClean $ haz_6m_simulated <- as.numeric(format(round(pblClean $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+pblClean $ family = "pbl"
+
+saveRDS(pblClean, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/pblClean.RDS"))
+```
+
+# Metabolomics VITAL
+```{r}
+# Load data
+metabol <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/metabolInd.RDS")
+
+# Filter out obs without Y
+metabol <- metabol %>%
+  filter(!is.na(haz_m6))
+
+metabolClean <- cleanFunc(metabol)
+
+# Convert sex_base to binary.
+metabolClean $ sex_base = ifelse(metabolClean $ sex_base == "Male", 0, 1)
+
+# Get mean and variance of the outcome
+mean <- mean(metabolClean $ haz_m6)
+sd <- sd(metabolClean $ haz_m6)
+
+# Generate new data from this distribution
+metabolClean $ haz_6m_simulated <- rnorm(n = 147, mean = mean, sd = sd)
+metabolClean $ haz_6m_simulated <- as.numeric(format(round(metabolClean $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+metabolClean $ family = "metabolInd"
+
+saveRDS(metabolClean, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/metabolClean.RDS"))
+```
+
+# Sapient VITAL
+```{r}
+sapient <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/sapient.RDS")
+
+# Filter out obs without Y
+sapient <- sapient %>%
+  filter(!is.na(haz_m6))
+
+sapient[sapient == "< LOD"] <- NA
+
+library(data.table)
+setDT(sapient)
+sapient[, lapply(.SD, function(x) ifelse(is.na(x), min(x, na.rm = T) / 2, x)), .SDcols = is.numeric]
+
+# Change Inf values to 0.
+sapient[sapient == Inf] <- 0
+
+# Convert sex_base to binary.
+sapient $ sex_base = ifelse(sapient $ sex_base == "Male", 0, 1)
+
+# Get mean and variance of the outcome
+mean <- mean(sapient $ haz_m6)
+sd <- sd(sapient $ haz_m6)
+
+# Generate new data from this distribution
+sapient $ haz_6m_simulated <- rnorm(n = 147, mean = mean, sd = sd)
+sapient $ haz_6m_simulated <- as.numeric(format(round(sapient $ haz_6m_simulated, 2), 
+                                            nsmall = 2))
+sapient $ family = "sapient"
+
+saveRDS(sapient, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/sapientClean.RDS"))
+```
+
+# Make one dataset with child ID's + baseline covariates + all biomarkers: VITAL
+```{r}
+hmo <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/hmoClean.RDS")
+
+# Collapse hmo data into long format
+id <- c("bmid_base", "subjid", "country", "studyid", "subjido", 
+        "arm_base", "sex_base", "brthyr_base", "brthweek_base", 
+        "mage_base", "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
+        "meducyrs_base", "h2osrcp_base", "agedays_base", 
+        "epochn_base", "epoch_base", "mhtcm_base", "mwtkg_base", "mbmi_base", 
+        "dlvloc_base", "wtkg_base", "lencm_base", "bmi_base", 
+        "muaccm_base", "waz_base", "haz_base", "whz_base", "baz_base", 
+        "feeding_base", "dur_bf_base", "dur_ebf_base", "visit_r_fl_base", 
+        "dur_r_base", "fever_r_base", "cough_r_base", "anti_r_base", 
+        "citytown_base", "gagebrth_base", "gagecm_base", "birthwt_base", 
+        "birthlen_base", "birthord_base", "gravida_base", "nlivbrth_base", 
+        "floor_base", "gagedays_base", "postbmi_base", "mmuaccm_base", 
+        "delivery_base", "bfinittm_base", "cmfdint_base", 
+        "formlkfl_base", "fever_base", "diarr_base", 
+        "physican_base", "hosp_base", "antibiot_base", "anti_oral_base", 
+        "anti_inj_base", "haz_m6", "haz_6m_simulated", "family")
+
+longHmo <- hmo %>%
+  select(c(id,
+           "X2.FL_nmol.mL", "X3FL_nmol.mL", "DFLac_nmol.mL", "X3.SL_nmol.mL",
+           "X6.SL_nmol.mL", "LNT_nmol.mL", "LNnT_nmol.mL", "LNFP.I_nmol.mL", 
+           "LNFP.II_nmol.mL", "LNFP.III_nmol.mL", "LSTb_nmol.mL", "LSTc_nmol.mL",
+           "DFLNT_nmol.mL", "LNH_nmol.mL", "DSLNT_nmol.mL", "FLNH_nmol.mL", "DFLNH_nmol.mL", 
+           "FDSLNH_nmol.mL", "DSLNH_nmol.mL", "SUM_nmol.mL", "Sia_nmol.mL", "Fuc_nmol.mL")) %>%
+  pivot_longer(!id,
+              names_to = "biomarker",
+              values_to = "value")
+
+bioc <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/biocNormClean.RDS")
+
+#dput(names(bioc))
+
+A = bioc %>%
+  select(!c("bmid_base", "subjid", "country", "studyid", "subjido", "arm_base", 
+            "sex_base", "brthyr_base", "brthweek_base", "mage_base", "parity_base", 
+            "nlchild_base", "nperson_base", "nrooms_base", "meducyrs_base", 
+            "h2osrcp_base", "agedays_base", "epochn_base", "epoch_base", 
+            "mhtcm_base", "mwtkg_base", "mbmi_base", "dlvloc_base", "wtkg_base", 
+            "lencm_base", "bmi_base", "muaccm_base", "waz_base", "haz_base", 
+            "whz_base", "baz_base", "feeding_base", "dur_bf_base", "dur_ebf_base", 
+            "visit_r_fl_base", "dur_r_base", "fever_r_base", "cough_r_base", 
+            "anti_r_base", "citytown_base", "gagebrth_base", "gagecm_base", 
+            "birthwt_base", "birthlen_base", "birthord_base", "gravida_base", 
+            "nlivbrth_base", "floor_base", "gagedays_base", "postbmi_base", 
+            "mmuaccm_base", "delivery_base", "bfinittm_base", "cmfdint_base", 
+            "formlkfl_base", "fever_base", "diarr_base", "physican_base", 
+            "hosp_base", "antibiot_base", "anti_oral_base", "anti_inj_base", 
+            "agedays_m1", "mhtcm_m1", "mwtkg_m1", "mbmi_m1", "wtkg_m1", "lencm_m1", 
+            "bmi_m1", "muaccm_m1", "waz_m1", "haz_m1", "whz_m1", "baz_m1", 
+            "feeding_m1", "dur_bf_m1", "dur_ebf_m1", "visit_r_fl_m1", "dur_r_m1", 
+            "fever_r_m1", "cough_r_m1", "anti_r_m1", "gagedays_m1", "postbmi_m1", 
+            "mmuaccm_m1", "cmfdint_m1", "bfmode_m1", "bfedfl_m1", "exbfedfl_m1", 
+            "sldfedfl_m1", "cough_m1", "physican_m1", "hosp_m1", "antibiot_m1", 
+            "anti_oral_m1", "anti_inj_m1", "agedays_m2", "mhtcm_m2", "mwtkg_m2", 
+            "mbmi_m2", "mhgb_m2", "wtkg_m2", "lencm_m2", "bmi_m2", "muaccm_m2", 
+            "waz_m2", "haz_m2", "whz_m2", "baz_m2", "feeding_m2", "dur_bf_m2", 
+            "dur_ebf_m2", "visit_r_fl_m2", "dur_r_m2", "cough_r_m2", "anti_r_m2", 
+            "gagedays_m2", "postbmi_m2", "mmuaccm_m2", "hgb_m2", "cmfdint_m2", 
+            "bfmode_m2", "bfedfl_m2", "exbfedfl_m2", "cough_m2", "physican_m2", 
+            "hosp_m2", "antibiot_m2", "anti_oral_m2", "anti_inj_m2", "mcrp_m2", 
+            "mferritin_m2", "mstrf_m2", "magp_m2", "agedays_m3", "mhtcm_m3", 
+            "mwtkg_m3", "mbmi_m3", "wtkg_m3", "lencm_m3", "bmi_m3", "muaccm_m3", 
+            "waz_m3", "haz_m3", "whz_m3", "baz_m3", "muaz_m3", "feeding_m3", 
+            "dur_bf_m3", "dur_ebf_m3", "visit_r_fl_m3", "dur_r_m3", "fever_r_m3", 
+            "cough_r_m3", "anti_r_m3", "gagedays_m3", "postbmi_m3", "mmuaccm_m3", 
+            "cmfdint_m3", "bfmode_m3", "bfedfl_m3", "exbfedfl_m3", "fever_m3", 
+            "cough_m3", "diarr_m3", "physican_m3", "antibiot_m3", "anti_oral_m3", 
+            "anti_inj_m3", "agedays_m4", "mhtcm_m4", "mwtkg_m4", "mbmi_m4", 
+            "wtkg_m4", "lencm_m4", "bmi_m4", "muaccm_m4", "waz_m4", "haz_m4", 
+            "whz_m4", "baz_m4", "muaz_m4", "feeding_m4", "dur_bf_m4", "dur_ebf_m4", 
+            "visit_r_fl_m4", "dur_r_m4", "cough_r_m4", "anti_r_m4", "gagedays_m4", 
+            "postbmi_m4", "mmuaccm_m4", "cmfdint_m4", "bfmode_m4", "bfedfl_m4", 
+            "exbfedfl_m4", "fever_m4", "cough_m4", "vomit_m4", "physican_m4", 
+            "hosp_m4", "antibiot_m4", "anti_oral_m4", "anti_inj_m4", "agedays_m5", 
+            "mhtcm_m5", "mwtkg_m5", "mbmi_m5", "wtkg_m5", "lencm_m5", "bmi_m5", 
+            "muaccm_m5", "waz_m5", "haz_m5", "whz_m5", "baz_m5", "muaz_m5", 
+            "feeding_m5", "dur_bf_m5", "dur_ebf_m5", "visit_r_fl_m5", "dur_r_m5", 
+            "fever_r_m5", "cough_r_m5", "diarr_r_m5", "anti_r_m5", "gagedays_m5", 
+            "postbmi_m5", "mmuaccm_m5", "cmfdint_m5", "bfmode_m5", "bfedfl_m5", 
+            "exbfedfl_m5", "sldfedfl_m5", "fever_m5", "cough_m5", "diarr_m5", 
+            "physican_m5", "antibiot_m5", "anti_oral_m5", "anti_inj_m5", 
+            "agedays_m6", "mhtcm_m6", "mwtkg_m6", "mbmi_m6", "wtkg_m6", "lencm_m6", 
+            "bmi_m6", "muaccm_m6", "waz_m6", "haz_m6", "whz_m6", "baz_m6", 
+            "muaz_m6", "feeding_m6", "dur_bf_m6", "dur_ebf_m6", "visit_r_fl_m6", 
+            "dur_r_m6", "cough_r_m6", "diarr_r_m6", "anti_r_m6", "gagedays_m6", 
+            "postbmi_m6", "mmuaccm_m6", "cmfdint_m6", "bfmode_m6", "bfedfl_m6", 
+            "exbfedfl_m6", "sldfedfl_m6", "cough_m6", "diarr_m6", "physican_m6", 
+            "hosp_m6", "antibiot_m6", "anti_oral_m6", "anti_inj_m6", 
+            "haz_6m_simulated", "family"))
+
+A = colnames(A)
+
+longBioc <- bioc %>%
+  select(c(id, A)) %>%
+  pivot_longer(!id,
+              names_to = "biomarker",
+              values_to = "value")
+
+pbl <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/pblClean.RDS")
+
+#dput(names(pbl)[1:400])
+
+A = pbl %>%
+  select(!c("bmid_base", "subjid", "country", "studyid", "siteid", "subjido", 
+            "studytyp", "arm_base", "sex_base", "brthyr_base", "brthweek_base", 
+            "mage_base", "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
+            "meducyrs_base", "h2osrcp_base", "cookplac_base", "agedays_base", 
+            "epochn_base", "epoch_base", "mhtcm_base", "mwtkg_base", "mbmi_base", 
+            "pregout_base", "dlvloc_base", "wtkg_base", "lencm_base", "bmi_base", 
+            "muaccm_base", "waz_base", "haz_base", "whz_base", "baz_base", 
+            "feeding_base", "dur_bf_base", "dur_ebf_base", "visit_r_fl_base", 
+            "dur_r_base", "fever_r_base", "cough_r_base", "anti_r_base", 
+            "citytown_base", "gagebrth_base", "gagecm_base", "birthwt_base", 
+            "birthlen_base", "birthord_base", "gravida_base", "nlivbrth_base", 
+            "floor_base", "gagedays_base", "postbmi_base", "mmuaccm_base", 
+            "delivery_base", "bfinittm_base", "cmfdint_base", "exbfedfl_base", 
+            "formlkfl_base", "fever_base", "cough_base", "diarr_base", "vomit_base", 
+            "physican_base", "hosp_base", "antibiot_base", "anti_oral_base", 
+            "anti_inj_base", "agedays_m1", "mhtcm_m1", "mwtkg_m1", "mbmi_m1", 
+            "wtkg_m1", "lencm_m1", "bmi_m1", "muaccm_m1", "waz_m1", "haz_m1", 
+            "whz_m1", "baz_m1", "feeding_m1", "dur_bf_m1", "dur_ebf_m1", 
+            "visit_r_fl_m1", "dur_r_m1", "fever_r_m1", "cough_r_m1", "diarr_r_m1", 
+            "anti_r_m1", "gagedays_m1", "postbmi_m1", "mmuaccm_m1", "cmfdint_m1", 
+            "bfmode_m1", "bfedfl_m1", "exbfedfl_m1", "sldfedfl_m1", "fever_m1", 
+            "cough_m1", "diarr_m1", "vomit_m1", "physican_m1", "hosp_m1", 
+            "antibiot_m1", "anti_oral_m1", "anti_inj_m1", "agedays_m2", "mhtcm_m2", 
+            "mwtkg_m2", "mbmi_m2", "mhgb_m2", "wtkg_m2", "lencm_m2", "bmi_m2", 
+            "muaccm_m2", "waz_m2", "haz_m2", "whz_m2", "baz_m2", "feeding_m2", 
+            "dur_bf_m2", "dur_ebf_m2", "visit_r_fl_m2", "dur_r_m2", "fever_r_m2", 
+            "cough_r_m2", "diarr_r_m2", "anti_r_m2", "gagedays_m2", "postbmi_m2", 
+            "mmuaccm_m2", "hgb_m2", "cmfdint_m2", "bfmode_m2", "bfedfl_m2", 
+            "exbfedfl_m2", "sldfedfl_m2", "fever_m2", "cough_m2", "diarr_m2", 
+            "vomit_m2", "physican_m2", "hosp_m2", "antibiot_m2", "anti_oral_m2", 
+            "anti_inj_m2", "mcrp_m2", "mferritin_m2", "mstrf_m2", "magp_m2", 
+            "agedays_m3", "mhtcm_m3", "mwtkg_m3", "mbmi_m3", "wtkg_m3", "lencm_m3", 
+            "bmi_m3", "muaccm_m3", "waz_m3", "haz_m3", "whz_m3", "baz_m3", 
+            "muaz_m3", "feeding_m3", "dur_bf_m3", "dur_ebf_m3", "visit_r_fl_m3", 
+            "dur_r_m3", "fever_r_m3", "cough_r_m3", "diarr_r_m3", "anti_r_m3", 
+            "gagedays_m3", "postbmi_m3", "mmuaccm_m3", "cmfdint_m3", "bfmode_m3", 
+            "bfedfl_m3", "exbfedfl_m3", "sldfedfl_m3", "fever_m3", "cough_m3", 
+            "diarr_m3", "vomit_m3", "physican_m3", "hosp_m3", "antibiot_m3", 
+            "anti_oral_m3", "anti_inj_m3", "agedays_m4", "mhtcm_m4", "mwtkg_m4", 
+            "mbmi_m4", "wtkg_m4", "lencm_m4", "bmi_m4", "muaccm_m4", "waz_m4", 
+            "haz_m4", "whz_m4", "baz_m4", "muaz_m4", "feeding_m4", "dur_bf_m4", 
+            "dur_ebf_m4", "visit_r_fl_m4", "dur_r_m4", "fever_r_m4", "cough_r_m4", 
+            "diarr_r_m4", "anti_r_m4", "gagedays_m4", "postbmi_m4", "mmuaccm_m4", 
+            "cmfdint_m4", "bfmode_m4", "bfedfl_m4", "exbfedfl_m4", "sldfedfl_m4", 
+            "fever_m4", "cough_m4", "diarr_m4", "vomit_m4", "physican_m4", 
+            "hosp_m4", "antibiot_m4", "anti_oral_m4", "anti_inj_m4", "agedays_m5", 
+            "mhtcm_m5", "mwtkg_m5", "mbmi_m5", "wtkg_m5", "lencm_m5", "bmi_m5", 
+            "muaccm_m5", "waz_m5", "haz_m5", "whz_m5", "baz_m5", "muaz_m5", 
+            "feeding_m5", "dur_bf_m5", "dur_ebf_m5", "visit_r_fl_m5", "dur_r_m5", 
+            "fever_r_m5", "cough_r_m5", "diarr_r_m5", "anti_r_m5", "gagedays_m5", 
+            "postbmi_m5", "mmuaccm_m5", "cmfdint_m5", "bfmode_m5", "bfedfl_m5", 
+            "exbfedfl_m5", "sldfedfl_m5", "fever_m5", "cough_m5", "diarr_m5", 
+            "vomit_m5", "physican_m5", "hosp_m5", "antibiot_m5", "anti_oral_m5", 
+            "anti_inj_m5", "agedays_m6", "mhtcm_m6", "mwtkg_m6", "mbmi_m6", 
+            "wtkg_m6", "lencm_m6", "bmi_m6", "muaccm_m6", "waz_m6", "haz_m6", 
+            "whz_m6", "baz_m6", "muaz_m6", "feeding_m6", "dur_bf_m6", "dur_ebf_m6", 
+            "visit_r_fl_m6", "dur_r_m6", "fever_r_m6", "cough_r_m6", "diarr_r_m6", 
+            "anti_r_m6", "gagedays_m6", "postbmi_m6", "mmuaccm_m6", "cmfdint_m6", 
+            "bfmode_m6", "bfedfl_m6", "exbfedfl_m6", "sldfedfl_m6", "fever_m6", 
+            "cough_m6", "diarr_m6", "vomit_m6", "physican_m6", "hosp_m6", 
+            "antibiot_m6", "anti_oral_m6", "anti_inj_m6", "haz_6m_simulated",
+            "family"))
+A = colnames(A)
+
+longBpl <- pbl %>%
+  select(c(id, A)) %>%
+  pivot_longer(!id,
+              names_to = "biomarker",
+              values_to = "value")
+
+metabol <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/metabolClean.RDS")
+
+#dput(names(metabol))
+
+A = metabol %>%
+  select(!c("bmid_base", "subjid", "country", "studyid", "siteid", "subjido", 
+          "studytyp", "arm_base", "sex_base", "brthyr_base", "brthweek_base", 
+          "mage_base", "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
+          "meducyrs_base", "h2osrcp_base", "cookplac_base", "agedays_base", 
+          "epochn_base", "epoch_base", "mhtcm_base", "mwtkg_base", "mbmi_base", 
+          "pregout_base", "dlvloc_base", "wtkg_base", "lencm_base", "bmi_base", 
+          "muaccm_base", "waz_base", "haz_base", "whz_base", "baz_base", 
+          "feeding_base", "dur_bf_base", "dur_ebf_base", "visit_r_fl_base", 
+          "dur_r_base", "fever_r_base", "cough_r_base", "anti_r_base", 
+          "citytown_base", "gagebrth_base", "gagecm_base", "birthwt_base", 
+          "birthlen_base", "birthord_base", "gravida_base", "nlivbrth_base", 
+          "floor_base", "gagedays_base", "postbmi_base", "mmuaccm_base", 
+          "delivery_base", "bfinittm_base", "cmfdint_base", "exbfedfl_base", 
+          "formlkfl_base", "fever_base", "cough_base", "diarr_base", "vomit_base", 
+          "physican_base", "hosp_base", "antibiot_base", "anti_oral_base", 
+          "anti_inj_base", "agedays_m1", "mhtcm_m1", "mwtkg_m1", "mbmi_m1", 
+          "wtkg_m1", "lencm_m1", "bmi_m1", "muaccm_m1", "waz_m1", "haz_m1", 
+          "whz_m1", "baz_m1", "feeding_m1", "dur_bf_m1", "dur_ebf_m1", 
+          "visit_r_fl_m1", "dur_r_m1", "fever_r_m1", "cough_r_m1", "diarr_r_m1", 
+          "anti_r_m1", "gagedays_m1", "postbmi_m1", "mmuaccm_m1", "cmfdint_m1", 
+          "bfmode_m1", "bfedfl_m1", "exbfedfl_m1", "sldfedfl_m1", "fever_m1", 
+          "cough_m1", "diarr_m1", "vomit_m1", "physican_m1", "hosp_m1", 
+          "antibiot_m1", "anti_oral_m1", "anti_inj_m1", "agedays_m2", "mhtcm_m2", 
+          "mwtkg_m2", "mbmi_m2", "mhgb_m2", "wtkg_m2", "lencm_m2", "bmi_m2", 
+          "muaccm_m2", "waz_m2", "haz_m2", "whz_m2", "baz_m2", "feeding_m2", 
+          "dur_bf_m2", "dur_ebf_m2", "visit_r_fl_m2", "dur_r_m2", "fever_r_m2", 
+          "cough_r_m2", "diarr_r_m2", "anti_r_m2", "gagedays_m2", "postbmi_m2", 
+          "mmuaccm_m2", "hgb_m2", "cmfdint_m2", "bfmode_m2", "bfedfl_m2", 
+          "exbfedfl_m2", "sldfedfl_m2", "fever_m2", "cough_m2", "diarr_m2", 
+          "vomit_m2", "physican_m2", "hosp_m2", "antibiot_m2", "anti_oral_m2", 
+          "anti_inj_m2", "mcrp_m2", "mferritin_m2", "mstrf_m2", "magp_m2", 
+          "agedays_m3", "mhtcm_m3", "mwtkg_m3", "mbmi_m3", "wtkg_m3", "lencm_m3", 
+          "bmi_m3", "muaccm_m3", "waz_m3", "haz_m3", "whz_m3", "baz_m3", 
+          "muaz_m3", "feeding_m3", "dur_bf_m3", "dur_ebf_m3", "visit_r_fl_m3", 
+          "dur_r_m3", "fever_r_m3", "cough_r_m3", "diarr_r_m3", "anti_r_m3", 
+          "gagedays_m3", "postbmi_m3", "mmuaccm_m3", "cmfdint_m3", "bfmode_m3", 
+          "bfedfl_m3", "exbfedfl_m3", "sldfedfl_m3", "fever_m3", "cough_m3", 
+          "diarr_m3", "vomit_m3", "physican_m3", "hosp_m3", "antibiot_m3", 
+          "anti_oral_m3", "anti_inj_m3", "agedays_m4", "mhtcm_m4", "mwtkg_m4", 
+          "mbmi_m4", "wtkg_m4", "lencm_m4", "bmi_m4", "muaccm_m4", "waz_m4", 
+          "haz_m4", "whz_m4", "baz_m4", "muaz_m4", "feeding_m4", "dur_bf_m4", 
+          "dur_ebf_m4", "visit_r_fl_m4", "dur_r_m4", "fever_r_m4", "cough_r_m4", 
+          "diarr_r_m4", "anti_r_m4", "gagedays_m4", "postbmi_m4", "mmuaccm_m4", 
+          "cmfdint_m4", "bfmode_m4", "bfedfl_m4", "exbfedfl_m4", "sldfedfl_m4", 
+          "fever_m4", "cough_m4", "diarr_m4", "vomit_m4", "physican_m4", 
+          "hosp_m4", "antibiot_m4", "anti_oral_m4", "anti_inj_m4", "agedays_m5", 
+          "mhtcm_m5", "mwtkg_m5", "mbmi_m5", "wtkg_m5", "lencm_m5", "bmi_m5", 
+          "muaccm_m5", "waz_m5", "haz_m5", "whz_m5", "baz_m5", "muaz_m5", 
+          "feeding_m5", "dur_bf_m5", "dur_ebf_m5", "visit_r_fl_m5", "dur_r_m5", 
+          "fever_r_m5", "cough_r_m5", "diarr_r_m5", "anti_r_m5", "gagedays_m5", 
+          "postbmi_m5", "mmuaccm_m5", "cmfdint_m5", "bfmode_m5", "bfedfl_m5", 
+          "exbfedfl_m5", "sldfedfl_m5", "fever_m5", "cough_m5", "diarr_m5", 
+          "vomit_m5", "physican_m5", "hosp_m5", "antibiot_m5", "anti_oral_m5", 
+          "anti_inj_m5", "agedays_m6", "mhtcm_m6", "mwtkg_m6", "mbmi_m6", 
+          "wtkg_m6", "lencm_m6", "bmi_m6", "muaccm_m6", "waz_m6", "haz_m6", 
+          "whz_m6", "baz_m6", "muaz_m6", "feeding_m6", "dur_bf_m6", "dur_ebf_m6", 
+          "visit_r_fl_m6", "dur_r_m6", "fever_r_m6", "cough_r_m6", "diarr_r_m6", 
+          "anti_r_m6", "gagedays_m6", "postbmi_m6", "mmuaccm_m6", "cmfdint_m6", 
+          "bfmode_m6", "bfedfl_m6", "exbfedfl_m6", "sldfedfl_m6", "fever_m6", 
+          "cough_m6", "diarr_m6", "vomit_m6", "physican_m6", "hosp_m6", 
+          "antibiot_m6", "anti_oral_m6", "anti_inj_m6", "haz_6m_simulated", 
+          "family"))
+A = colnames(A)
+
+longMetabol <- metabol %>%
+  select(c(id, A)) %>%
+  pivot_longer(!id,
+              names_to = "biomarker",
+              values_to = "value")
+
+sapient <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/sapientClean.RDS")
+
+#dput(names(sapient)[1:400])
+
+A = sapient %>%
+  select(!c("bmid_base", "subjid", "country", "studyid", "siteid", "subjido", 
+            "studytyp", "arm_base", "sex_base", "brthyr_base", "brthweek_base", 
+            "mage_base", "parity_base", "nlchild_base", "nperson_base", "nrooms_base", 
+            "meducyrs_base", "h2osrcp_base", "cookplac_base", "agedays_base", 
+            "epochn_base", "epoch_base", "mhtcm_base", "mwtkg_base", "mbmi_base", 
+            "pregout_base", "dlvloc_base", "wtkg_base", "lencm_base", "bmi_base", 
+            "muaccm_base", "waz_base", "haz_base", "whz_base", "baz_base", 
+            "feeding_base", "dur_bf_base", "dur_ebf_base", "visit_r_fl_base", 
+            "dur_r_base", "fever_r_base", "cough_r_base", "anti_r_base", 
+            "citytown_base", "gagebrth_base", "gagecm_base", "birthwt_base", 
+            "birthlen_base", "birthord_base", "gravida_base", "nlivbrth_base", 
+            "floor_base", "gagedays_base", "postbmi_base", "mmuaccm_base", 
+            "delivery_base", "bfinittm_base", "cmfdint_base", "exbfedfl_base", 
+            "formlkfl_base", "fever_base", "cough_base", "diarr_base", "vomit_base", 
+            "physican_base", "hosp_base", "antibiot_base", "anti_oral_base", 
+            "anti_inj_base", "agedays_m1", "mhtcm_m1", "mwtkg_m1", "mbmi_m1", 
+            "wtkg_m1", "lencm_m1", "bmi_m1", "muaccm_m1", "waz_m1", "haz_m1", 
+            "whz_m1", "baz_m1", "feeding_m1", "dur_bf_m1", "dur_ebf_m1", 
+            "visit_r_fl_m1", "dur_r_m1", "fever_r_m1", "cough_r_m1", "diarr_r_m1", 
+            "anti_r_m1", "gagedays_m1", "postbmi_m1", "mmuaccm_m1", "cmfdint_m1", 
+            "bfmode_m1", "bfedfl_m1", "exbfedfl_m1", "sldfedfl_m1", "fever_m1", 
+            "cough_m1", "diarr_m1", "vomit_m1", "physican_m1", "hosp_m1", 
+            "antibiot_m1", "anti_oral_m1", "anti_inj_m1", "agedays_m2", "mhtcm_m2", 
+            "mwtkg_m2", "mbmi_m2", "mhgb_m2", "wtkg_m2", "lencm_m2", "bmi_m2", 
+            "muaccm_m2", "waz_m2", "haz_m2", "whz_m2", "baz_m2", "feeding_m2", 
+            "dur_bf_m2", "dur_ebf_m2", "visit_r_fl_m2", "dur_r_m2", "fever_r_m2", 
+            "cough_r_m2", "diarr_r_m2", "anti_r_m2", "gagedays_m2", "postbmi_m2", 
+            "mmuaccm_m2", "hgb_m2", "cmfdint_m2", "bfmode_m2", "bfedfl_m2", 
+            "exbfedfl_m2", "sldfedfl_m2", "fever_m2", "cough_m2", "diarr_m2", 
+            "vomit_m2", "physican_m2", "hosp_m2", "antibiot_m2", "anti_oral_m2", 
+            "anti_inj_m2", "mcrp_m2", "mferritin_m2", "mstrf_m2", "magp_m2", 
+            "agedays_m3", "mhtcm_m3", "mwtkg_m3", "mbmi_m3", "wtkg_m3", "lencm_m3", 
+            "bmi_m3", "muaccm_m3", "waz_m3", "haz_m3", "whz_m3", "baz_m3", 
+            "muaz_m3", "feeding_m3", "dur_bf_m3", "dur_ebf_m3", "visit_r_fl_m3", 
+            "dur_r_m3", "fever_r_m3", "cough_r_m3", "diarr_r_m3", "anti_r_m3", 
+            "gagedays_m3", "postbmi_m3", "mmuaccm_m3", "cmfdint_m3", "bfmode_m3", 
+            "bfedfl_m3", "exbfedfl_m3", "sldfedfl_m3", "fever_m3", "cough_m3", 
+            "diarr_m3", "vomit_m3", "physican_m3", "hosp_m3", "antibiot_m3", 
+            "anti_oral_m3", "anti_inj_m3", "agedays_m4", "mhtcm_m4", "mwtkg_m4", 
+            "mbmi_m4", "wtkg_m4", "lencm_m4", "bmi_m4", "muaccm_m4", "waz_m4", 
+            "haz_m4", "whz_m4", "baz_m4", "muaz_m4", "feeding_m4", "dur_bf_m4", 
+            "dur_ebf_m4", "visit_r_fl_m4", "dur_r_m4", "fever_r_m4", "cough_r_m4", 
+            "diarr_r_m4", "anti_r_m4", "gagedays_m4", "postbmi_m4", "mmuaccm_m4", 
+            "cmfdint_m4", "bfmode_m4", "bfedfl_m4", "exbfedfl_m4", "sldfedfl_m4", 
+            "fever_m4", "cough_m4", "diarr_m4", "vomit_m4", "physican_m4", 
+            "hosp_m4", "antibiot_m4", "anti_oral_m4", "anti_inj_m4", "agedays_m5", 
+            "mhtcm_m5", "mwtkg_m5", "mbmi_m5", "wtkg_m5", "lencm_m5", "bmi_m5", 
+            "muaccm_m5", "waz_m5", "haz_m5", "whz_m5", "baz_m5", "muaz_m5", 
+            "feeding_m5", "dur_bf_m5", "dur_ebf_m5", "visit_r_fl_m5", "dur_r_m5", 
+            "fever_r_m5", "cough_r_m5", "diarr_r_m5", "anti_r_m5", "gagedays_m5", 
+            "postbmi_m5", "mmuaccm_m5", "cmfdint_m5", "bfmode_m5", "bfedfl_m5", 
+            "exbfedfl_m5", "sldfedfl_m5", "fever_m5", "cough_m5", "diarr_m5", 
+            "vomit_m5", "physican_m5", "hosp_m5", "antibiot_m5", "anti_oral_m5", 
+            "anti_inj_m5", "agedays_m6", "mhtcm_m6", "mwtkg_m6", "mbmi_m6", 
+            "wtkg_m6", "lencm_m6", "bmi_m6", "muaccm_m6", "waz_m6", "haz_m6", 
+            "whz_m6", "baz_m6", "muaz_m6", "feeding_m6", "dur_bf_m6", "dur_ebf_m6", 
+            "visit_r_fl_m6", "dur_r_m6", "fever_r_m6", "cough_r_m6", "diarr_r_m6", 
+            "anti_r_m6", "gagedays_m6", "postbmi_m6", "mmuaccm_m6", "cmfdint_m6", 
+            "bfmode_m6", "bfedfl_m6", "exbfedfl_m6", "sldfedfl_m6", "fever_m6", 
+            "cough_m6", "diarr_m6", "vomit_m6", "physican_m6", "hosp_m6", 
+            "antibiot_m6", "anti_oral_m6", "anti_inj_m6", "haz_6m_simulated",
+            "family"))
+
+A = colnames(A)
+
+longSapient <- sapient %>%
+  select(c(id, A)) %>%
+  pivot_longer(!id,
+              names_to = "biomarker",
+              values_to = "value")
+
+# Combine all datasets
+LongDataset <- rbind(longBioc, longBpl)
+LongDataset <- rbind(LongDataset, longHmo)
+LongDataset <- rbind(LongDataset, longMetabol)
+LongDataset <- rbind(LongDataset, longSapient)
+
+LongDataset $ site = "vital"
+
+# Update id
+id <- append(id, "site")
+
+# Save dataset
+write.csv(LongDataset, file = "/data/imic/data/raw_lab_data/vital/merged_vital/longDataset.csv")
+
+# Make a wide dataset and save
+wideDataset <- LongDataset %>% 
+  pivot_wider(id_cols = id,
+              names_from = "biomarker",
+              values_from = all_of("value"))
+
+write.csv(wideDataset, file = "/data/imic/data/raw_lab_data/vital/merged_vital/wideDataset.csv")
+```
+
+
+
+
+
+
+
+
+
+
