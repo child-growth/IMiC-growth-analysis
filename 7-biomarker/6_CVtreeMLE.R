@@ -1,14 +1,7 @@
----
-title: |
-  CVtreeMLE
-author: "Sajia Darwish"
-date: "`r format(Sys.time(), '%Y-%m-%d')`"
----
 
-https://github.com/blind-contours/CVtreeMLE/blob/main/vignettes/intro_CVtreeMLE.Rmd
-https://github.com/blind-contours/CVtreeMLE
+# https://github.com/blind-contours/CVtreeMLE/blob/main/vignettes/intro_CVtreeMLE.Rmd
+# https://github.com/blind-contours/CVtreeMLE
 
-```{r message=FALSE, warning=FALSE, include=FALSE}
 # library(devtools) # For install_github().
 # remotes::install_github("blind-contours/CVtreeMLE@main")
 # remotes::install_github("tlverse/sl3@devel")
@@ -25,6 +18,10 @@ library(ggplot2)
 library(tidyverse)
 library(dplyr)
 library(namespace)
+
+library(parallel)
+library(doParallel)
+registerDoParallel(cores=64)
 
 
 # Load data
@@ -61,40 +58,40 @@ saveRDS(hmo, file = "/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.
 # Delete all NA for CVtreeMLE
 hmo <- hmo %>%
   na.omit()
-```
 
 # Implement CVtreeMLE
-```{r, echo=FALSE}
 # Save the names of the mixture variables.
 mixVars <- c("X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT",
              "LNFP.I", "LNFP.II", "LNFP.III", "LSTb", "LSTc", "DFLNT",
              "LNH", "DSLNT", "FLNH", "DFLNH", "FDSLNH", "DSLNH", "SUM", 
              "Sia", "Fuc")
-
 covars = c("sex_base", "mage_base", "nlchild_base", "Secretor", "Diversity", 
            "Evenness")
+
+#temp
+mixVars <- c("X2.FL", "X3FL", "DFLac")
+covars = c("sex_base", "mage_base")
 
 ptm <- proc.time()
 results <- CVtreeMLE(data = hmo,
                      w = covars,
                      a = mixVars,
                      y = "haz_6m",
-                     n_folds = 10,
+                     n_folds = 64,
                      seed = 1000,
                      parallel_cv = TRUE,
-                     parallel_type = "multi_session",
+                     #parallel_type = "multi_session",
+                     parallel_type = "multicore",
                      family = "continuous",
-                     num_cores = 10)
+                     num_cores = 64)
 proc.time() - ptm
 
 
 #save results
 saveRDS(results, file=paste0(here::here(),"/results/CVtreeMLE_example_model.RDS"))
 
-```
 
 ## Pooled TMLE results
-```{r, echo=FALSE}
 mixture_results <- results $ `Pooled TMLE Mixture Results`
 #write.csv(mixture_results, file = "/data/imic/results/CVtreeMLE_mixtureResults.csv")
 
@@ -104,14 +101,11 @@ max(mixture_results $ Proportion_Folds)
 # Look at the most stable partitions 
 mixture_results %>%
    dplyr::filter(Proportion_Folds == 0.5)
-```
 
-The estimated mixture ATE is interpreted as the average counterfactual mean outcome if all individuals were exposed to the rule shown in Union Rule compared to if all individuals were unexposed. That is, those individuals who are exposed to this rule have an outcome that is different by the estimate amount compared to those that are not exposed to this rule.
-
-Children exposed to concentrations of 74.279 =< X6.SL <= 211.091 and 552.188 =< Sia <= 1242.157 had 0.112 higher HAZ at six months than those that were not exposed to these concentrations of X6.SL and Sia.
+# The estimated mixture ATE is interpreted as the average counterfactual mean outcome if all individuals were exposed to the rule shown in Union Rule compared to if all individuals were unexposed. That is, those individuals who are exposed to this rule have an outcome that is different by the estimate amount compared to those that are not exposed to this rule.
+# Children exposed to concentrations of 74.279 =< X6.SL <= 211.091 and 552.188 =< Sia <= 1242.157 had 0.112 higher HAZ at six months than those that were not exposed to these concentrations of X6.SL and Sia.
 
 ## V-fold specific results
-```{r}
 mixture_v_results <- results $ `V-Specific Mix Results`
 mixture_v_results
 
@@ -121,23 +115,19 @@ names(mixture_v_results)
 # Again, look at v-fold specific results present in highest proportion of folds
 specificResult <- mixture_v_results $ "Sia-X6.SL"
 write.csv(specificResult, file = "/data/imic/results/CVtreeMLE_specificResults.csv")
-```
 
-The v-fold specific results also give a pooled estimate. This is different than the pooled TMLE estimate. Here we simply take the weighted average of the fold specific ATEs and the harmonic mean of the variances. This is similar to meta-analysis approaches.
+#The v-fold specific results also give a pooled estimate. This is different than the pooled TMLE estimate. Here we simply take the weighted average of the fold specific ATEs and the harmonic mean of the variances. This is similar to meta-analysis approaches.
 
 ## Plot of the v-fold mixture results: interactions
-```{r}
 mixture_plots <- plot_mixture_results(v_intxn_results =
                                       results $ `V-Specific Mix Results`,
                                       hjust = 1.05)
 # Plots of most stable partitions
 mixture_plots $ "Sia-X6.SL"
-```
 
-This plot shows the ATE specific for each fold and for the weighted-mean results over the fold with corresponding pooled variance. The rule is the union rule which includes all observations that were indicated by the fold specific rules.
+#This plot shows the ATE specific for each fold and for the weighted-mean results over the fold with corresponding pooled variance. The rule is the union rule which includes all observations that were indicated by the fold specific rules.
 
 # Implement on biocrates dataset
-```{r}
 rm(list=ls())
 source('~/IMiC-growth-analysis/0-config.R')
 
@@ -185,10 +175,9 @@ bioc <- bioc %>%
 # Call cleaning function from the pcs script
 cleanData <- cleanFunc(bioc)
 head(cleanData)
-```
+
 
 # Implement CVtreeMLE
-```{r}
 # Save the names of the mixture variables.
 mixVars <- cleanData %>%
   select(-c(haz_6m))
@@ -209,37 +198,33 @@ results <- CVtreeMLE(data = cleanData,
                      family = "continuous",
                      num_cores = 10)
 proc.time() - ptm
-```
 
 ## Pooled TMLE results
-```{r, echo=FALSE}
 mixture_results <- results $ `Pooled TMLE Mixture Results`
 #write.csv(mixture_results, file = "/data/imic/results/CVtreeMLE_mixtureResults.csv")
 
 # Look at the most stable partitions 
 mixture_results %>%
    dplyr::filter(max(Proportion_Folds))
-```
+
 
 ## V-fold specific results
-```{r}
 mixture_v_results <- results $ `V-Specific Mix Results`
 mixture_v_results
 
 # # Again, look at the partitions with most consistency
 # mixture_v_results $ "DFLac-Fuc"
 # mixture_v_results $ "LNFP.I-X3.SL"
-```
+
 
 ## Plot of the v-fold mixture results: interactions
-```{r}
 mixture_plots <- plot_mixture_results(v_intxn_results =
                                       results $ `V-Specific Mix Results`,
                                       hjust = 1.05)
 # Plots of most stable partitions
 mixture_plots $ "DFLac-Fuc"
 mixture_plots $ "LNFP.I-X3.SL"
-```
+
 
 
 
