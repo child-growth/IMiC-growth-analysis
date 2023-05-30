@@ -39,10 +39,15 @@ library(MASS)
 
 hmoE <- readRDS("/data/KI/imic/data/raw_lab_data/elicit/merged/hmo.RDS")
 names(hmoE)
+try(hmoE <- readRDS("C:/Users/andre/Downloads/hmo.RDS"))
+
 
 # Get rid of ID columns and baseline measures of outcomes.
 delete <- c("country", "studyid", "siteid", "subjid", "subjido", "studytyp")
 hmoE <- hmoE[, !names(hmoE) %in% delete]
+
+#drop missing outcome
+
 
 ## Baseline covariates.
 W <- hmoE %>%
@@ -54,7 +59,7 @@ A <- hmoE %>%
   dplyr::select(ends_with("ug.mL"))
 
 ## Create outcome as a linear function of A, W + white noise.
-Y <- c(hmoE $ haz_m6)
+Y <- c(hmoE$haz_m6)
 
 # Use the function
 shiftFunc(covariates = W, treat = A[, 1], outcome = Y, shift = 0.05, data = hmoE)

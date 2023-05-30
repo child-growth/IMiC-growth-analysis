@@ -1,39 +1,26 @@
----
-title: |
-  Quantile-Based G-Computation
-author: "Sajia Darwish"
-date: "`r format(Sys.time(), '%Y-%m-%d')`"
-output:
-  html_document:
-    toc: yes
-    toc_depth: 4
-  pdf_document:
-    toc: yes
-    toc_depth: '4'
-keep_tex: yes
-theme: bclear
-fontsize: 10pt
-geometry: margin=1in
-header-includes:
-- \usepackage{enumitem}
-- \usepackage{indentfirst}
-- \usepackage[default, scale=1]{raleway}
-- \usepackage[T1]{fontenc}
-- \usepackage{inconsolata}
-always_allow_html: yes
+
+# - \usepackage{enumitem}
+# - \usepackage{indentfirst}
+# - \usepackage[default, scale=1]{raleway}
+# - \usepackage[T1]{fontenc}
+# - \usepackage{inconsolata}
 ---
 
 # Overview
-- Last time: looked at biomarker components from PCA.
-- Suggetion: use a supervised method to look at the effect of biomarker mixtures on child growth and development, with the option of controlling for covariates.
-
-- This method: combines methods from weighted quantile sum regression (WQS) and g-computation to address effects of exposure mixtures (Keil et al., 2020).
-- WQS: multivariate regression in high-dimensional dataset that operates in a supervised framework, creating a single score (the weighted quantile sum) that summarizes the overall exposure to the mixture, and by including this score in a regression model to evaluate the overall effect of the mixture on the outcome of interest.
-
-- WQS requires directional homogeneity assumption -> all exposures are related to the outcome in the same direction. Q-based g-computation does not make this assumption.
+# - Last time: looked at biomarker components from PCA.
+# - Suggetion: use a supervised method to look at the effect of biomarker mixtures on child growth and development, 
+# with the option of controlling for covariates.
+# 
+# - This method: combines methods from weighted quantile sum regression (WQS) and g-computation to address effects of
+# exposure mixtures (Keil et al., 2020).
+# - WQS: multivariate regression in high-dimensional dataset that operates in a supervised framework, creating a 
+# single score (the weighted quantile sum) that summarizes the overall exposure to the mixture, and by including this 
+# score in a regression model to evaluate the overall effect of the mixture on the outcome of interest.
+# 
+# - WQS requires directional homogeneity assumption -> all exposures are related to the outcome in the same direction. 
+# Q-based g-computation does not make this assumption.
 
 # Elicit
-```{r, include=FALSE}
 library(qgcomp)
 library(ggplot2)
 library(tidyverse)
@@ -54,14 +41,13 @@ select(c("Secretor", "Diversity", "Evenness", "X2.FL_nmol.mL",
 # Remove _nmol.mL
 # Keep everything before and up to ":": 
 names(hmo) <- gsub("_nmol.mL.*", "", names(hmo))
-```
 
 ## Human milk oligosaccharides (HMOs)
 ### Quantile g-computation with covariates
-Quantization level = 4. <br /> 
-Covariates = gender, mother's age, number of children at home, secretor status, diversity, evenness. <br /> 
-Outcome = height for age z-score at 6 months.
-```{r, echo=FALSE}
+# Quantization level = 4. <br /> 
+# Covariates = gender, mother's age, number of children at home, secretor status, diversity, evenness. <br /> 
+# Outcome = height for age z-score at 6 months.
+
 # Save the names of the mixture variables
 mixVars <- c("X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT",
              "LNFP.I", "LNFP.II", "LNFP.III", "LSTb", "LSTc", "DFLNT",
@@ -69,22 +55,20 @@ mixVars <- c("X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT",
 
 covars = c("sex_base", "mage_base", "nlchild_base", "Secretor", "Diversity", "Evenness")
 
-qc.fit <- qgcomp(haz_6m ~ ., data = hmo[, c(mixVars, 'haz_6m')],
-                 family = gaussian(), bayes = TRUE, q = 4)
+qc.fit <- qgcomp(haz_6m ~ ., data = hmo[, c(mixVars, 'haz_6m')],family = gaussian(), bayes = TRUE, q = 4)
 
 # View results: scaled coefficients/weights and statistical inference about mixture effects.
 qc.fit
-```
 
-The overall mixture effect from quantile g-computation (psi1) is interpreted as the effect on the outcome of increasing every exposure by one quantile, conditional on covariates. Given the overall exposure effect, the weights are considered fixed and so do not have confidence intervals or p-values.
+
+# The overall mixture effect from quantile g-computation (psi1) is interpreted as the effect on the outcome of increasing every exposure by
+# one quantile, conditional on covariates. Given the overall exposure effect, the weights are considered fixed and so do not 
+# have confidence intervals or p-values.
 
 ### Plot of weights to see direction
-```{r, echo=FALSE}
 plot(qc.fit)
-```
 
 ### Quantile g-computation without covariates
-```{r, echo=FALSE}
 noCovars <- hmo %>%
   select(-c("sex_base", "mage_base", "nlchild_base", "Secretor", "Diversity", "Evenness"))
 
@@ -93,27 +77,19 @@ qc.fit2 <- qgcomp(haz_6m ~ ., data = noCovars[, c(mixVars, 'haz_6m')],
 
 # View results: scaled coefficients/weights and statistical inference about mixture effects.
 qc.fit2
-```
-
-```{r, echo=FALSE}
 plot(qc.fit2)
-```
 
 ### Q = 10
-```{r, echo=FALSE}
 qc.fit4 <- qgcomp(haz_6m ~ ., data = hmo[, c(mixVars, 'haz_6m')],
                  family = gaussian(), bayes = TRUE, q = 10)
 
 # View results: scaled coefficients/weights and statistical inference about mixture effects.
 qc.fit4
-```
 
-```{r, echo=FALSE}
 plot(qc.fit4)
-```
+
 
 ### Q = 20
-```{r, echo=FALSE}
 noCovars <- hmo %>%
   select(-c("sex_base", "mage_base", "nlchild_base", "Secretor", "Diversity", "Evenness"))
 
@@ -122,26 +98,20 @@ qc.fit5 <- qgcomp(haz_6m ~ ., data = hmo[, c(mixVars, 'haz_6m')],
 
 # View results: scaled coefficients/weights and statistical inference about mixture effects.
 qc.fit5
-```
 
-```{r, echo=FALSE}
 plot(qc.fit5)
-```
 
 # Questions:
 
 ### 1. How useful is the overall estimate?
 ### 2. How do we determine quantization level?
-```{r, echo = FALSE, include=FALSE}
 estimates = rep(0, 10)
 
 for (i in 1:10) {
   estimates[i] = qgcomp(haz_6m ~ ., data = hmo[, c(mixVars, 'haz_6m')],
                  family = gaussian(), bayes = TRUE, q = i) $ psi
 }
-```
 
-```{r, echo = FALSE}
 estimateQuant <- cbind(estimate = as.numeric(estimates), quantization_level = 1:10)
 estimateQuant <- as.data.frame(estimateQuant)
 
@@ -151,10 +121,8 @@ estimateQuant %>%
   geom_line() +
   scale_x_continuous(breaks = seq(1, 10, 1)) +
   theme_classic()
-```
 
 ### 3. How is this method applicable to large biomarker dataset?
-```{r, include=FALSE, echo=FALSE}
 biocrates <- readRDS("~/Desktop/biocratesNorm.RDS")
 
 data <- biocrates %>%

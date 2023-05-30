@@ -11,6 +11,7 @@ if(!("r2weight" %in% row.names(installed.packages()))){
 }
 library(r2weight)
 library(quadprog)
+library(tidyverse)
 
 #---------------------------------------------------------------------------
 # NOTE: check if function is the right way to get R2
@@ -21,7 +22,7 @@ library(quadprog)
 r2weightFunc <- function(X, Y) {
   
   # call optWeight using simple Super Learner library
-  out1 <- optWeight(Y = Y, X = X, SL.library = c("SL.mean","SL.glm"))#,"SL.step"))
+  out1 <- optWeight(Y = Y, X = X, SL.library = c("SL.glm","SL.glmnet","SL.randomForest"))
   
   # cross-validated R-squared
   # set verbose = TRUE to see a progress bar
@@ -35,7 +36,7 @@ r2weightFunc <- function(X, Y) {
   
   for (i in 1:ncol(X)) {
   # Measure importance of every feature
-  out2 <- optWeight(Y = Y, X = X[, -i], SL.library = c("SL.glm","SL.mean"))#,"SL.step"))
+  out2 <- optWeight(Y = Y, X = X[, -i], SL.library = c("SL.glm","SL.glmnet","SL.randomForest"))
   
   # Get R-squared for combined outcome excluding each feature one at a time
   r2.out2 <- r2_optWeight(out2, Y = Y, X = X[, -i])
@@ -82,7 +83,7 @@ XhmoE <- data.frame(hmoE %>%
 
 XhmoE $ cookplac_base <- as.factor(ifelse(XhmoE $ cookplac_base == "Yes", 1, 0))
 
-# Make a function for h2o transformation to avoid samll sample sizes
+# Make a function for h2o transformation to avoid small sample sizes
 h2oFunc <- function(data, feature) {
   data[[feature]] <- as.factor(case_when(data[[feature]] == "Tube well or borehole" |
                               data[[feature]] == "Protected well" ~ 1,
