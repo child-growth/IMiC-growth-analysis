@@ -37,9 +37,15 @@ library(MASS)
 # # Combine datasets
 # data <- as.data.frame(cbind(vitalWide, rand_df))
 
-hmoE <- readRDS("/data/KI/imic/data/raw_lab_data/elicit/merged/hmo.RDS")
+#hmoE <- readRDS("/data/KI/imic/data/raw_lab_data/elicit/merged/hmo.RDS")
+hmoE <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
 names(hmoE)
 try(hmoE <- readRDS("C:/Users/andre/Downloads/hmo.RDS"))
+
+
+
+#temp: complete case
+hmoE <- hmoE[complete.cases(hmoE),]
 
 
 # Get rid of ID columns and baseline measures of outcomes.
@@ -50,26 +56,43 @@ hmoE <- hmoE[, !names(hmoE) %in% delete]
 
 
 ## Baseline covariates.
-W <- hmoE %>%
-  dplyr::select(ends_with("base")) %>%
-  dplyr::select(!c("bmid_base", "waz_base", "haz_base", "whz_base", "baz_base"))
+W = c("sex_base", "mage_base", "nlchild_base", "Secretor", "Diversity", "Evenness")
+
 
 ## Create treatment based on baseline W.
-A <- hmoE %>%
-  dplyr::select(ends_with("ug.mL"))
+# A <- hmoE %>%
+#   dplyr::select(ends_with("ug.mL"))
+colnames(hmoE)
+
+A = c("X2.FL",       "X3FL",        "DFLac",       "X3.SL",       "X6.SL",      
+       "LNT",         "LNnT",        "LNFP.I",      "LNFP.II",     "LNFP.III",    "LSTb",        "LSTc",        "DFLNT",      
+       "LNH",         "DSLNT",       "FLNH",        "DFLNH",       "FDSLNH",      "DSLNH",       "SUM",         "Sia",        
+      "Fuc")
+
+A <- hmoE[,colnames(hmoE) %in% A]
+
+
 
 ## Create outcome as a linear function of A, W + white noise.
+<<<<<<< HEAD
 Y <- c(hmoE$haz_m6)
+=======
+set.seed(12345)
+hmoE$haz_6m <- hmoE$haz_6m + rnorm(nrow(hmoE))
+Y <- hmoE$haz_6m
+>>>>>>> 8075f99e2112e72921865a839caa837e3964e733
 
 # Use the function
-shiftFunc(covariates = W, treat = A[, 1], outcome = Y, shift = 0.05, data = hmoE)
+res <- shiftFunc(covariates = W, treat = A[, 1], outcome = Y, shift = 0.05, data = hmoE)
+saveRDS(res, file=paste0(here::here(),"/results/example_shift_HMO.RDS"))
 
-# Run the function over each biomarker
-for (i in 1:ncol(A)) {
-  shiftFunc(covariates = W, treat = A[, i], outcome = Y, shift = 0.05, data = hmoE)
-}
 
-class(A $ X2.FL_ug.mL)
+# # Run the function over each biomarker
+# for (i in 1:ncol(A)) {
+#   shiftFunc(covariates = W, treat = A[, i], outcome = Y, shift = 0.05, data = hmoE)
+# }
+# 
+# class(A $ X2.FL_ug.mL)
 
 
 # FOR FUTURE--------------------------------------------------------------------

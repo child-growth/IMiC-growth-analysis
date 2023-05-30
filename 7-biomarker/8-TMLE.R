@@ -1,13 +1,6 @@
----
-title: |
-  TMLE Parallelization
-author: "Sajia Darwish"
-date: "`r format(Sys.time(), '%Y-%m-%d')`"
----
 
-```{r, include=FALSE}
-#rm(list=ls())
-#source(paste0(here::here(), "/0-config.R"))
+rm(list=ls())
+source(paste0(here::here(), "/0-config.R"))
 library(tidyverse)
 library(sl3)
 library(tmle3)
@@ -15,69 +8,68 @@ library(tidyverse)
 library(foreach)
 library(parallel)
 library(doParallel)
-registerDoParallel(cores=50)
+registerDoParallel(cores=128)
 library(Rsolnp)
 library(dplyr)
-```
+
 
 # Make a TMLE function and a table function: without added learners
-```{r, include=FALSE}
 tmleFunc <- function(W, A, Y, data) {
-  # Define the variable roles
-  node_list <- list(W = W, A = A, Y = Y)
 
+  node_list <- list(W = W, A = A, Y = Y)
+  
   processed <- process_missing(data, node_list)
   data2 <- processed $ data # Remember that now data is data2 now.
   node_list <- processed $ node_list
 
   # Dichotomize A
-  for (i in 1:nrow(data2)) {
-    data2[[A]][i] <- ifelse(data2[[A]][i] > median(data2[[A]]), 1, 0)
-  }
+  #for(i in A){
+    data2[[A]] <- ifelse(data2[[A]] > median(data2[[A]]), 1, 0)
+  #}
 
   ate_spec <- tmle_ATE(treatment_level = 1, control_level = 0)
 
   # Choose base learners
   lrnr_glm <- make_learner(Lrnr_glm)
   lrnr_mean <- make_learner(Lrnr_mean)
+  lrnr_lasso <- make_learner(Lrnr_glmnet)
+  
 
   # Define metalearners appropriate to data types
   # non-negative least squares regression for continuous outcomes
   ls_metalearner <- make_learner(Lrnr_nnls)
 
-  # mn_metalearner <- make_learner(Lrnr_solnp, metalearner_linear_multinomial,
-  #                                loss_loglik_multinomial)
 
-  # Plot Y to get a sense of distribution
-  #hist(data2[[Y]])
-
-  sl_Y <- Lrnr_sl $ new(learners = list(lrnr_mean, lrnr_glm),
+  sl_Y <- Lrnr_sl $ new(learners = list(lrnr_glm, lrnr_lasso),
                       metalearner = ls_metalearner)
 
   # Plot A to get a sense of distribution
-  #hist(data[[A]]) # Actual A
-  #hist(data2[[A]]) # Dichotomized A
-
-  sl_A <- Lrnr_sl $ new(learners = list(lrnr_mean, lrnr_glm),
-                      metalearner = ls_metalearner)#mn_metalearner)
+  sl_A <- Lrnr_sl $ new(learners = list(lrnr_glm, lrnr_lasso),
+                      metalearner = ls_metalearner)
 
   learner_list <- list(A = sl_A, Y = sl_Y)
+  
+  #run analysis
+    tmle_est <- NULL
+    tmle_fit <- tmle3(ate_spec, data2, node_list, learner_list)
+    tmle_est <- tmle_fit$summary
+    tmle_est$A <- node_list$A
+    tmle_est$Y <- node_list$Y
 
-  tmle_fit <- tmle3(ate_spec, data2, node_list, learner_list)
-  print(tmle_fit)
+  return(tmle_est)
 }
 
-# Make a table function
+# # Make a table function
 tableFunc <- function (A, W, Y, data) {
 # Parallelize:
 int.start.time <- Sys.time()
 resultTable  <- foreach(i = 1:length(A), .combine = 'bind_rows',
                         .errorhandling = 'remove') %dopar% {
   tmleResult <- tmleFunc(W, A[i], Y, data)
-  resultTable <- tmleResult $ summary
-  resultTable $ A <- A[i]
-  resultTable $ Y <- Y
-  return(resultTable)
+  # resultTable <- tmleResult $ summary
+  # resultTable $ A <- A[i]
+  # resultTable $ Y <- Y
+  return(tmleResult)
                         }
 
 int.end.time <- Sys.time()
@@ -85,10 +77,9 @@ difftime(int.end.time, int.start.time, units = "mins")
 
 return(resultTable)
 }
-```
+
 
 # Function with added learners
-```{r}
 # tmleFunc <- function(W, A, Y, data) {
 #   # Define the variable roles
 #   node_list <- list(W = W, A = A, Y = Y)
@@ -184,35 +175,42 @@ return(resultTable)
 # 
 # return(resultTable)
 # }
-```
 
 # HMO ELICIT
-```{r, include=FALSE}
 # Load data
 hmo <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
 #dput(names((hmo)))
 #head(data)
 
 # Set parameters for tmleFunc
-W = c("Secretor", "Diversity", "Evenness")
-A1 = c("X2.FL_nmol.mL", "X3FL_nmol.mL", "DFLac_nmol.mL", "X3.SL_nmol.mL",
+W = c("sex_base", "mage_base", "nlchild_base", "Secretor", "Diversity", "Evenness")
+A = c("X2.FL_nmol.mL", "X3FL_nmol.mL", "DFLac_nmol.mL", "X3.SL_nmol.mL",
        "X6.SL_nmol.mL", "LNT_nmol.mL", "LNnT_nmol.mL", "LNFP.I_nmol.mL", 
        "LNFP.II_nmol.mL", "LNFP.III_nmol.mL", "LSTb_nmol.mL", "LSTc_nmol.mL",
        "DFLNT_nmol.mL", "LNH_nmol.mL", "DSLNT_nmol.mL", "FLNH_nmol.mL", 
        "DFLNH_nmol.mL", "FDSLNH_nmol.mL", "DSLNH_nmol.mL", "SUM_nmol.mL", 
        "Sia_nmol.mL", "Fuc_nmol.mL")
-Y1 = "haz_base"
-Y2 = "haz_6m_simulated"
+#data now has nmol.mL removed. strip here:
+A = gsub("_nmol.mL","",A)
+Y = "haz_6m"
+#TEMP: scramble data
+set.seed(12345)
+hmo$haz_6m <- hmo$haz_6m + rnorm(nrow(hmo))
 
-tableHmo1 <- tableFunc(A, W, Y1, hmo)
-tableHmo2 <- tableFunc(A, W, Y2, hmo)
+#temp: complete case
+hmo <- hmo[complete.cases(hmo),]
+
+data=hmo
+
+
+tableHmo <- tableFunc(A, W, Y, hmo)
+tableHmo
 
 # Save dataset
+saveRDS(tableHmo, file=paste0(here::here(),"/results/tmle_res_HMO.RDS"))
 #write.csv(tableHmo, file = "/data/imic/results/tmle/hmoElicitTMLE.csv")
-```
 
 # Biocrates normalized ELICIT
-```{r}
 # Load data
 bioc <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS")
 # head(bioc)
