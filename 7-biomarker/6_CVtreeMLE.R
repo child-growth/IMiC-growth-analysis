@@ -9,6 +9,7 @@
 # install.packages("pre")
 # install.packages("namespace")
 
+rm(list=ls())
 library(CVtreeMLE)
 library(sl3)
 library(pre)
@@ -29,8 +30,7 @@ data <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmo.RDS")
 
 #dput(names(data))
 
-hmo <- data %>%
-select(c("Secretor", "Diversity", "Evenness", "X2.FL_nmol.mL", 
+hmo <- data %>% subset(., select=c("Secretor", "Diversity", "Evenness", "X2.FL_nmol.mL", 
          "X3FL_nmol.mL", "DFLac_nmol.mL", "X3.SL_nmol.mL", "X6.SL_nmol.mL", 
          "LNT_nmol.mL", "LNnT_nmol.mL", "LNFP.I_nmol.mL", "LNFP.II_nmol.mL", 
          "LNFP.III_nmol.mL", "LSTb_nmol.mL", "LSTc_nmol.mL", "DFLNT_nmol.mL", 
@@ -41,8 +41,8 @@ head(hmo)
 
 # Scramble outcome variable.
 #hmo $ haz_6m <- sample(hmo $ haz_6m)
-set.seed(12345)
-hmo$haz_6m <- hmo$haz_6m + rnorm(nrow(hmo))
+# set.seed(325)
+# hmo$haz_6m <- hmo$haz_6m + rnorm(n=nrow(hmo), mean=0, sd=0.5)
 
 # Remove _nmol.mL
 # Keep everything before and up to ":": 
@@ -68,11 +68,24 @@ mixVars <- c("X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT",
              "LNFP.I", "LNFP.II", "LNFP.III", "LSTb", "LSTc", "DFLNT",
              "LNH", "DSLNT", "FLNH", "DFLNH", "FDSLNH", "DSLNH", "SUM", 
              "Sia", "Fuc")
+table(mixVars %in% colnames(hmo))
+
 covars = c("sex_base", "mage_base", "nlchild_base", "Secretor", "Diversity", 
            "Evenness")
 
+mixVars <- c("sex_base", "mage_base", "nlchild_base","X2.FL", "X3FL", "DFLac", "X3.SL", "X6.SL", "LNT", "LNnT",
+             "LNFP.I", "LNFP.II", "LNFP.III", "LSTb", "LSTc", "DFLNT",
+             "LNH", "DSLNT", "FLNH", "DFLNH", "FDSLNH", "DSLNH", "SUM", 
+             "Sia", "Fuc")
+table(mixVars %in% colnames(hmo))
+
+covars = c( "Secretor", "Diversity", 
+           "Evenness")
+
 # #temp
-covars = c("sex_base", "mage_base")
+# mixVars <- c( "DFLNT",
+#              "sex_base", "Fuc")
+# covars = c( "mage_base")
 # mixVars <- c("X2.FL", "X3FL", "DFLac")
 # covars = c("sex_base", "mage_base")
 
@@ -82,7 +95,7 @@ results <- CVtreeMLE(data = hmo,
                      a = mixVars,
                      y = "haz_6m",
                      n_folds = 5,
-                     seed = 1000,
+                     seed = 12345,
                      parallel_cv = TRUE,
                      #parallel_type = "multi_session",
                      parallel_type = "multicore",
@@ -93,6 +106,14 @@ proc.time() - ptm
 
 #save results
 saveRDS(results, file=paste0(here::here(),"/results/CVtreeMLE_example_model.RDS"))
+
+mixture_plots <- plot_mixture_results(
+  v_intxn_results =
+    results$`V-Specific Mix Results`,
+  hjust = 1
+)
+
+mixture_plots
 
 
 ## Pooled TMLE results

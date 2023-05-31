@@ -78,9 +78,12 @@ A <- hmoE[,colnames(hmoE) %in% A]
 set.seed(12345)
 hmoE$haz_6m <- hmoE$haz_6m + rnorm(nrow(hmoE))
 Y <- hmoE$haz_6m
+<<<<<<< HEAD
 
 summary(A[, 1])
 sd(A[, 1])
+=======
+>>>>>>> 5f2031815621daff7152c9d69734f5432fb366ed
 
 # Use the function
 res <- shiftFunc(covariates = W, treat = A[, 1], outcome = Y, shift = sd(A[, 1]), data = hmoE)
