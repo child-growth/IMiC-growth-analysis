@@ -74,13 +74,9 @@ A <- hmoE[,colnames(hmoE) %in% A]
 
 
 ## Create outcome as a linear function of A, W + white noise.
-<<<<<<< HEAD
-Y <- c(hmoE$haz_m6)
-=======
 set.seed(12345)
 hmoE$haz_6m <- hmoE$haz_6m + rnorm(nrow(hmoE))
 Y <- hmoE$haz_6m
->>>>>>> 8075f99e2112e72921865a839caa837e3964e733
 
 # Use the function
 res <- shiftFunc(covariates = W, treat = A[, 1], outcome = Y, shift = 0.05, data = hmoE)

@@ -16,6 +16,8 @@ library(tidyverse)
 #---------------------------------------------------------------------------
 # NOTE: check if function is the right way to get R2
 #---------------------------------------------------------------------------
+#hmo_fit$out1$univariateR2 gets all univariate R2, so may not need to refit
+
 
 
 # Make a function that takes in Y and X, calculates r2weight, comapres the full fit to the models without each predictor one at a time to get importance for combined outcome, and saves the output as a dataframe. 
