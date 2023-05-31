@@ -3,36 +3,20 @@
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 
+hmo_res <- readRDS(paste0(here::here(),"/results/tmle_res_HMO.RDS"))
 
-bvit_fit <- readRDS(paste0(here::here(),"/results/bvitEr2weight.RDS"))
-hmo_fit <- readRDS(paste0(here::here(),"/results/hmoEr2weight.RDS"))
-try(hmoE <- readRDS("C:/Users/andre/Downloads/hmo.RDS"))
+head(hmo_res)
 
-head(hmo_fit)
-
-hmo_fit$out1$Var
+hmo_res <- hmo_res %>% arrange(tmle_est) %>%
+  mutate(A=factor(A, levels=unique(A)))
 
 
-univariateR2 <- NULL
-for(i in 1:length(hmo_fit$out1$univariateR2)){
-  temp_res <- hmo_fit$out1$univariateR2[i]
-  temp_res <- data.frame(t(data.frame(temp_res)))
-  colnames(temp_res) <- c("R2","CI.l","CI.h","pval")
-  temp_res$biomarker <- names(hmo_fit$out1$univariateR2[i])
-  univariateR2 <- bind_rows(univariateR2, temp_res)
-}
 
-univariateR2
-
-
-univariateR2 <- univariateR2 %>% arrange(-R2) %>%
-                  mutate(biomarker=factor(biomarker, levels=unique(biomarker)))
-
-p_univariateR2 <- ggplot(univariateR2, aes(x=(biomarker))) + 
-  geom_point(aes(y=-R2), size = 4) +
-  geom_errorbar(aes(ymin=-CI.l, ymax=-CI.h)) +
-  coord_flip(ylim=range(0,0.075)) +
-  ylab("R2") +
+p_ATE <- ggplot(hmo_res, aes(x=(A))) + 
+  geom_point(aes(y= tmle_est), size = 4) +
+  geom_errorbar(aes(ymin=lower, ymax= upper)) +
+  coord_flip(ylim=range(-1.7, 1.1)) +
+  ylab("Average Treatment Effect (above vs below median)") +
   xlab("HMO") +
   geom_hline(yintercept = 0) +
   theme(strip.background = element_blank(),
@@ -40,8 +24,8 @@ p_univariateR2 <- ggplot(univariateR2, aes(x=(biomarker))) +
         strip.text.x = element_text(size=12),
         axis.text.x = element_text(size=12),
         panel.grid.minor=element_blank()) +
-  ggtitle("Univariate R2 from Superlearner predictions") +guides(shape=FALSE)
-p_univariateR2
+  ggtitle("Ranked ATEs") +guides(shape=FALSE)
+p_ATE
 
 
 

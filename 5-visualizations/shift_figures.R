@@ -4,35 +4,32 @@ rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 
 
-bvit_fit <- readRDS(paste0(here::here(),"/results/bvitEr2weight.RDS"))
-hmo_fit <- readRDS(paste0(here::here(),"/results/hmoEr2weight.RDS"))
+hmo_res <- readRDS(paste0(here::here(),"/results/example_shift_HMO.RDS"))
 try(hmoE <- readRDS("C:/Users/andre/Downloads/hmo.RDS"))
 
-head(hmo_fit)
-
-hmo_fit$out1$Var
-
-
-univariateR2 <- NULL
-for(i in 1:length(hmo_fit$out1$univariateR2)){
-  temp_res <- hmo_fit$out1$univariateR2[i]
-  temp_res <- data.frame(t(data.frame(temp_res)))
-  colnames(temp_res) <- c("R2","CI.l","CI.h","pval")
-  temp_res$biomarker <- names(hmo_fit$out1$univariateR2[i])
-  univariateR2 <- bind_rows(univariateR2, temp_res)
-}
-
-univariateR2
+#make plot df
+plotdf_base <- plotdf_shifted <- data.frame(biomarker=hmoE$X2.FL_nmol.mL, Y=hmoE$haz_6m)
+plotdf_base$group = "Observed"
+plotdf_shifted$group = "Shifted"
+plotdf_shifted$biomarker <- plotdf_shifted$biomarker + sd(plotdf_shifted$biomarker, na.rm=T)
+plotdf_shifted$Y <- plotdf_shifted$Y + -hmo_res$estimates[[1]]$psi +rnorm(length(plotdf_shifted$Y), 0.1)
+plotdf <- bind_rows(plotdf_base, plotdf_shifted)
 
 
-univariateR2 <- univariateR2 %>% arrange(-R2) %>%
-                  mutate(biomarker=factor(biomarker, levels=unique(biomarker)))
+p1<-ggplot(plotdf, aes(x=biomarker, group=group, color=group, fill=group)) + geom_density(alpha=0.5) + theme(legend.position = "right") + xlab("X2.FL_nmol.mL HMO, observed and shifted 1 SD")
+p2<-ggplot(plotdf, aes(x=Y, group=group, color=group, fill=group)) + geom_density(alpha=0.5) + theme(legend.position = "right") + xlab("Observed and counterfactual shifted HAZ at 6 months")
 
-p_univariateR2 <- ggplot(univariateR2, aes(x=(biomarker))) + 
-  geom_point(aes(y=-R2), size = 4) +
-  geom_errorbar(aes(ymin=-CI.l, ymax=-CI.h)) +
-  coord_flip(ylim=range(0,0.075)) +
-  ylab("R2") +
+
+hmo_res <- hmo_res %>% arrange(tmle_est) %>%
+  mutate(A=factor(A, levels=unique(A)))
+
+
+
+p_ATE <- ggplot(hmo_res, aes(x=(A))) + 
+  geom_point(aes(y= tmle_est), size = 4) +
+  geom_errorbar(aes(ymin=lower, ymax= upper)) +
+  coord_flip(ylim=range(-1.7, 1.1)) +
+  ylab("Average Treatment Effect (above vs below median)") +
   xlab("HMO") +
   geom_hline(yintercept = 0) +
   theme(strip.background = element_blank(),
@@ -40,8 +37,8 @@ p_univariateR2 <- ggplot(univariateR2, aes(x=(biomarker))) +
         strip.text.x = element_text(size=12),
         axis.text.x = element_text(size=12),
         panel.grid.minor=element_blank()) +
-  ggtitle("Univariate R2 from Superlearner predictions") +guides(shape=FALSE)
-p_univariateR2
+  ggtitle("Ranked ATEs") +guides(shape=FALSE)
+p_ATE
 
 
 

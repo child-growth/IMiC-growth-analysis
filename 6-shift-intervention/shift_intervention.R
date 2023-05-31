@@ -63,6 +63,7 @@ W = c("sex_base", "mage_base", "nlchild_base", "Secretor", "Diversity", "Evennes
 # A <- hmoE %>%
 #   dplyr::select(ends_with("ug.mL"))
 colnames(hmoE)
+colnames(hmoE) = gsub("_nmol.mL","",colnames(hmoE))
 
 A = c("X2.FL",       "X3FL",        "DFLac",       "X3.SL",       "X6.SL",      
        "LNT",         "LNnT",        "LNFP.I",      "LNFP.II",     "LNFP.III",    "LSTb",        "LSTc",        "DFLNT",      
@@ -74,16 +75,15 @@ A <- hmoE[,colnames(hmoE) %in% A]
 
 
 ## Create outcome as a linear function of A, W + white noise.
-<<<<<<< HEAD
-Y <- c(hmoE$haz_m6)
-=======
 set.seed(12345)
 hmoE$haz_6m <- hmoE$haz_6m + rnorm(nrow(hmoE))
 Y <- hmoE$haz_6m
->>>>>>> 8075f99e2112e72921865a839caa837e3964e733
+
+summary(A[, 1])
+sd(A[, 1])
 
 # Use the function
-res <- shiftFunc(covariates = W, treat = A[, 1], outcome = Y, shift = 0.05, data = hmoE)
+res <- shiftFunc(covariates = W, treat = A[, 1], outcome = Y, shift = sd(A[, 1]), data = hmoE)
 saveRDS(res, file=paste0(here::here(),"/results/example_shift_HMO.RDS"))
 
 
