@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # GRF causal forest treatment heterogeneity
 # Inputs:
-#   Wide dataset + biomarker data for VITAL trial
+#   Wide dataset + biomarker data for each trial
 # Outputs:
 #   A dataframe of results
 #-------------------------------------------------------------------------------
