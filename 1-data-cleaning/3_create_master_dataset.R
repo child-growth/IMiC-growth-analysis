@@ -55,12 +55,17 @@ cov <- cov %>% subset(., select = -c(sex, muaz, lencm, wtkg, hcircm, muaccm, arm
 table(Zscores$country)
 table(cov$country)
 
-dim(Zscores)
-dim(cov)
-d <- left_join(Zscores, cov, by = c("studyid", "subjid", "country"))
-dim(d)
-colnames(d)
 
+#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+# FIX!
+#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+# dim(Zscores)
+# dim(cov)
+# d <- left_join(Zscores, cov, by = c("studyid", "subjid", "country"))
+# dim(d)
+# colnames(d)
+d <- Zscores
 
 ##Drop observations missing all anthropometry
 dim(d)

@@ -22,7 +22,8 @@ BV_dir = "/data/KI/imic/"
 #           High level clean up of the joint dataset + subset [DONE]           #  
 #------------------------------------------------------------------------------#
 
-d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
+d <- readRDS("/data/imic/data/combined_raw_data.rds")
+table(d$studyid)
 
 head(d)
 

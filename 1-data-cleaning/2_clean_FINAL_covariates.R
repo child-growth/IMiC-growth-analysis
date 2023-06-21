@@ -15,7 +15,7 @@ rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 library(growthstandards)
 
-d <- readRDS("/data/KI/imic/data/combined_raw_data.rds")
+d <- readRDS("/data/imic/data/combined_raw_data.rds")
 
 head(d)
 #-------------------------------------------------------------------------------

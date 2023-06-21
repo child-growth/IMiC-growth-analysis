@@ -4,9 +4,74 @@ source(paste0(here::here(), "/0-config.R"))
 library(lubridate)
 #load the combined raw data with dates merged in
 
-dfull <- readRDS("/data/imic/data/combined_raw_data.rds")
+dfull <- readRDS("/data/imic/data/combined_raw_data.rds") %>% filter(!is.na(anthro_date))
 
 table(dfull$studyid, is.na(dfull$anthro_date))
+table(is.na(dfull$haz), is.na(dfull$anthro_date))
+
+df <- dfull %>% rename(`Anthro Date` = anthro_date, WHZ=whz, WAZ=waz, HAZ=haz, MUAZ=muaz)
+
+dwhz <- df %>% select(`Anthro Date`, WHZ,studyid) %>% rename(anthro=WHZ) %>% mutate(measure="WHZ")
+dwaz <- df %>% select(`Anthro Date`, WAZ,studyid) %>% rename(anthro=WAZ) %>% mutate(measure="WAZ")
+dhaz <- df %>% select(`Anthro Date`, HAZ,studyid) %>% rename(anthro=HAZ) %>% mutate(measure="HAZ")
+dmuaz <- df %>% select(`Anthro Date`, MUAZ,studyid) %>% rename(anthro=MUAZ) %>% mutate(measure="MUAZ")
+
+d <- bind_rows(dwhz, dwaz, dhaz, dmuaz)
+
+#Stack data to make 3X4 plots
+
+# 2a) Make spline plot of mean whz by day of the year
+ggplot(data=d, aes(x=factor(month(`Anthro Date`)), y=anthro, group=month(`Anthro Date`))) + 
+  geom_boxplot(outlier.shape = NA)  + 
+  facet_grid(studyid~measure) +
+  scale_y_continuous(limits = c(-3, 2)) + 
+  ylab("Anthropometry measure") + xlab("Month")
+
+ggplot(data=d, aes(x=(yday(`Anthro Date`)), y=anthro)) + 
+  geom_smooth(se=FALSE)  + 
+  facet_grid(studyid~measure) +
+  #scale_y_continuous(limits = c(-1, 0)) + 
+  ylab("Anthropometry measure") + xlab("Day of the year")
+
+ggplot(data=d, aes(x=(yday(`Anthro Date`)), y=anthro)) + 
+  geom_point(alpha=0.1) +  geom_smooth(se=FALSE)  + 
+  facet_grid(studyid~measure) +
+  #scale_y_continuous(limits = c(-1, 0)) + 
+  ylab("Anthropometry measure") + xlab("Day of the year")
+
+ggplot(data=d, aes(x=((`Anthro Date`)), y=anthro)) + 
+  geom_point(alpha=0.1) +  geom_smooth(se=FALSE)  + 
+  facet_grid(studyid~measure) +
+  #scale_y_continuous(limits = c(-1, 0)) + 
+  ylab("Anthropometry measure") + xlab("Date")
+ggplot(data=d, aes(x=((`Anthro Date`)), y=anthro)) + 
+   geom_smooth(se=FALSE)  + 
+  facet_grid(studyid~measure) +
+  #scale_y_continuous(limits = c(-1, 0)) + 
+  ylab("Anthropometry measure") + xlab("Date")
+
+
+ggplot(data=d, aes(x=((`Anthro Date`)), y=anthro)) + 
+  geom_smooth(se=FALSE)  + 
+  facet_wrap(studyid~measure, scales="free") +
+  #scale_y_continuous(limits = c(-1, 0)) + 
+  ylab("Anthropometry measure") + xlab("Date")
+
+
+
+#maybe get mean and CI's by month or boxplot by month
+
+
+
+#merge BM dates into hackathon datasets (just need elicit and vital)
+#summary measure of seasonality? 
+dbm <- readRDS("/data/imic/data/combined_raw_data.rds") %>% filter(!is.na(bmc_collection_date))
+table(dbm$studyid)
+head(dbm)
+#https://stats.stackexchange.com/questions/346497/time-series-seasonality-test
+# isSeasonal()
+
+
 
 # start with elicit seasonality
 # but eventually repeat for all studies
