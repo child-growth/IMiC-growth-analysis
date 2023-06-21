@@ -287,10 +287,12 @@ misame_raw_long <- left_join(misame_raw_long_dates, misame_raw_long_ages, by=c("
 
 #temp subset to anthro only:
 misame_anthro <- misame_clean %>% filter(!is.na(HAZ))  %>%
-  subset(., select=c(STUDYID, SUBJIDO, VISITNUM, AGEDAYS, WAZ, HAZ, WHZ, BAZ, MUAZ)) %>% distinct()
+  subset(., select=c(STUDYID, SUBJIDO, VISITNUM, AGEDAYS, WAZ, HAZ, WHZ, BAZ, MUAZ)) %>% distinct() %>%
+  mutate(agemonth=round(AGEDAYS/31))
 
 
-misame_raw_long <- misame_raw_long %>% mutate(agedays=ceiling(age*31))
+#misame_raw_long <- misame_raw_long %>% mutate(agedays=(age*30),agedays2=(age*30.1467),agedays3=(age*31), agedays4=age*31.41935, AGEDAYS=round(age*31.41935,0))
+misame_raw_long <- misame_raw_long %>% mutate(agemonth=round(age))
 
 table(misame_raw_long$round)
 table(misame_anthro$VISITNUM )
@@ -313,16 +315,21 @@ table(misame_anthro$VISITNUM )
 
 
 
+#NOTE! Need to merge in birth anthro dates (or back calculate from 1 month date and age)
+
+
+#NOTE! Need to calc visit number from rough and and merge rather than relying on rounded agemonth
+
 dim(misame_anthro)
 dim(misame_raw)
-misame <- left_join(misame_anthro, misame_raw_long, by=c("SUBJIDO"))
+misame <- left_join(misame_anthro, misame_raw_long, by=c("SUBJIDO","agemonth"))
 dim(misame)
 
-misame <- misame %>% mutate(SUBJIDO=as.character(SUBJIDO)) %>%
-                    subset(., select = -c(date))
+#NOTE! Need to find the right origin
+misame$anthro_date = as.Date(misame$date, origin = "1957-01-01")
 
-
-
+misame <- misame %>% mutate(SUBJIDO=as.character(SUBJIDO)) %>% 
+  subset(., select = -c(age,date))
 #-------------------------------------------------------------------
 #combine data
 #-------------------------------------------------------------------
