@@ -2,14 +2,17 @@
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 
-#Load data
-d <- readRDS(paste0(BV_dir,"/results/desc_data_cleaned.rds"))
-wast <- readRDS(paste0(ghapdata_dir,"wasting_data.rds"))
-stunt <- readRDS(paste0(ghapdata_dir,"stunting_data.rds"))
-uwt <- readRDS(paste0(ghapdata_dir,"underweight_data.rds"))
+# #Load data
+# d <- readRDS(paste0(BV_dir,"/results/desc_data_cleaned.rds"))
+# wast <- readRDS(paste0(ghapdata_dir,"wasting_data.rds"))
+# stunt <- readRDS(paste0(ghapdata_dir,"stunting_data.rds"))
+# uwt <- readRDS(paste0(ghapdata_dir,"underweight_data.rds"))
+# 
+# save(d, wast, stunt, uwt, file=paste0(here::here(),"/results/imic_anthro_data.Rdata"))
+load(paste0(here::here(),"/results/imic_anthro_data.Rdata"))
 
-save(d, wast, stunt, uwt, file=paste0(here::here(),"/results/imic_anthro_data.Rdata"))
-
+d$cohort <- d$studyid
+table(d$cohort)
 
 #Subset to primary analysis
 d <- d %>% mutate(pooling=ifelse(cohort=="pooled" & is.na(pooling),
@@ -52,9 +55,9 @@ scale_estimates <- function(d) {
   return(d)
 }
 
-# Change the name of country
-d $ cohort <- case_when(d $ cohort == "ELICIT-TANZANIA, UNITED REPUBLIC OF" ~
-  "ELICIT", d $ cohort == "VITAL-Lactation-PAKISTAN" ~ "VITAL")
+# # Change the name of country
+# d $ cohort <- case_when(d $ cohort == "ELICIT-TANZANIA, UNITED REPUBLIC OF" ~
+#   "ELICIT", d $ cohort == "VITAL-Lactation-PAKISTAN" ~ "VITAL")
 
 # Get rid of the word "months" from agecat for visualizations
 d $ agecat <- gsub(" months", "", d $ agecat)
@@ -81,19 +84,15 @@ ggplot(stunt, aes(x=agedays,y=haz)) + geom_jitter() + geom_smooth() + facet_wrap
 # Mean Z-scores by date 
 #-------------------------------------------------------------------------------
 
-ggplot(wast, aes(x=anthro_date,y=whz)) + geom_smooth() + facet_wrap(~studyid, scale="free")
-ggplot(wast, aes(x=yday(anthro_date),y=whz)) + geom_smooth() + facet_wrap(~studyid, scale="free")
+p<-ggplot(wast, aes(x=anthro_date,y=whz)) + geom_smooth() + facet_wrap(~studyid, scale="free")
+p<-ggplot(wast, aes(x=yday(anthro_date),y=whz)) + geom_smooth() + facet_wrap(~studyid, scale="free")
 
-ggplot(wast, aes(x=yday(anthro_date)/365*12,y=whz)) + geom_smooth() + facet_wrap(~studyid) + xlab("month")
-ggplot(wast, aes(x=yday(anthro_date)/365*12,y=whz)) + geom_jitter(alpha=0.2) + geom_smooth() + facet_wrap(~studyid) + xlab("month")
-ggplot(wast, aes(x=anthro_date,y=whz)) + geom_jitter(alpha=0.2) + geom_smooth() + facet_wrap(~studyid, scale="free")
+p<-ggplot(wast, aes(x=yday(anthro_date)/365*12,y=whz)) + geom_smooth() + facet_wrap(~studyid) + xlab("month")
+p<-ggplot(wast, aes(x=yday(anthro_date)/365*12,y=whz)) + geom_jitter(alpha=0.2) + geom_smooth() + facet_wrap(~studyid) + xlab("month")
+p<-ggplot(wast, aes(x=anthro_date,y=whz)) + geom_jitter(alpha=0.2) + geom_smooth() + facet_wrap(~studyid, scale="free")
 
-ggplot(uwt, aes(x=yday(anthro_date)/365*12,y=waz)) + geom_smooth() + facet_wrap(~studyid) + xlab("month")
-ggplot(uwt, aes(x=yday(anthro_date)/365*12,y=waz)) + geom_jitter(alpha=0.2) + geom_smooth() + facet_wrap(~studyid) + xlab("month")
-
-yday(wast$anthro_date)
-
-wast$anthro_date[wast$studyid=="MISAME-3"]
+p<-ggplot(uwt, aes(x=yday(anthro_date)/365*12,y=waz)) + geom_smooth() + facet_wrap(~studyid) + xlab("month")
+p<-ggplot(uwt, aes(x=yday(anthro_date)/365*12,y=waz)) + geom_jitter(alpha=0.2) + geom_smooth() + facet_wrap(~studyid) + xlab("month")
 
 
 # df <- d %>% filter(
@@ -179,43 +178,43 @@ plot <- function (d, Disease, Measure, ageRange) {
 # Cumulative incidence by 3 month interval
 CI <- plot(d, Disease = "Wasting", Measure = "Cumulative incidence", ageRange = "3 months") #+
   #ggtitle("Wasting Cumulative Incidence: 3 Months Interval")
-ggsave(CI, filename = paste0(BV_dir, "/results/figures/wasting/CI3.png"))
+ggsave(CI, filename = paste0(here::here(), "/figures/wasting/CI3.png"))
 
 # Incidence proportion by 3 month interval
 IP <- plot(d, Disease = "Wasting", Measure = "Incidence proportion", ageRange = "3 months") #+
   #ggtitle("Wasting Incidence Proportion: 3 Months Interval")
-ggsave(IP, filename = paste0(BV_dir, "/results/figures/wasting/IP3.png"))
+ggsave(IP, filename = paste0(here::here(), "/figures/wasting/IP3.png"))
 
 # Incidence rate by 3 month interval
 IR <- plot(d, Disease = "Wasting", Measure = "Incidence rate", ageRange = "3 months") #+
   #ggtitle("Wasting Incidence Rate: 3 Months Interval")
-ggsave(IR, filename = paste0(BV_dir, "/results/figures/wasting/IR3.png"))
+ggsave(IR, filename = paste0(here::here(), "/figures/wasting/IR3.png"))
 
 # Incidence rate by 6 month interval
 IR <- plot(d, Disease = "Wasting", Measure = "Incidence rate", ageRange = "6 months") #+
   #ggtitle("Wasting Incidence Rate: 6 Months Interval")
-ggsave(IR, filename = paste0(BV_dir, "/results/figures/wasting/IR6.png"))
+ggsave(IR, filename = paste0(here::here(), "/figures/wasting/IR6.png"))
 
 # Mean WLZ by 3 month interval
 WLZ <- plot(d, Disease = "Wasting", Measure = "Mean WLZ", ageRange = "3 months") #+
   #ggtitle("Mean WLZ: 3 Months Interval")
-ggsave(WLZ, filename = paste0(BV_dir, "/results/figures/wasting/WLZ3.png"))
+ggsave(WLZ, filename = paste0(here::here(), "/figures/wasting/WLZ3.png"))
 
 # Persistent wasting by 6 month interval
 PW <- plot(d, Disease = "Wasting", Measure = "Persistent wasting", ageRange = "6 months") #+
   #ggtitle("Persistent Wasting: 6 Months Interval")
-ggsave(PW, filename = paste0(BV_dir, "/results/figures/wasting/PW6.png"))
+ggsave(PW, filename = paste0(here::here(), "/figures/wasting/PW6.png"))
 
 # Prevalence by 3 month interval
 P <- plot(d, Disease = "Wasting", Measure = "Prevalence", ageRange = "3 months") #+
   #ggtitle("Wasting Prevalence: 3 Months Interval")
-ggsave(P, filename = paste0(BV_dir, "/results/figures/wasting/prevalence3.png"))
+ggsave(P, filename = paste0(here::here(), "/figures/wasting/prevalence3.png"))
 
 # Recovery by 30-day intervals
 R <- plot(d, Disease = "Wasting", Measure = "Recovery", 
      ageRange = c("30 days", "60 days", "90 days")) #+
   #ggtitle("Wasting Recovery: 6 Months Interval")
-ggsave(R, filename = paste0(BV_dir, "/results/figures/wasting/recovery6.png"))
+ggsave(R, filename = paste0(here::here(), "/figures/wasting/recovery6.png"))
 
 #-------------------------------------------------------------------------------
 # Stunting
@@ -223,22 +222,22 @@ ggsave(R, filename = paste0(BV_dir, "/results/figures/wasting/recovery6.png"))
 # Cumulative incidence by 3 month interval
 CI <- plot(d, Disease = "Stunting", Measure = "Cumulative incidence", ageRange = "3 months")# +
   #ggtitle("Stunting Cumulative Incidence: 3 Months Interval")
-ggsave(CI, filename = paste0(BV_dir, "/results/figures/stunting/CI3.png"))
+ggsave(CI, filename = paste0(here::here(), "/figures/stunting/CI3.png"))
 
 # Incidence proportion by 3 month interval
 IP <- plot(d, Disease = "Stunting", Measure = "Incidence proportion", ageRange = "3 months")# +
   #ggtitle("Stunting Incidence Proportion: 3 Months Interval")
-ggsave(IP, filename = paste0(BV_dir, "/results/figures/stunting/IP3.png"))
+ggsave(IP, filename = paste0(here::here(), "/figures/stunting/IP3.png"))
 
 # Mean LAZ by 3 month interval
 LAZ <- plot(d, Disease = "Stunting", Measure = "Mean LAZ", ageRange = "3 months") #+
   #ggtitle("Mean LAZ: 3 Months Interval")
-ggsave(LAZ, filename = paste0(BV_dir, "/results/figures/stunting/LAZ3.png"))
+ggsave(LAZ, filename = paste0(here::here(), "/figures/stunting/LAZ3.png"))
 
 # Prevalence by 3 month interval
 P <- plot(d, Disease = "Stunting", Measure = "Prevalence", ageRange = "3 months") #+
   #ggtitle("Stunting Prevalence: 3 Months Interval")
-ggsave(P, filename = paste0(BV_dir, "/results/figures/stunting/prevalence3.png"))
+ggsave(P, filename = paste0(here::here(), "/figures/stunting/prevalence3.png"))
 
 #-------------------------------------------------------------------------------
 #  Co-Occurrence
@@ -246,12 +245,12 @@ ggsave(P, filename = paste0(BV_dir, "/results/figures/stunting/prevalence3.png")
 # Incidence proportion by 3 month interval
 IP <- plot(d, Disease = "co-occurrence", Measure = "Incidence proportion", ageRange = "3 months") #+
   #ggtitle("Co-Occurrence Incidence Proportion: 3 Months Interval")
-ggsave(IP, filename = paste0(BV_dir, "/results/figures/co-oc/IP3.png"))
+ggsave(IP, filename = paste0(here::here(), "/figures/co-oc/IP3.png"))
 
 # Prevalence by 3 month interval
 P <- plot(d, Disease = "co-occurrence", Measure = "Prevalence", ageRange = "3 months") #+
   #ggtitle("Co-Occurrence Prevalence: 3 Months Interval")
-ggsave(P, filename = paste0(BV_dir, "/results/figures/co-oc/prevalence3.png"))
+ggsave(P, filename = paste0(here::here(), "/figures/co-oc/prevalence3.png"))
 
 #-------------------------------------------------------------------------------
 #  Underweight
@@ -259,12 +258,12 @@ ggsave(P, filename = paste0(BV_dir, "/results/figures/co-oc/prevalence3.png"))
 # Mean WAZ by 3 month interval
 WAZ <- plot(d, Disease = "Underweight", Measure = "Mean WAZ", ageRange = "3 months") #+
   #ggtitle("Mean WAZ: 3 Months Interval")
-ggsave(WAZ, filename = paste0(BV_dir, "/results/figures/underweight/WAZ3.png"))
+ggsave(WAZ, filename = paste0(here::here(), "/figures/underweight/WAZ3.png"))
 
 # Prevalence by 3 month interval
 P <- plot(d, Disease = "Underweight", Measure = "Prevalence", ageRange = "3 months") #+
   #ggtitle("Underweight Prevalence: 3 Months Interval")
-ggsave(P, filename = paste0(BV_dir, "/results/figures/underweight/prevalence3.png"))
+ggsave(P, filename = paste0(here::here(), "/figures/underweight/prevalence3.png"))
 
 
 

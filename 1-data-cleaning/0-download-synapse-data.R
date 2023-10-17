@@ -22,3 +22,10 @@ elicit <- synGet(entity='syn30277820', downloadLocation = "/home/andrew.mertens/
 vital_milkdata <- synapserutils::syncFromSynapse('syn27634422', path = "/data/KI/imic/data/raw_lab_data/vital") 
 elicit_milkdata <- synapserutils::syncFromSynapse('syn27634377', path = "/data/KI/imic/data/raw_lab_data/elicit") 
 
+
+
+library(synapser) 
+library(synapserutils) 
+
+synLogin('synapse_username', 'password') 
+files <- synapserutils::syncFromSynapse('syn22280923') 
