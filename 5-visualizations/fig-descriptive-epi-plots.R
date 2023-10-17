@@ -2,17 +2,15 @@
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 
-# #Load data
+# # #Load data
 # d <- readRDS(paste0(BV_dir,"/results/desc_data_cleaned.rds"))
 # wast <- readRDS(paste0(ghapdata_dir,"wasting_data.rds"))
 # stunt <- readRDS(paste0(ghapdata_dir,"stunting_data.rds"))
 # uwt <- readRDS(paste0(ghapdata_dir,"underweight_data.rds"))
 # 
-# save(d, wast, stunt, uwt, file=paste0(here::here(),"/results/imic_anthro_data.Rdata"))
+#  save(d, wast, stunt, uwt, file=paste0(here::here(),"/results/imic_anthro_data.Rdata"))
 load(paste0(here::here(),"/results/imic_anthro_data.Rdata"))
 
-table(d$cohort)
-d$cohort <- d$studyid
 table(d$cohort)
 
 #Subset to primary analysis
