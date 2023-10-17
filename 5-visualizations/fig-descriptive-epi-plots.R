@@ -11,6 +11,7 @@ source(paste0(here::here(), "/0-config.R"))
 # save(d, wast, stunt, uwt, file=paste0(here::here(),"/results/imic_anthro_data.Rdata"))
 load(paste0(here::here(),"/results/imic_anthro_data.Rdata"))
 
+table(d$cohort)
 d$cohort <- d$studyid
 table(d$cohort)
 
