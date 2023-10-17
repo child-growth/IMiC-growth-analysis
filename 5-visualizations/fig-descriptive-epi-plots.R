@@ -83,6 +83,8 @@ ggplot(stunt, aes(x=agedays,y=haz)) + geom_jitter() + geom_smooth() + facet_wrap
 # Mean Z-scores by date 
 #-------------------------------------------------------------------------------
 
+p<-ggplot(wast %>% filter(agedays < 15), aes(x=yday(anthro_date)/365*12, y=whz)) + geom_smooth() + facet_wrap(~studyid, scale="free")
+
 p<-ggplot(wast, aes(x=anthro_date,y=whz)) + geom_smooth() + facet_wrap(~studyid, scale="free")
 p<-ggplot(wast, aes(x=yday(anthro_date),y=whz)) + geom_smooth() + facet_wrap(~studyid, scale="free")
 
