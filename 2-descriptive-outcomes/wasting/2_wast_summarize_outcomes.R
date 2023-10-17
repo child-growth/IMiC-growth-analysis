@@ -13,61 +13,14 @@ source(paste0(here::here(),"/0-project-functions/0_descriptive_epi_wast_function
 
 load(paste0(ghapdata_dir, "Wasting_inc_data.RData"))
 
-# We start with ELICIT----------------------------------------------------------
 
-length(unique(paste0(d$studyid,d$country)))
-d %>% ungroup() %>% distinct(studyid, country) %>% summarise(N=n())
-
-table(d $ country)
-
-# Filter to include only Elicit
-df <- d %>%
-  filter(country == "TANZANIA, UNITED REPUBLIC OF")
-table(df$agedays)
-
-df <- d %>%
-  filter(country == "PAKISTAN")
-table(df$agedays)
-
-
-
-
-#Overall absolute counts
-df <- d %>% filter(agedays < 19 * 30.4167) %>% 
-  mutate(wast = 1*(whz < -2),
-         sevwast = 1*(whz < -3))
-table(df$wast)
-prop.table(table(df$wast))*100
-table(df$sevwast)
-prop.table(table(df$sevwast))*100
-
-
-#Number wasted by 3 months
-df2 <- df %>% filter(agedays < 3 * 30.4167) %>% group_by(studyid, country, subjid) %>%
-  mutate(anywast = 1*(min(whz) < -2)) %>% slice(1)
-table(df2$anywast)
-prop.table(table(df2$anywast))
-
-
-#Wasting recovery
-df2 <- d %>% group_by(studyid, country, subjid) %>% mutate(wast=max(wast_inc), 
-                                                           rec=max(wast_rec)) %>% 
-  filter(wast==1)
-table(df2$rec)
-prop.table(table(df2$rec))
-
-
-#Severe wasting recovery
-df2 <- d %>% group_by(studyid, country, subjid) %>% mutate(wast=max(sevwast_inc),
-                                                           rec=max(sevwast_rec)) %>% 
-  filter(wast==1)
-table(df2$rec)
-prop.table(table(df2$rec))
 
 #Prevalence
 d <- calc.prev.agecat(d)
-prev.data <- summary.prev.whz(d)
-prev.country <- d %>% group_by(country) %>% do(summary.prev.whz(.)$prev.res) 
+table(d$studyid, d$agecat)
+
+prev.data <- summary.prev.whz(d, N_filter=2)
+#prev.country <- d %>% group_by(country) %>% do(summary.prev.whz(.)$prev.res) 
 prev.cohort <-
   prev.data$prev.cohort %>% subset(., select = c(cohort, agecat, nmeas,  prev, 
                                                  ci.lb,  ci.ub)) %>%
@@ -75,13 +28,13 @@ prev.cohort <-
 
 prev <- bind_rows(
   data.frame(cohort = "pooled", prev.data$prev.res),
-  data.frame(cohort = "pooled", prev.country),
+  #data.frame(cohort = "pooled", prev.country),
   prev.cohort
 )
 
 #Severe wasting prevalence
 sev.prev.data <- summary.prev.whz(d, severe.wasted = T)
-sev.prev.country <- d %>% group_by(country) %>% do(summary.prev.whz(., severe.wasted = T)$prev.res) 
+#sev.prev.country <- d %>% group_by(country) %>% do(summary.prev.whz(., severe.wasted = T)$prev.res) 
 
 sev.prev.cohort <-
   sev.prev.data$prev.cohort %>% subset(., select = c(cohort, agecat, nmeas,  prev,
@@ -90,13 +43,13 @@ sev.prev.cohort <-
 
 sev.prev <- bind_rows(
   data.frame(cohort = "pooled", sev.prev.data$prev.res),
-  data.frame(cohort = "pooled", sev.prev.country),
+  #data.frame(cohort = "pooled", sev.prev.country),
   sev.prev.cohort
 )
 
 #mean whz
 whz.data <- summary.whz(d)
-whz.country <- d %>% group_by(country) %>% do(summary.whz(.)$whz.res) 
+#whz.country <- d %>% group_by(country) %>% do(summary.whz(.)$whz.res) 
 whz.cohort <-
   whz.data$whz.cohort %>% subset(., select = c(cohort, agecat, nmeas,  meanwhz,
                                                ci.lb,  ci.ub)) %>%
@@ -104,7 +57,7 @@ whz.cohort <-
 
 whz <- bind_rows(
   data.frame(cohort = "pooled", whz.data$whz.res),
-  data.frame(cohort = "pooled", whz.country),
+ # data.frame(cohort = "pooled", whz.country),
   whz.cohort
 )
 
@@ -125,14 +78,14 @@ prop.table(table(d3_raw_first_inc$agecat)) * 100
 
 #RE pooled estimates
 ci.data3 <- summary.wast.ci(d3, age.range=3)
-ci.country3 <- d3 %>% group_by(country) %>% do(summary.wast.ci(., age.range=3)$ci.res) 
+#ci.country3 <- d3 %>% group_by(country) %>% do(summary.wast.ci(., age.range=3)$ci.res) 
 ci.cohort3 <-
   ci.data3$ci.cohort %>% subset(., select = c(cohort, agecat,  yi,  ci.lb,  ci.ub)) %>%
   rename(est = yi,  lb = ci.lb,  ub = ci.ub)
 
 ci_3 <- bind_rows(
   data.frame(cohort = "pooled", ci.data3$ci.res),
-  data.frame(cohort = "pooled", ci.country3),
+  #data.frame(cohort = "pooled", ci.country3),
   ci.cohort3
 ) 
 
@@ -163,8 +116,8 @@ ci.data024 <-  lapply(levels(cuminc.data$agecat),function(x)
 d3_nobirth <- calc.ci.agecat(d, range = 3, birth="no")
 
 ci.data3_nobirth <- summary.wast.ci(d3_nobirth, age.range=3, birthstrat = T)
-ci.country3_nobirth <- d3_nobirth %>% group_by(country) %>% 
-  do(summary.wast.ci(., age.range=3, birthstrat = T)$ci.res) 
+# ci.country3_nobirth <- d3_nobirth %>% group_by(country) %>% 
+#   do(summary.wast.ci(., age.range=3, birthstrat = T)$ci.res) 
 ci.cohort3_nobirth <-
   ci.data3_nobirth$ci.cohort %>% subset(., select = c(cohort, agecat,  yi,
                                                       ci.lb,  ci.ub)) %>%
@@ -172,7 +125,7 @@ ci.cohort3_nobirth <-
 
 ci_3_nobirth <- bind_rows(
   data.frame(cohort = "pooled", ci.data3_nobirth$ci.res),
-  data.frame(cohort = "pooled", ci.country3_nobirth),
+  #data.frame(cohort = "pooled", ci.country3_nobirth),
   ci.cohort3
 )
 
@@ -182,7 +135,7 @@ ci.data3_nobirth$ci.res
 
 #Incidence proportions 3 month intervals
 ip.data3 <- summary.incprop(d3)
-ip.country3 <- d3 %>% group_by(country) %>% do(summary.incprop(.)$ci.res) 
+#ip.country3 <- d3 %>% group_by(country) %>% do(summary.incprop(.)$ci.res) 
 ip.cohort3 <-
   ip.data3$ci.cohort %>% 
   subset(., select = c(cohort, agecat,  yi,  ci.lb, ci.ub)) %>%
@@ -190,14 +143,14 @@ ip.cohort3 <-
 
 ip_3 <- bind_rows(
   data.frame(cohort = "pooled", ip.data3$ci.res),
-  data.frame(cohort = "pooled", ip.country3),
+  #data.frame(cohort = "pooled", ip.country3),
   ip.cohort3
 )
 
 #Incidence proportions 3 month intervals - no birth
 ip.data3_nobirth <- summary.incprop(d3_nobirth)
-ip.country3_nobirth <- d3_nobirth %>% group_by(country) %>%
-  do(summary.incprop(.)$ci.res) 
+# ip.country3_nobirth <- d3_nobirth %>% group_by(country) %>%
+#   do(summary.incprop(.)$ci.res) 
 ip.cohort3_nobirth <-
   ip.data3_nobirth$ci.cohort %>%
   subset(., select = c(cohort, agecat,  yi,  ci.lb,  ci.ub)) %>%
@@ -205,7 +158,7 @@ ip.cohort3_nobirth <-
 
 ip_3_nobirth <- bind_rows(
   data.frame(cohort = "pooled", ip.data3_nobirth$ci.res),
-  data.frame(cohort = "pooled", ip.country3_nobirth),
+  #data.frame(cohort = "pooled", ip.country3_nobirth),
   ip.cohort3_nobirth
 )
 
@@ -213,8 +166,8 @@ ip_3_nobirth <- bind_rows(
 #Cumulative inc, no birth
 d_noBW <- calc.ci.agecat(d_noBW, range = 6)
 ci.data.nobirth <- summary.wast.ci(d_noBW, age.range=6)
-ci.country.nobirth <- d %>% group_by(country) %>% 
-  do(summary.wast.ci(., age.range=6)$ci.res) 
+# ci.country.nobirth <- d %>% group_by(country) %>% 
+#   do(summary.wast.ci(., age.range=6)$ci.res) 
 ci.cohort.nobirth <-
   ci.data.nobirth$ci.cohort %>% subset(., select = c(cohort, agecat,  yi, 
                                                      ci.lb,  ci.ub)) %>%
@@ -222,7 +175,7 @@ ci.cohort.nobirth <-
 
 ci_nobw <- bind_rows(
   data.frame(cohort = "pooled", ci.data.nobirth$ci.res),
-  data.frame(cohort = "pooled", ci.country.nobirth),
+  #data.frame(cohort = "pooled", ci.country.nobirth),
   ci.cohort.nobirth
 )
 
@@ -230,8 +183,8 @@ ci_nobw <- bind_rows(
 #Cumulative inc 3 month intervals
 d3 <- calc.ci.agecat(d_noBW)
 ci.data.nobirth3 <- summary.wast.ci(d3, age.range=3)
-ci.country.nobirth3 <- d3 %>% group_by(country) %>% 
-  do(summary.wast.ci(., age.range=3)$ci.res) 
+# ci.country.nobirth3 <- d3 %>% group_by(country) %>% 
+#   do(summary.wast.ci(., age.range=3)$ci.res) 
 ci.cohort.nobirth3 <-
   ci.data.nobirth3$ci.cohort %>% subset(., select = c(cohort, agecat,  yi,
                                                       ci.lb,  ci.ub)) %>%
@@ -242,7 +195,7 @@ ci_nobw3 <- bind_rows(
     cohort = "pooled",
     ci.data.nobirth3$ci.res
   ),
-  data.frame(cohort = "pooled", ci.country.nobirth3),
+  #data.frame(cohort = "pooled", ci.country.nobirth3),
   ci.cohort.nobirth3
 )
 
@@ -251,8 +204,8 @@ ci_nobw3 <- bind_rows(
 d <- calc.ci.agecat(d, range = 6)
 agelst = list("0-6 months", "6-12 months", "12-18 months")
 sev.ci.data <- summary.wast.ci(d=d,  severe.wasted = T, age.range=6)
-sev.ci.country <- d %>% group_by(country) %>% 
-  do(summary.wast.ci(., severe.wasted = T, age.range=6)$ci.res) 
+# sev.ci.country <- d %>% group_by(country) %>% 
+#   do(summary.wast.ci(., severe.wasted = T, age.range=6)$ci.res) 
 
 sev.ci.cohort <-
   sev.ci.data$ci.cohort %>% 
@@ -261,14 +214,14 @@ sev.ci.cohort <-
 
 sev.ci <- bind_rows(
   data.frame(cohort = "pooled", sev.ci.data$ci.res),
-  data.frame(cohort = "pooled", sev.ci.country),
+  #data.frame(cohort = "pooled", sev.ci.country),
   sev.ci.cohort
 )
 
 
 #Incidence rate
 ir.data <- summary.ir(d)
-ir.country <- d %>% group_by(country) %>% do(summary.ir(.)$ir.res) 
+#ir.country <- d %>% group_by(country) %>% do(summary.ir(.)$ir.res) 
 ir.cohort <-
   ir.data$ir.cohort %>% subset(., select = c(studyid, country, cohort, agecat,
                                              yi,  ci.lb,  ci.ub)) %>%
@@ -276,14 +229,14 @@ ir.cohort <-
 
 ir <- bind_rows(
   data.frame(cohort = "pooled", ir.data$ir.res),
-  data.frame(cohort = "pooled", ir.country),
+  #data.frame(cohort = "pooled", ir.country),
   ir.cohort
 )
 
 #Incidence rate - no birth wasting
 ir.data.nobirth <- summary.ir(d_noBW)
-ir.country.nobirth <- d_noBW %>% group_by(country) %>% 
-  do(summary.ir(.)$ir.res) 
+# ir.country.nobirth <- d_noBW %>% group_by(country) %>% 
+#   do(summary.ir(.)$ir.res) 
 ir.cohort.nobirth <-
   ir.data$ir.cohort %>% subset(., select = c(studyid, country,cohort, agecat, 
                                              yi,  ci.lb,  ci.ub)) %>%
@@ -291,14 +244,14 @@ ir.cohort.nobirth <-
 
 ir_noBW <- bind_rows(
   data.frame(cohort = "pooled", ir.data.nobirth$ir.res),
-  data.frame(cohort = "pooled", ir.country.nobirth),
+  #data.frame(cohort = "pooled", ir.country.nobirth),
   ir.cohort.nobirth
 )
 
 #Incidence rate - severe wasting
 sev.ir.data <- summary.ir(d, sev.wasting = T)
-sev.ir.country <- d %>% group_by(country) %>% 
-  do(summary.ir(., sev.wasting = T)$ir.res) 
+# sev.ir.country <- d %>% group_by(country) %>% 
+#   do(summary.ir(., sev.wasting = T)$ir.res) 
 sev.ir.cohort <-
   sev.ir.data$ir.cohort %>% subset(., select = c(studyid, country,cohort, agecat, 
                                                  yi,  ci.lb,  ci.ub)) %>%
@@ -306,7 +259,7 @@ sev.ir.cohort <-
 
 sev.ir <- bind_rows(
   data.frame(cohort = "pooled", sev.ir.data$ir.res),
-  data.frame(cohort = "pooled", sev.ir.country),
+  #data.frame(cohort = "pooled", sev.ir.country),
   sev.ir.cohort
 )
 
@@ -321,7 +274,7 @@ agelst3 = list(
   "15-18 months"
 )
 ir.data <- summary.ir(d3)
-ir.country <- d3 %>% group_by(country) %>% do(summary.ir(.)$ir.res) 
+#ir.country <- d3 %>% group_by(country) %>% do(summary.ir(.)$ir.res) 
 ir.cohort <-
   ir.data$ir.cohort %>% subset(., select = c(studyid, country,cohort, agecat, 
                                              yi, ci.lb, ci.ub)) %>%
@@ -329,14 +282,14 @@ ir.cohort <-
 
 ir3 <- bind_rows(
   data.frame(cohort = "pooled", ir.data$ir.res),
-  data.frame(cohort = "pooled", ir.country),
+  #data.frame(cohort = "pooled", ir.country),
   ir.cohort
 )
 
 #Incidence rate - no birth wasting
 d_noBW <- calc.ci.agecat(d_noBW, range = 3)
 ir.data.nobirth <- summary.ir(d_noBW)
-ir.country.nobirth <- d_noBW %>% group_by(country) %>% do(summary.ir(.)$ir.res) 
+#ir.country.nobirth <- d_noBW %>% group_by(country) %>% do(summary.ir(.)$ir.res) 
 ir.cohort.nobirth <-
   ir.data$ir.cohort %>% subset(., select = c(studyid, country,cohort, agecat, 
                                              yi,  ci.lb,  ci.ub)) %>%
@@ -344,7 +297,7 @@ ir.cohort.nobirth <-
 
 ir_noBW3 <- bind_rows(
   data.frame(cohort = "pooled", ir.data.nobirth$ir.res),
-  data.frame(cohort = "pooled", ir.country.nobirth),
+  #data.frame(cohort = "pooled", ir.country.nobirth),
   ir.cohort.nobirth
 )
 
@@ -405,31 +358,30 @@ rec90<- bind_rows(
 
 #Persistant wasting
 perswast.data <- summary.perswast(d)
-perswast.country <- d %>% group_by(country) %>% do(summary.perswast(.)$pers.res) 
+#perswast.country <- d %>% group_by(country) %>% do(summary.perswast(.)$pers.res) 
 perswast.cohort <-
   perswast.data$pers.cohort %>% subset(., select = c(cohort, agecat,  yi,  ci.lb,  ci.ub)) %>%
   rename(est = yi,  lb = ci.lb,  ub = ci.ub)
 
 perswast <- bind_rows(
   data.frame(cohort = "pooled", perswast.data$pers.res),
-  data.frame(cohort = "pooled", perswast.country),
+  #data.frame(cohort = "pooled", perswast.country),
   perswast.cohort
 )
 
 #0-24 month persistent wasting
 df<- d %>% mutate(agecat="0-18 months")
 perswast.data <- summary.perswast(df)
-perswast.country <- df %>% group_by(country) %>% do(summary.perswast(.)$pers.res) 
+#perswast.country <- df %>% group_by(country) %>% do(summary.perswast(.)$pers.res) 
 perswast.cohort <-
   perswast.data$pers.cohort %>% subset(., select = c(cohort, agecat,  yi,  ci.lb,  ci.ub)) %>%
   rename(est = yi,  lb = ci.lb,  ub = ci.ub)
 
 perswast024 <- bind_rows(
   data.frame(cohort = "pooled", perswast.data$pers.res),
-  data.frame(cohort = "pooled", perswast.country),
+  #data.frame(cohort = "pooled", perswast.country),
   perswast.cohort
 )
-save(perswast024, file = paste0(BV_dir,"/results/persistent_wasting018_elicit.Rdata"))
 
 
 
@@ -473,16 +425,11 @@ wasting_desc_data <- bind_rows(
   data.frame(disease = "Wasting", age_range="60 days", birth="yes", 
              severe="no", measure= "Recovery", rec60),
   data.frame(disease = "Wasting", age_range="90 days", birth="yes", 
-             severe="no", measure= "Recovery", rec90)#,
-  # data.frame(disease = "Wasting", age_range="3 months",   birth="yes", 
-  #severe="no", measure= "Cumulative incidence - no recovery", ci_3_noRec),
-  # data.frame(disease = "Wasting", age_range="6 months",   birth="yes", 
-  #severe="yes", measure= "Cumulative incidence - no recovery", sev.ci_noRec),
-  # data.frame(disease = "Wasting", age_range="6 months",   birth="yes", 
-  #severe="no", measure= "Incidence rate - no recovery", ir_noRec)
-)
+             severe="no", measure= "Recovery", rec90))
 
 wasting_desc_data <- droplevels(wasting_desc_data)
+
+table(wasting_desc_data$studyid)
 
 wasting_desc_data <- wasting_desc_data %>% 
   subset(., select = -c(se, nmeas.f,  ptest.f, pt.f))
@@ -505,511 +452,7 @@ table(is.na(wasting_desc_data$pooling))
 #clean country names
 wasting_desc_data$country[wasting_desc_data$country=="TANZANIA, UNITED REPUBLIC OF"] <- "TANZANIA"
 wasting_desc_data$country <- stringr::str_to_title(wasting_desc_data$country)
-elicit <- wasting_desc_data
 
-table(elicit $ studyid, elicit $ country)
-
-# Mark the dataset by the studyid and country
-elicit $ studyid = "ELICIT"
-elicit $ country = "Tanzania"
-elicit $ cohort <- case_when(elicit $ cohort == "VITAL-Lactation-PAKISTAN" ~
-                               "ELICIT-TANZANIA, UNITED REPUBLIC OF", 
-                             TRUE ~ elicit $ cohort)
-
-#saveRDS(wasting_desc_data, file = paste0(BV_dir,"/results/wasting_desc_data_elicit.RDS"))
-
-# Now we move onto VITAL--------------------------------------------------------
-load(paste0(ghapdata_dir, "Wasting_inc_data.RData"))
-
-length(unique(paste0(d$studyid,d$country)))
-d %>% ungroup() %>% distinct(studyid, country) %>% summarise(N=n())
-
-# Filter to include only VITAL
-d <- d %>%
-  filter(country == "PAKISTAN")
-
-#Overall absolute counts
-df <- d %>% filter(agedays < 7*30.4167) %>% 
-  mutate(wast = 1*(whz < -2),
-         sevwast = 1*(whz < -3))
-table(df$wast)
-prop.table(table(df$wast))*100
-table(df$sevwast)
-prop.table(table(df$sevwast))*100
-
-
-#Number wasted by 3 months
-df2 <- df %>% filter(agedays < 3 *30.4167) %>% group_by(studyid, country, subjid) %>%
-  mutate(anywast = 1*(min(whz) < -2)) %>% slice(1)
-table(df2$anywast)
-prop.table(table(df2$anywast))
-
-
-#Wasting recovery
-df2 <- d %>% group_by(studyid, country, subjid) %>% mutate(wast=max(wast_inc), 
-                                                           rec=max(wast_rec)) %>% 
-  filter(wast==1)
-table(df2$rec)
-prop.table(table(df2$rec))
-
-
-#Severe wasting recovery
-df2 <- d %>% group_by(studyid, country, subjid) %>% mutate(wast=max(sevwast_inc),
-                                                           rec=max(sevwast_rec)) %>% 
-  filter(wast==1)
-table(df2$rec)
-prop.table(table(df2$rec))
-
-
-
-#Prevalence
-d <- calc.prev.agecat(d)
-prev.data <- summary.prev.whz(d)
-prev.country <- d %>% group_by(country) %>% do(summary.prev.whz(.)$prev.res) 
-prev.cohort <-
-  prev.data$prev.cohort %>% subset(., select = c(cohort, agecat, nmeas,  prev, 
-                                                 ci.lb,  ci.ub)) %>%
-  rename(est = prev,  lb = ci.lb,  ub = ci.ub)
-
-prev <- bind_rows(
-  data.frame(cohort = "pooled", prev.data$prev.res),
-  data.frame(cohort = "pooled", prev.country),
-  prev.cohort
-)
-
-#Severe wasting prevalence
-sev.prev.data <- summary.prev.whz(d, severe.wasted = T)
-sev.prev.country <- d %>% group_by(country) %>% do(summary.prev.whz(., severe.wasted = T)$prev.res) 
-
-sev.prev.cohort <-
-  sev.prev.data$prev.cohort %>% subset(., select = c(cohort, agecat, nmeas,  prev,
-                                                     ci.lb,  ci.ub)) %>%
-  rename(est = prev,  lb = ci.lb,  ub = ci.ub)
-
-sev.prev <- bind_rows(
-  data.frame(cohort = "pooled", sev.prev.data$prev.res),
-  data.frame(cohort = "pooled", sev.prev.country),
-  sev.prev.cohort
-)
-
-#mean whz
-whz.data <- summary.whz(d)
-whz.country <- d %>% group_by(country) %>% do(summary.whz(.)$whz.res) 
-whz.cohort <-
-  whz.data$whz.cohort %>% subset(., select = c(cohort, agecat, nmeas,  meanwhz,
-                                               ci.lb,  ci.ub)) %>%
-  rename(est = meanwhz,  lb = ci.lb,  ub = ci.ub)
-
-whz <- bind_rows(
-  data.frame(cohort = "pooled", whz.data$whz.res),
-  data.frame(cohort = "pooled", whz.country),
-  whz.cohort
-)
-
-#Cumulative inc 3 month intervals
-d3 <- calc.ci.agecat.vital(d, range = 3)
-length(unique(paste0(d3$studyid, d3$subjid)))
-
-#Calculate the raw  proportion of ever-wasted children who became wasted at each age
-d3_raw <- d3 %>% group_by(studyid, subjid) %>% filter(!is.na(agecat)) %>%
-  mutate(minwhz=min(whz)) %>% filter(minwhz < -2) %>% arrange(agedays) %>% 
-  mutate(sum_inc=cumsum(wast_inc))
-
-length(unique(paste0(d3_raw$studyid, d3_raw$subjid)))
-d3_raw_first_inc <- d3_raw %>% filter(sum_inc==1) %>% slice(1)
-dim(d3_raw_first_inc)
-table(d3_raw_first_inc$agecat)
-prop.table(table(d3_raw_first_inc$agecat)) * 100
-
-#RE pooled estimates
-ci.data3 <- summary.wast.ci(d3, age.range=3)
-ci.country3 <- d3 %>% group_by(country) %>% do(summary.wast.ci(., age.range=3)$ci.res) 
-ci.cohort3 <-
-  ci.data3$ci.cohort %>% subset(., select = c(cohort, agecat,  yi,  ci.lb,  ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-ci_3 <- bind_rows(
-  data.frame(cohort = "pooled", ci.data3$ci.res),
-  data.frame(cohort = "pooled", ci.country3),
-  ci.cohort3
-) 
-
-#0-6 cumulative inc
-df<- d3 %>% mutate(agecat="0-6 months")
-evs = df %>%
-  #filter(agedays < 731) %>%
-  group_by(studyid,country,subjid) %>%
-  arrange(studyid,subjid) %>%
-  mutate(minwhz=min(whz, na.rm=T)) %>%
-  mutate(ever_wasted=ifelse(minwhz< -2,1,0),
-         agecat=factor(agecat))
-cuminc.data= evs%>%
-  group_by(studyid,country,agecat) %>%
-  summarise(
-    nchild=length(unique(subjid)),
-    nstudy=length(unique(studyid)),
-    ncases=sum(ever_wasted),
-    N=sum(length(ever_wasted))) %>%
-  filter(N>=50)
-ci.data024 <-  lapply(levels(cuminc.data$agecat),function(x)
-  fit.rma(data=cuminc.data,ni="N", xi="ncases",age=x,measure="PLO",
-          nlab=" measurements", method="REML"))
-
-
-
-#Cumulative inc 3 month - birth as seperate category
-d3_nobirth <- calc.ci.agecat.vital(d, range = 3, birth="no")
-
-ci.data3_nobirth <- summary.wast.ci(d3_nobirth, age.range=3, birthstrat = T)
-ci.country3_nobirth <- d3_nobirth %>% group_by(country) %>% 
-  do(summary.wast.ci(., age.range=3, birthstrat = T)$ci.res) 
-ci.cohort3_nobirth <-
-  ci.data3_nobirth$ci.cohort %>% subset(., select = c(cohort, agecat,  yi,
-                                                      ci.lb,  ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-ci_3_nobirth <- bind_rows(
-  data.frame(cohort = "pooled", ci.data3_nobirth$ci.res),
-  data.frame(cohort = "pooled", ci.country3_nobirth),
-  ci.cohort3
-)
-
-ci.data3$ci.res
-ci.data3_nobirth$ci.res
-
-
-#Incidence proportions 3 month intervals
-ip.data3 <- summary.incprop(d3)
-ip.country3 <- d3 %>% group_by(country) %>% do(summary.incprop(.)$ci.res) 
-ip.cohort3 <-
-  ip.data3$ci.cohort %>% 
-  subset(., select = c(cohort, agecat,  yi,  ci.lb, ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-ip_3 <- bind_rows(
-  data.frame(cohort = "pooled", ip.data3$ci.res),
-  data.frame(cohort = "pooled", ip.country3),
-  ip.cohort3
-)
-
-#Incidence proportions 3 month intervals - no birth
-ip.data3_nobirth <- summary.incprop(d3_nobirth)
-ip.country3_nobirth <- d3_nobirth %>% group_by(country) %>%
-  do(summary.incprop(.)$ci.res) 
-ip.cohort3_nobirth <-
-  ip.data3_nobirth$ci.cohort %>%
-  subset(., select = c(cohort, agecat,  yi,  ci.lb,  ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-ip_3_nobirth <- bind_rows(
-  data.frame(cohort = "pooled", ip.data3_nobirth$ci.res),
-  data.frame(cohort = "pooled", ip.country3_nobirth),
-  ip.cohort3_nobirth
-)
-
-
-#Cumulative inc, no birth
-d_noBW <- calc.ci.agecat.vital(d_noBW, range = 6)
-ci.data.nobirth <- summary.wast.ci(d_noBW, age.range=6)
-ci.country.nobirth <- d %>% group_by(country) %>% 
-  do(summary.wast.ci(., age.range=6)$ci.res) 
-ci.cohort.nobirth <-
-  ci.data.nobirth$ci.cohort %>% subset(., select = c(cohort, agecat,  yi, 
-                                                     ci.lb,  ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-ci_nobw <- bind_rows(
-  data.frame(cohort = "pooled", ci.data.nobirth$ci.res),
-  data.frame(cohort = "pooled", ci.country.nobirth),
-  ci.cohort.nobirth
-)
-
-
-#Cumulative inc 3 month intervals
-d3 <- calc.ci.agecat.vital(d_noBW)
-ci.data.nobirth3 <- summary.wast.ci(d3, age.range=3)
-ci.country.nobirth3 <- d3 %>% group_by(country) %>% 
-  do(summary.wast.ci(., age.range=3)$ci.res) 
-ci.cohort.nobirth3 <-
-  ci.data.nobirth3$ci.cohort %>% subset(., select = c(cohort, agecat,  yi,
-                                                      ci.lb,  ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-ci_nobw3 <- bind_rows(
-  data.frame(
-    cohort = "pooled",
-    ci.data.nobirth3$ci.res
-  ),
-  data.frame(cohort = "pooled", ci.country.nobirth3),
-  ci.cohort.nobirth3
-)
-
-
-#Cumulative inc of severe wasting
-d <- calc.ci.agecat.vital(d, range = 6)
-agelst = list("0-3 months", "3-6 months")
-sev.ci.data <- summary.wast.ci(d=d,  severe.wasted = T, age.range=6)
-sev.ci.country <- d %>% group_by(country) %>% 
-  do(summary.wast.ci(., severe.wasted = T, age.range=6)$ci.res) 
-
-sev.ci.cohort <-
-  sev.ci.data$ci.cohort %>% 
-  subset(., select = c(cohort, agecat,  yi,  ci.lb,  ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-sev.ci <- bind_rows(
-  data.frame(cohort = "pooled", sev.ci.data$ci.res),
-  data.frame(cohort = "pooled", sev.ci.country),
-  sev.ci.cohort
-)
-
-
-#Incidence rate
-ir.data <- summary.ir(d)
-ir.country <- d %>% group_by(country) %>% do(summary.ir(.)$ir.res) 
-ir.cohort <-
-  ir.data$ir.cohort %>% subset(., select = c(studyid, country, cohort, agecat,
-                                             yi,  ci.lb,  ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-ir <- bind_rows(
-  data.frame(cohort = "pooled", ir.data$ir.res),
-  data.frame(cohort = "pooled", ir.country),
-  ir.cohort
-)
-
-#Incidence rate - no birth wasting
-ir.data.nobirth <- summary.ir(d_noBW)
-ir.country.nobirth <- d_noBW %>% group_by(country) %>% 
-  do(summary.ir(.)$ir.res) 
-ir.cohort.nobirth <-
-  ir.data$ir.cohort %>% subset(., select = c(studyid, country,cohort, agecat, 
-                                             yi,  ci.lb,  ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-ir_noBW <- bind_rows(
-  data.frame(cohort = "pooled", ir.data.nobirth$ir.res),
-  data.frame(cohort = "pooled", ir.country.nobirth),
-  ir.cohort.nobirth
-)
-
-#Incidence rate - severe wasting
-sev.ir.data <- summary.ir(d, sev.wasting = T)
-sev.ir.country <- d %>% group_by(country) %>% 
-  do(summary.ir(., sev.wasting = T)$ir.res) 
-sev.ir.cohort <-
-  sev.ir.data$ir.cohort %>% subset(., select = c(studyid, country,cohort, agecat, 
-                                                 yi,  ci.lb,  ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-sev.ir <- bind_rows(
-  data.frame(cohort = "pooled", sev.ir.data$ir.res),
-  data.frame(cohort = "pooled", sev.ir.country),
-  sev.ir.cohort
-)
-
-#Incidence rate - 3 month intervals
-d3 <- calc.ci.agecat.vital(d, range = 3)
-agelst3 = list(
-  "0-3 months",
-  "3-6 months"
-)
-ir.data <- summary.ir(d3)
-ir.country <- d3 %>% group_by(country) %>% do(summary.ir(.)$ir.res) 
-ir.cohort <-
-  ir.data$ir.cohort %>% subset(., select = c(studyid, country,cohort, agecat, 
-                                             yi, ci.lb, ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-ir3 <- bind_rows(
-  data.frame(cohort = "pooled", ir.data$ir.res),
-  data.frame(cohort = "pooled", ir.country),
-  ir.cohort
-)
-
-#Incidence rate - no birth wasting
-d_noBW <- calc.ci.agecat.vital(d_noBW, range = 3)
-ir.data.nobirth <- summary.ir(d_noBW)
-ir.country.nobirth <- d_noBW %>% group_by(country) %>% do(summary.ir(.)$ir.res) 
-ir.cohort.nobirth <-
-  ir.data$ir.cohort %>% subset(., select = c(studyid, country,cohort, agecat, 
-                                             yi,  ci.lb,  ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-ir_noBW3 <- bind_rows(
-  data.frame(cohort = "pooled", ir.data.nobirth$ir.res),
-  data.frame(cohort = "pooled", ir.country.nobirth),
-  ir.cohort.nobirth
-)
-
-
-
-#Duration
-df <- d %>% group_by(studyid, subjid, episode_id) %>% slice(1) %>%
-  filter(!is.na(wasting_duration)) %>%
-  filter(agedays < 30.6417 * 7)
-
-median(df$wasting_duration, na.rm=T)
-#Quantile CI's'
-sort(df$wasting_duration)[qbinom(c(.025,.975), length(df$wasting_duration), 0.5)]
-
-#Recovery within 30, 60 days
-#Overall
-df <- d %>% filter(agedays < 30.4617 * 7)
-df$agecat <- "0-6 months"
-overall.rec.data30 <- summary.rec60(df, length = 30)
-overall.rec.data60 <- summary.rec60(df, length = 60)
-#overall.rec.data90 <- summary.rec60(df, length = 90)
-overall.rec.data30$ci.res
-overall.rec.data60$ci.res
-#overall.rec.data90$ci.res
-
-#Age-strat
-d <- calc.ci.agecat.vital(d, range = 6)
-rec.data30 <- summary.rec60( d, length = 30)
-rec.data60 <- summary.rec60( d, length = 60)
-#rec.data90 <- summary.rec60( d, length = 90)
-rec30.country <- d %>% group_by(country) %>% do(summary.rec60( ., length = 30)$ci.res) 
-rec60.country <- d %>% group_by(country) %>% do(summary.rec60( ., length = 60)$ci.res) 
-#rec90.country <- d %>% group_by(country) %>% do(summary.rec60( ., length = 90)$ci.res) 
-
-rec30.cohort <-
-  rec.data30$ci.cohort %>% subset(., select = c(cohort, agecat,  yi,  ci.lb,  ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-rec60.cohort <-
-  rec.data60$ci.cohort %>% subset(., select = c(cohort, agecat,  yi,  ci.lb,  ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-#rec90.cohort <-
-#  rec.data90$ci.cohort %>% subset(., select = c(cohort, agecat,  yi,  ci.lb,  ci.ub)) %>%
-#  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-rec30<- bind_rows(
-  data.frame(cohort = "pooled", rec.data30$ci.res),
-  data.frame(cohort = "pooled", rec30.country),
-  rec30.cohort
-)
-rec60<- bind_rows(
-  data.frame(cohort = "pooled", rec.data60$ci.res),
-  data.frame(cohort = "pooled", rec60.country),
-  rec60.cohort
-)
-#rec90<- bind_rows(
- # data.frame(cohort = "pooled", rec.data90$ci.res),
-  #data.frame(cohort = "pooled", rec90.country),
-  #rec90.cohort
-#)
-
-#Persistant wasting
-perswast.data <- summary.perswast(d)
-perswast.country <- d %>% group_by(country) %>% do(summary.perswast(.)$pers.res) 
-perswast.cohort <-
-  perswast.data$pers.cohort %>% subset(., select = c(cohort, agecat,  yi,  ci.lb,  ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-perswast <- bind_rows(
-  data.frame(cohort = "pooled", perswast.data$pers.res),
-  data.frame(cohort = "pooled", perswast.country),
-  perswast.cohort
-)
-
-#0-6 month persistent wasting
-df<- d %>% mutate(agecat="0-6 months")
-perswast.data <- summary.perswast(df)
-perswast.country <- df %>% group_by(country) %>% do(summary.perswast(.)$pers.res) 
-perswast.cohort <-
-  perswast.data$pers.cohort %>% subset(., select = c(cohort, agecat,  yi,  ci.lb,  ci.ub)) %>%
-  rename(est = yi,  lb = ci.lb,  ub = ci.ub)
-
-perswast024 <- bind_rows(
-  data.frame(cohort = "pooled", perswast.data$pers.res),
-  data.frame(cohort = "pooled", perswast.country),
-  perswast.cohort
-)
-save(perswast06, file = paste0(BV_dir,"/results/persistent_wasting06_vital.Rdata"))
-
-
-
-wasting_desc_data <- bind_rows(
-  data.frame(disease = "Wasting", age_range="3 months", birth="yes", 
-             severe="no", measure= "Prevalence", prev),
-  data.frame(disease = "Wasting", age_range="3 months", birth="yes", 
-             severe="yes", measure= "Prevalence", sev.prev),
-  data.frame(disease = "Wasting", age_range="3 months", birth="yes", 
-             severe="no", measure= "Mean WLZ",  whz),
-  #data.frame(disease = "Wasting", age_range="1 month", birth="yes", 
-  #severe="no", measure= "Mean WLZ",  monthly.whz),
-  data.frame(disease = "Wasting", age_range="3 months", birth="yes", 
-             severe="no", measure= "Cumulative incidence", ci_3),
-  data.frame(disease = "Wasting", age_range="3 months", birth="strat", 
-             severe="no", measure= "Cumulative incidence", ci_3_nobirth),
-  data.frame(disease = "Wasting", age_range="3 months", birth="yes", 
-             severe="no", measure= "Incidence_proportion", ip_3),
-  data.frame(disease = "Wasting", age_range="3 months", birth="strat", 
-             severe="no", measure= "Incidence_proportion", ip_3_nobirth),
-  data.frame(disease = "Wasting", age_range="6 months", birth="no",  
-             severe="no",   measure= "Cumulative incidence", ci_nobw),
-  data.frame(disease = "Wasting", age_range="3 months", birth="no",  
-             severe="no",   measure= "Cumulative incidence", ci_nobw3),
-  data.frame(disease = "Wasting", age_range="6 months", birth="yes", 
-             severe="yes", measure= "Cumulative incidence", sev.ci),
-  data.frame(disease = "Wasting", age_range="6 months", birth="yes", 
-             severe="no", measure= "Incidence rate", ir),
-  data.frame(disease = "Wasting", age_range="6 months", birth="no", 
-             severe="no", measure= "Incidence rate", ir_noBW),
-  data.frame(disease = "Wasting", age_range="3 months", birth="yes", 
-             severe="no", measure= "Incidence rate",  ir3),
-  data.frame(disease = "Wasting", age_range="3 months", birth="no", 
-             severe="no", measure= "Incidence rate",  ir_noBW3),  
-  data.frame(disease = "Wasting", age_range="6 months", birth="yes", 
-             severe="yes", measure= "Incidence rate",  sev.ir),
-  data.frame(disease = "Wasting", age_range="6 months", birth="yes", 
-             severe="no", measure= "Persistent wasting", perswast),
-  data.frame(disease = "Wasting", age_range="30 days", birth="yes", 
-             severe="no", measure= "Recovery", rec30),
-  data.frame(disease = "Wasting", age_range="60 days", birth="yes", 
-             severe="no", measure= "Recovery", rec60),
-  #data.frame(disease = "Wasting", age_range="90 days", birth="yes", 
-     #        severe="no", measure= "Recovery", rec90)#,
-  # data.frame(disease = "Wasting", age_range="3 months",   birth="yes", 
-  #severe="no", measure= "Cumulative incidence - no recovery", ci_3_noRec),
-  # data.frame(disease = "Wasting", age_range="6 months",   birth="yes", 
-  #severe="yes", measure= "Cumulative incidence - no recovery", sev.ci_noRec),
-  # data.frame(disease = "Wasting", age_range="6 months",   birth="yes", 
-  #severe="no", measure= "Incidence rate - no recovery", ir_noRec)
-)
-
-wasting_desc_data <- droplevels(wasting_desc_data)
-
-wasting_desc_data <- wasting_desc_data %>% 
-  subset(., select = -c(se, nmeas.f,  ptest.f, pt.f))
-
-unique(wasting_desc_data$agecat)
-wasting_desc_data$agecat <- factor(wasting_desc_data$agecat, 
-                                   levels=unique(wasting_desc_data$agecat))
-
-#Add in variable for level of pooling
-wasting_desc_data <- wasting_desc_data %>% 
-  mutate(pooling = case_when(
-    cohort != "pooled" ~ "no pooling",
-    cohort == "pooled" & !is.na(country) ~ "country"
-  ))
-
-table(wasting_desc_data$pooling)
-table(is.na(wasting_desc_data$pooling))
-
-# Save dataset
-vital <- wasting_desc_data
-
-# Mark the dataset by the studyid and country
-vital $ studyid = "VITAL-Lactation"
-vital $ country = "Pakistan"
-vital $ cohort <- case_when(vital $ cohort == "ELICIT-TANZANIA, UNITED REPUBLIC OF" ~
-                               "VITAL-Lactation-PAKISTAN", 
-                             TRUE ~ vital $ cohort)
-
-
-# Combine the two datasets
-wasting_desc_data <- rbind(vital, elicit)
 
 # Save dataset
 saveRDS(wasting_desc_data, file = paste0(BV_dir,"/results/wasting_desc_data.RDS"))

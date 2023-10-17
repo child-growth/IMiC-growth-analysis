@@ -7,8 +7,11 @@ source(paste0(here::here(), "/0-config.R"))
 # Read in master data file
 #--------------------------------------------
 
-d <- readRDS(paste0(ghapdata_dir, "FINAL_only_included_studies.rds"))
-#d <- readRDS(paste0(ghapdata_dir, "ki-manuscript-dataset.rds"))
+#d <- readRDS(paste0(ghapdata_dir, "FINAL_only_included_studies.rds"))
+d <- readRDS(paste0(ghapdata_dir, "imic_combined_anthro.rds"))
+
+table(d$studyid, !is.na(d$anthro_date), !is.na(d$haz))
+
 dim(d)
 head(d)
 
@@ -23,7 +26,7 @@ length(unique(paste0(d$studyid,d$country,d$subjid)))
 # Subset to  just identifying and anthro data
 #--------------------------------------------
 
-d <- d %>% subset(., select=c(studyid, subjid, country, arm, sex, agedays, haz, whz, waz, muaz))
+d <- d %>% subset(., select=c(studyid, subjid, country, arm, sex, anthro_date, agedays, haz, whz, waz, muaz))
 
 #Check for duplicate agedays
 dup_age <- d %>% group_by(studyid, subjid, agedays) %>%
