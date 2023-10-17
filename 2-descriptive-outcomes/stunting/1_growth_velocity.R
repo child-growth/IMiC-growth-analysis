@@ -8,13 +8,8 @@ rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 library(growthstandards)
 
-d <- readRDS(paste0(ghapdata_dir,"FINAL_only_included_studies.rds"))
-
-# check included cohorts NOTE: won't match because some studies not dropped 
-#yet/arms dropped at bottom of the script assert_that(setequal(unique(d$studyid),
-#monthly_and_quarterly_cohorts),
-#             msg = "Check data. Included cohorts do not match.")
-
+d <- readRDS(paste0(ghapdata_dir, "imic_combined_anthro.rds"))
+#NOTE! This data hasn't excluded outliers yet
 
 d <- as.data.table(d)
 setkeyv(d, cols = c("country","studyid","subjid"))

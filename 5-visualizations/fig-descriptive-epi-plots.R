@@ -4,6 +4,10 @@ source(paste0(here::here(), "/0-config.R"))
 
 #Load data
 d <- readRDS(paste0(BV_dir,"/results/desc_data_cleaned.rds"))
+wast <- readRDS(paste0(ghapdata_dir,"wasting_data.rds"))
+stunt <- readRDS(paste0(ghapdata_dir,"stunting_data.rds"))
+uwt <- readRDS(paste0(ghapdata_dir,"underweight_data.rds"))
+
 
 #Subset to primary analysis
 d <- d %>% mutate(pooling=ifelse(cohort=="pooled" & is.na(pooling),
@@ -61,8 +65,34 @@ d $ agecat <- factor(d $ agecat,
                                "6-12", "12-18"))
 
 #-------------------------------------------------------------------------------
-# Mean WLZ by month  -NEED TO ADD
+# Mean Z-scores by age 
 #-------------------------------------------------------------------------------
+
+ggplot(stunt, aes(x=agedays,y=haz)) + geom_smooth() + facet_wrap(~studyid)
+ggplot(wast, aes(x=agedays,y=whz)) + geom_smooth() + facet_wrap(~studyid)
+ggplot(uwt, aes(x=agedays,y=waz)) + geom_smooth() + facet_wrap(~studyid)
+
+
+ggplot(stunt, aes(x=agedays,y=haz)) + geom_jitter() + geom_smooth() + facet_wrap(~studyid)
+
+#-------------------------------------------------------------------------------
+# Mean Z-scores by date 
+#-------------------------------------------------------------------------------
+
+ggplot(wast, aes(x=anthro_date,y=whz)) + geom_smooth() + facet_wrap(~studyid, scale="free")
+ggplot(wast, aes(x=yday(anthro_date),y=whz)) + geom_smooth() + facet_wrap(~studyid, scale="free")
+
+ggplot(wast, aes(x=yday(anthro_date)/365*12,y=whz)) + geom_smooth() + facet_wrap(~studyid) + xlab("month")
+ggplot(wast, aes(x=yday(anthro_date)/365*12,y=whz)) + geom_jitter(alpha=0.2) + geom_smooth() + facet_wrap(~studyid) + xlab("month")
+ggplot(wast, aes(x=anthro_date,y=whz)) + geom_jitter(alpha=0.2) + geom_smooth() + facet_wrap(~studyid, scale="free")
+
+ggplot(uwt, aes(x=yday(anthro_date)/365*12,y=waz)) + geom_smooth() + facet_wrap(~studyid) + xlab("month")
+ggplot(uwt, aes(x=yday(anthro_date)/365*12,y=waz)) + geom_jitter(alpha=0.2) + geom_smooth() + facet_wrap(~studyid) + xlab("month")
+
+yday(wast$anthro_date)
+
+wast$anthro_date[wast$studyid=="MISAME-3"]
+
 
 # df <- d %>% filter(
 #   disease == "Wasting" &
