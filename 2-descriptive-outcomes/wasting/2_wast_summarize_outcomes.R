@@ -445,13 +445,9 @@ wasting_desc_data <- wasting_desc_data %>%
     cohort == "pooled" & !is.na(country) ~ "country"
   ))
 
-table(wasting_desc_data$pooling)
+table(wasting_desc_data$studyid)
 table(is.na(wasting_desc_data$pooling))
 
-
-#clean country names
-wasting_desc_data$country[wasting_desc_data$country=="TANZANIA, UNITED REPUBLIC OF"] <- "TANZANIA"
-wasting_desc_data$country <- stringr::str_to_title(wasting_desc_data$country)
 
 
 # Save dataset

@@ -16,7 +16,7 @@ d <- bind_rows(stunt, wast, co_desc_data#,
                # stunt_fe, wast_fe, co_fe,
                # stunt_monthly24
                )
-table(d$studyid, d$disease)
+table(d$cohort, d$disease)
 
 
 d$agecat <- factor(d$agecat, levels=unique(d$agecat))
@@ -42,13 +42,10 @@ d<-distinct(d)
 dim(d)
 
 
-#Temporary: drop pooled estimates
-d <- d %>% filter(cohort!="pooled")
-
-
 d <- droplevels(d)
 
 table(d$disease, d$measure)
+table(d$cohort, d$disease)
 
 
 
