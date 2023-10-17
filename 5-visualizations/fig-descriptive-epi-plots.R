@@ -12,6 +12,7 @@ source(paste0(here::here(), "/0-config.R"))
 load(paste0(here::here(),"/results/imic_anthro_data.Rdata"))
 
 table(d$cohort)
+d$cohort <- factor(d$cohort, levels=c("pooled", "ELICIT-TANZANIA",    "MISAME-3-BURKINA FASO","VITAL-Lactation-PAKISTAN"))
 
 #Subset to primary analysis
 d <- d %>% mutate(pooling=ifelse(cohort=="pooled" & is.na(pooling),
@@ -168,8 +169,9 @@ plot <- function (d, Disease, Measure, ageRange) {
     theme(axis.text.x = element_text(margin =margin(t = 0, r = 0, b = 0, l = 0),
                                      size = 14)) +
     theme(axis.title.y = element_text(size = 14)) +
-    ggtitle("") + facet_wrap(~cohort) +
-    theme(strip.text = element_text(size=12, margin = margin(t = 0)))
+    ggtitle("") + facet_wrap(~cohort, nrow=1) +
+    theme(strip.text = element_text(size=12, margin = margin(t = 0))) +
+    xlab("Age") + ylab(Measure)
   return(p)
 }
 
@@ -179,43 +181,43 @@ plot <- function (d, Disease, Measure, ageRange) {
 # Cumulative incidence by 3 month interval
 CI <- plot(d, Disease = "Wasting", Measure = "Cumulative incidence", ageRange = "3 months") #+
   #ggtitle("Wasting Cumulative Incidence: 3 Months Interval")
-ggsave(CI, filename = paste0(here::here(), "/figures/wasting/CI3.png"))
+ggsave(CI, filename = paste0(here::here(), "/figures/wasting/CI3.png"), width=12, height=4)
 
 # Incidence proportion by 3 month interval
 IP <- plot(d, Disease = "Wasting", Measure = "Incidence proportion", ageRange = "3 months") #+
   #ggtitle("Wasting Incidence Proportion: 3 Months Interval")
-ggsave(IP, filename = paste0(here::here(), "/figures/wasting/IP3.png"))
+ggsave(IP, filename = paste0(here::here(), "/figures/wasting/IP3.png"), width=12, height=4)
 
 # Incidence rate by 3 month interval
 IR <- plot(d, Disease = "Wasting", Measure = "Incidence rate", ageRange = "3 months") #+
   #ggtitle("Wasting Incidence Rate: 3 Months Interval")
-ggsave(IR, filename = paste0(here::here(), "/figures/wasting/IR3.png"))
+ggsave(IR, filename = paste0(here::here(), "/figures/wasting/IR3.png"), width=12, height=4)
 
 # Incidence rate by 6 month interval
 IR <- plot(d, Disease = "Wasting", Measure = "Incidence rate", ageRange = "6 months") #+
   #ggtitle("Wasting Incidence Rate: 6 Months Interval")
-ggsave(IR, filename = paste0(here::here(), "/figures/wasting/IR6.png"))
+ggsave(IR, filename = paste0(here::here(), "/figures/wasting/IR6.png"), width=12, height=4)
 
 # Mean WLZ by 3 month interval
 WLZ <- plot(d, Disease = "Wasting", Measure = "Mean WLZ", ageRange = "3 months") #+
   #ggtitle("Mean WLZ: 3 Months Interval")
-ggsave(WLZ, filename = paste0(here::here(), "/figures/wasting/WLZ3.png"))
+ggsave(WLZ, filename = paste0(here::here(), "/figures/wasting/WLZ3.png"), width=12, height=4)
 
 # Persistent wasting by 6 month interval
 PW <- plot(d, Disease = "Wasting", Measure = "Persistent wasting", ageRange = "6 months") #+
   #ggtitle("Persistent Wasting: 6 Months Interval")
-ggsave(PW, filename = paste0(here::here(), "/figures/wasting/PW6.png"))
+ggsave(PW, filename = paste0(here::here(), "/figures/wasting/PW6.png"), width=12, height=4)
 
 # Prevalence by 3 month interval
 P <- plot(d, Disease = "Wasting", Measure = "Prevalence", ageRange = "3 months") #+
   #ggtitle("Wasting Prevalence: 3 Months Interval")
-ggsave(P, filename = paste0(here::here(), "/figures/wasting/prevalence3.png"))
+ggsave(P, filename = paste0(here::here(), "/figures/wasting/prevalence3.png"), width=12, height=4)
 
 # Recovery by 30-day intervals
 R <- plot(d, Disease = "Wasting", Measure = "Recovery", 
      ageRange = c("30 days", "60 days", "90 days")) #+
   #ggtitle("Wasting Recovery: 6 Months Interval")
-ggsave(R, filename = paste0(here::here(), "/figures/wasting/recovery6.png"))
+ggsave(R, filename = paste0(here::here(), "/figures/wasting/recovery6.png"), width=12, height=4)
 
 #-------------------------------------------------------------------------------
 # Stunting
@@ -223,22 +225,22 @@ ggsave(R, filename = paste0(here::here(), "/figures/wasting/recovery6.png"))
 # Cumulative incidence by 3 month interval
 CI <- plot(d, Disease = "Stunting", Measure = "Cumulative incidence", ageRange = "3 months")# +
   #ggtitle("Stunting Cumulative Incidence: 3 Months Interval")
-ggsave(CI, filename = paste0(here::here(), "/figures/stunting/CI3.png"))
+ggsave(CI, filename = paste0(here::here(), "/figures/stunting/CI3.png"), width=12, height=4)
 
 # Incidence proportion by 3 month interval
 IP <- plot(d, Disease = "Stunting", Measure = "Incidence proportion", ageRange = "3 months")# +
   #ggtitle("Stunting Incidence Proportion: 3 Months Interval")
-ggsave(IP, filename = paste0(here::here(), "/figures/stunting/IP3.png"))
+ggsave(IP, filename = paste0(here::here(), "/figures/stunting/IP3.png"), width=12, height=4)
 
 # Mean LAZ by 3 month interval
 LAZ <- plot(d, Disease = "Stunting", Measure = "Mean LAZ", ageRange = "3 months") #+
   #ggtitle("Mean LAZ: 3 Months Interval")
-ggsave(LAZ, filename = paste0(here::here(), "/figures/stunting/LAZ3.png"))
+ggsave(LAZ, filename = paste0(here::here(), "/figures/stunting/LAZ3.png"), width=12, height=4)
 
 # Prevalence by 3 month interval
 P <- plot(d, Disease = "Stunting", Measure = "Prevalence", ageRange = "3 months") #+
   #ggtitle("Stunting Prevalence: 3 Months Interval")
-ggsave(P, filename = paste0(here::here(), "/figures/stunting/prevalence3.png"))
+ggsave(P, filename = paste0(here::here(), "/figures/stunting/prevalence3.png"), width=12, height=4)
 
 #-------------------------------------------------------------------------------
 #  Co-Occurrence
@@ -246,12 +248,12 @@ ggsave(P, filename = paste0(here::here(), "/figures/stunting/prevalence3.png"))
 # Incidence proportion by 3 month interval
 IP <- plot(d, Disease = "co-occurrence", Measure = "Incidence proportion", ageRange = "3 months") #+
   #ggtitle("Co-Occurrence Incidence Proportion: 3 Months Interval")
-ggsave(IP, filename = paste0(here::here(), "/figures/co-oc/IP3.png"))
+ggsave(IP, filename = paste0(here::here(), "/figures/co-oc/IP3.png"), width=12, height=4)
 
 # Prevalence by 3 month interval
 P <- plot(d, Disease = "co-occurrence", Measure = "Prevalence", ageRange = "3 months") #+
   #ggtitle("Co-Occurrence Prevalence: 3 Months Interval")
-ggsave(P, filename = paste0(here::here(), "/figures/co-oc/prevalence3.png"))
+ggsave(P, filename = paste0(here::here(), "/figures/co-oc/prevalence3.png"), width=12, height=4)
 
 #-------------------------------------------------------------------------------
 #  Underweight
@@ -259,12 +261,12 @@ ggsave(P, filename = paste0(here::here(), "/figures/co-oc/prevalence3.png"))
 # Mean WAZ by 3 month interval
 WAZ <- plot(d, Disease = "Underweight", Measure = "Mean WAZ", ageRange = "3 months") #+
   #ggtitle("Mean WAZ: 3 Months Interval")
-ggsave(WAZ, filename = paste0(here::here(), "/figures/underweight/WAZ3.png"))
+ggsave(WAZ, filename = paste0(here::here(), "/figures/underweight/WAZ3.png"), width=12, height=4)
 
 # Prevalence by 3 month interval
 P <- plot(d, Disease = "Underweight", Measure = "Prevalence", ageRange = "3 months") #+
   #ggtitle("Underweight Prevalence: 3 Months Interval")
-ggsave(P, filename = paste0(here::here(), "/figures/underweight/prevalence3.png"))
+ggsave(P, filename = paste0(here::here(), "/figures/underweight/prevalence3.png"), width=12, height=4)
 
 
 
