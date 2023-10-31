@@ -91,4 +91,4 @@ hounde_precipitation = average_precipitation_over_time(cbind(c(11.5, -3.5)),
 hounde_precipitation$study = c(rep("MISAME", nrow(hounde_precipitation)))
 
 all_precipitation = rbind(rehri_goth_precipitation, haydom_precipitation, hounde_precipitation)
-write.csv(all_precipitation, "all_precipitation.csv", row.names=FALSE)
+write.csv(all_precipitation, paste0(here(),"/data/all_precipitation.csv"), row.names=FALSE)

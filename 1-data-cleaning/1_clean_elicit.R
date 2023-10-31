@@ -127,13 +127,6 @@ elicit <- left_join(elicit, elicit_bm, by = c("SUBJIDO", "VISIT"))
 dim(elicit)
 table(!is.na(elicit$BMC_Collection_Date))
 
-# dim(lazpivot1)
-# dim(distinct(lazpivot1))
-# dim(lazpivot2)
-# dim(distinct(lazpivot2))
-# lazmerged <- merge(lazpivot1,lazpivot2, by=c("pid", "Sampling Round (LAZ)"))
-# lazmerged
-# dim(lazmerged)
 
 elicit <- left_join(elicit,lazmerged, by = c("SUBJIDO", "VISIT"))
 
@@ -147,3 +140,5 @@ elicit$COUNTRY <- "TANZANIA"
 
 saveRDS(elicit,file="/data/imic/data/harmonized_datasets/clean/elicit_clean.RDS")
 dim(elicit)
+
+

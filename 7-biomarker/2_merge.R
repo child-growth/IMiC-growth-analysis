@@ -1,8 +1,8 @@
-Merge wide and biomarker datasets using the BMID variable for both VITAL and ELICIT.
-Author: Sajia Darwish
+# Merge wide and biomarker datasets using the BMID variable for both VITAL and ELICIT.
+# Author: Sajia Darwish
 
 ## Load libraries
-```{r}
+
 BV_dir = "/data/KI/imic/"
 
 library(DataExplorer)
@@ -10,12 +10,12 @@ library(tidyverse)
 library(table1)
 library(data.table)
 library(SmartEDA)
-```
+
 
 # ELICIT
 
 ## Load datasets: wide + biomarker
-```{r}
+
 wideElicit <- readRDS("/data/KI/imic/results/wideElicit.RDS")
 
 hmo <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/HMO_ELICIT.csv")
@@ -35,10 +35,10 @@ biocrates <- rename("bmid_base" = "X", biocrates)
 
 metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/elicit/milk_analytes/MetaboIndicators/Biocrates_ELICIT_Normalized_MetaboINDICATOR.csv")
 metabolInd <- rename("bmid_base" = "X", metabolInd)
-```
+
 
 ## Merge
-```{r}
+
 hmoMerged <- merge(wideElicit, hmo, by = "bmid_base", all = TRUE)
 saveRDS(hmoMerged, file = paste0(BV_dir, "/data/raw_lab_data/elicit/merged/hmo.RDS"))
 
@@ -56,10 +56,9 @@ saveRDS(biocratesMerged, file = paste0(BV_dir, "/data/raw_lab_data/elicit/merged
 
 metabolIndMerged <- merge(wideElicit, metabolInd, by = "bmid_base", all = TRUE)
 saveRDS(metabolIndMerged, file = paste0(BV_dir, "/data/raw_lab_data/elicit/merged/metabolInd.RDS"))
-```
+
 
 # VITAL
-```{r, echo=FALSE}
 wideVital <- readRDS("/data/KI/imic/results/wideVital.RDS")
 
 hmo <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/HMO_VITAL.csv")
@@ -128,10 +127,10 @@ saveRDS(pblNorm, file = paste0(BV_dir, "/data/raw_lab_data/vital/milk_analytes/p
 
 metabolInd <- read.csv("/data/KI/imic/data/raw_lab_data/vital/milk_analytes/MetaboIndicators/Biocrates_VITAL_Normalized_MetaboINDICATOR.csv")
 metabolInd <- rename("bmid_base" = "X", metabolInd)
-```
+
 
 ## Merge
-```{r}
+
 hmoMerged <- merge(wideVital, hmo, by = "bmid_base", all = TRUE)
 saveRDS(hmoMerged, file = paste0(BV_dir, "/data/raw_lab_data/vital/merged/hmo.RDS"))
 
@@ -156,7 +155,7 @@ saveRDS(pblMerged, file = paste0(BV_dir, "/data/raw_lab_data/vital/merged/pbl.RD
 
 metabolIndMerged <- merge(wideVital, metabolInd, by = "bmid_base", all = TRUE)
 saveRDS(metabolIndMerged, file = paste0(BV_dir, "/data/raw_lab_data/vital/merged/metabolInd.RDS"))
-```
+
 
 
 

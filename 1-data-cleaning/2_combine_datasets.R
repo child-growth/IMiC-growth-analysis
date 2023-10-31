@@ -33,8 +33,13 @@ dfull <- bind_rows(vital, elicit, misame)
 colnames(dfull) <- tolower(colnames(dfull))
 table(dfull$country)
 
+table(dfull$studyid,is.na(dfull$bmc_collection_date))
+
 #Save full dataset
 saveRDS(dfull, "/data/imic/data/combined_raw_data.rds")
+
+dfull %>% group_by(studyid) %>%
+  summarise(min(anthro_date, na.rm=T), max(anthro_date, na.rm=T))
 
 
 #Subset to rows with growth measures
@@ -70,3 +75,41 @@ meas_freq_tab
 saveRDS(d, "/data/imic/data/imic_combined_anthro.rds")
 gc()
 
+
+
+
+#can code into improved or not
+#https://washdata.org/monitoring/drinking-water
+unique(d$h2osrcp)
+table(d$studyid, d$h2osrcp)
+
+
+
+# The JMP also differentiates populations using unimproved sources such as unprotected wells or springs,
+# and populations drinking surface water collected directly from a river, dam, lake, stream or irrigation canal. 
+d <- d %>%
+  mutate(improved_water=case_when(h2osrcp %in% c("Piped", "Piped to yard/plot", "Public tap/stand pipe","Protected well","Tube well or borehole" ,"Tap in yard",  
+                                                 "Pump well or borehole","Well dug: Protected pit",  "Public tap/public drinking fountain" ,"Boring" , "Community tap water"  ) ~ "Improved",
+                                  h2osrcp %in% c("Unprotected well",  "Surface water(river/dam/lake/pond/stream",     "Well dug: Non Protected pit" ,
+                                                 "Water tanker","Bottle"  ) ~ "Unimproved",
+                                  h2osrcp=="" ~ "missing"))
+table(d$studyid, d$improved_water)
+
+
+
+
+#floor code by improved material versus natural
+table(d$studyid, d$floor)
+d <- d %>%
+  mutate(improved_floor=case_when(floor %in% c("Cement", "Linoleum (plastic)",  "Tiles", "Tiles, parquet", "Wood") ~ 1,
+                                  floor %in% c("Natural/mud",  "Clay") ~ 0))
+table(d$studyid, d$improved_floor)
+
+
+
+
+#elicit breastfeeding - had just crudely coded it as if DUR_EBF>AGEDAYS, but age=183 at 6 months but DUR_BF is coded in 30 day chunks (180 days) 
+
+#date origin in misame
+
+#anthro visit number in vital (vno)

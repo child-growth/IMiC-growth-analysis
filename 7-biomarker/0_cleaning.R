@@ -1,18 +1,15 @@
----
-title: |
-  Cleaning biomarker datasets
-author: "Sajia Darwish"
-date: "`r format(Sys.time(), '%Y-%m-%d')`"
----
+# ---
+# title: |
+#   Cleaning biomarker datasets
+# author: "Sajia Darwish"
+# date: "`r format(Sys.time(), '%Y-%m-%d')`"
+# ---
 
 # Load libraries
-```{r}
 library(naniar)
 library(tidyverse)
-```
 
 # Make a cleaning function
-```{r message=FALSE, warning=FALSE}
 # Make a cleaning function
 cleanFunc <- function(data) {
   
@@ -35,10 +32,9 @@ cleanFunc <- function(data) {
   
   return(data)
 }
-```
+
 
 # HMO ELICIT
-```{r}
 hmo <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmo.RDS")
 
 # Filter out obs without Y
@@ -64,10 +60,8 @@ hmoClean $ haz_6m_simulated <- as.numeric(format(round(hmoClean $ haz_6m_simulat
 hmoClean $ family = "hmo"
 
 saveRDS(hmoClean, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS"))
-```
 
 # Biocrates ELICIT
-```{r}
 bioc <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocratesNorm.RDS")
 #biocClean <- cleanFunc(bioc)
 
@@ -109,10 +103,9 @@ newData $ haz_6m_simulated <- as.numeric(format(round(newData $ haz_6m_simulated
 newData $ family = "biocNorm"
 
 saveRDS(newData, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/biocNormClean.RDS"))
-```
+
 
 # Bvitamins ELICIT
-```{r}
 # Load data
 bvit <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/bvit.RDS")
 
@@ -141,10 +134,9 @@ bvitClean $ haz_6m_simulated <- as.numeric(format(round(bvitClean $ haz_6m_simul
 bvitClean $ family = "bvit"
 
 saveRDS(bvitClean, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/bvitClean.RDS"))
-```
+
 
 # Metabolomics ELICIT
-```{r}
 # Load data
 metabol <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/metabolInd.RDS")
 
@@ -173,10 +165,9 @@ metabolClean $ haz_6m_simulated <- as.numeric(format(round(metabolClean $ haz_6m
 metabolClean $ family = "metabInd"
 
 saveRDS(metabolClean, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/metabolClean.RDS"))
-```
+
 
 # Sapient ELICIT
-```{r}
 sapient <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/sapient.RDS")
 
 # Filter out obs without Y
@@ -209,10 +200,9 @@ sapient $ haz_6m_simulated <- as.numeric(format(round(sapient $ haz_6m_simulated
 sapient $ family = "sapient"
 
 saveRDS(sapient, file = paste0("/data/imic/data/raw_lab_data/elicit/merged_elicit/sapientClean.RDS"))
-```
+
 
 # Make one dataset with child ID's + baseline covariates + all biomarkers: ELICIT
-```{r}
 hmo <- readRDS("/data/imic/data/raw_lab_data/elicit/merged_elicit/hmoClean.RDS")
 
 # Collapse all data into long format
@@ -430,10 +420,8 @@ wideDataset <- LongDataset %>%
               values_from = all_of("value"))
 
 write.csv(wideDataset, file = "/data/imic/data/raw_lab_data/elicit/merged_elicit/wideDataset.csv")
-```
 
 # HMO VITAL
-```{r}
 hmo <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/hmo.RDS")
 #biocClean <- cleanFunc(bioc)
 #names(hmo)
@@ -463,10 +451,9 @@ hmoClean $ haz_6m_simulated <- as.numeric(format(round(hmoClean $ haz_6m_simulat
 hmoClean $ family = "hmo"
 
 saveRDS(hmoClean, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/hmoClean.RDS"))
-```
+
 
 # Biocrates VITAL
-```{r}
 bioc <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/biocratesNorm.RDS")
 #biocClean <- cleanFunc(bioc)
 
@@ -504,10 +491,9 @@ newData $ haz_6m_simulated <- as.numeric(format(round(newData $ haz_6m_simulated
 newData $ family = "biocNorm"
 
 saveRDS(newData, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/biocNormClean.RDS"))
-```
+
 
 # Pbl VITAL
-```{r}
 # Load data
 pbl <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/pblNorm.RDS")
 
@@ -531,10 +517,9 @@ pblClean $ haz_6m_simulated <- as.numeric(format(round(pblClean $ haz_6m_simulat
 pblClean $ family = "pbl"
 
 saveRDS(pblClean, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/pblClean.RDS"))
-```
+
 
 # Metabolomics VITAL
-```{r}
 # Load data
 metabol <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/metabolInd.RDS")
 
@@ -558,10 +543,8 @@ metabolClean $ haz_6m_simulated <- as.numeric(format(round(metabolClean $ haz_6m
 metabolClean $ family = "metabolInd"
 
 saveRDS(metabolClean, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/metabolClean.RDS"))
-```
 
 # Sapient VITAL
-```{r}
 sapient <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/sapient.RDS")
 
 # Filter out obs without Y
@@ -591,10 +574,10 @@ sapient $ haz_6m_simulated <- as.numeric(format(round(sapient $ haz_6m_simulated
 sapient $ family = "sapient"
 
 saveRDS(sapient, file = paste0("/data/imic/data/raw_lab_data/vital/merged_vital/sapientClean.RDS"))
-```
+
 
 # Make one dataset with child ID's + baseline covariates + all biomarkers: VITAL
-```{r}
+
 hmo <- readRDS("/data/imic/data/raw_lab_data/vital/merged_vital/hmoClean.RDS")
 
 # Collapse hmo data into long format
@@ -943,7 +926,7 @@ wideDataset <- LongDataset %>%
               values_from = all_of("value"))
 
 write.csv(wideDataset, file = "/data/imic/data/raw_lab_data/vital/merged_vital/wideDataset.csv")
-```
+
 
 
 
